@@ -137,12 +137,12 @@ def get_bubbles(
     bubble_rs = []
     v_tot = 0.0
 
-    rs = np.logspace(np.log10(min(Rhist)), np.log10(max(Rhist)), 1000)
 
     if use_tl_result:
         r_hist, p_log_r_norm = get_tl_data(
             xhi=xh
         )
+        rs = np.logspace(np.log10(min(Rhist)), np.log10(max(Rhist)), 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distro(
                 rs,
@@ -152,6 +152,7 @@ def get_bubbles(
             rs
         )
     else:
+        rs = np.logspace(-1,3, 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distr(
                 rs
