@@ -44,7 +44,7 @@ def get_tl_data(
         xhi = np.round(float(fil[ind + 2:ind + 6]), 1)
         data = pd.read_csv(box_dir + fil)
         bub_list[str(xhi)] = pd.DataFrame(
-            data=np.vstack((data['Muv'], data['R_cMpc'])).T,
+            data=np.vstack((data['R_cMpc'], data['R_cMpc'])).T,
             columns=['Muv', 'R_cMpc'])
     df = bub_list[str(xhi)]
     r_bubs = df.R_cMpc
