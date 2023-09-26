@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
 
 from venv.galaxy_prop import get_js, get_mock_data
-from venv.igm_prop import get_bubbles
+from venv.igm_prop import get_bubbles, calculate_taus
 
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom

@@ -5,6 +5,7 @@ from astropy.cosmology import Planck15
 
 wave_Lya = 1215.67 * u.Angstrom
 sigma_ion0 = 6.304e-18*u.cm**2.
+freq_Lya = (const.c / wave_Lya).to(u.Hz)
 
 
 def wave_to_dv(
@@ -41,6 +42,10 @@ def gaussian(
     return 1./(np.sqrt(2.*np.pi)*sig)*np.exp(-np.power((x - mu)/sig, 2.)/2)
 
 
+def dt_dz_func(z):
+    return 1. / ((1. + z) * Planck15.H(z))
+
+
 class LyaCrossSection(object):
     """
     Make Lya cross-section given temperature
@@ -60,7 +65,7 @@ class LyaCrossSection(object):
         self.av_T = self.av()
 
         # Cross-section peak
-        self.sig_Lya0 = 5.9e-14 * (self.T / 1.e4 / u.K) ** -0.5
+        self.sig_Lya0 = 5.9e-14 * (self.t / 1.e4 / u.K) ** -0.5
 
         return
 
@@ -297,7 +302,7 @@ def optical_depth(
         lya_cross = cross_sec.lya_cross_sec_x(xtab)
         # Calculate optical depth
         pre_fact = (const.c * dt_dz_func(z_tab) * xhi * over_density
-                    * n_H(z_tab)).to(1./u.cm**2.)
+                    * n_h(z_tab)).to(1./u.cm**2.)
         d_tau = pre_fact * lya_cross
 
         tau[ww] = np.trapz(d_tau, z_tab)

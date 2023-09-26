@@ -30,7 +30,7 @@ def delta_v_func(
         gamma = -0.3
     else:
         gamma = -0.7
-    return 0.32 * gamma * (Muv + 20.0 + 0.26 * z) + 2.34
+    return 0.32 * gamma * (muv + 20.0 + 0.26 * z) + 2.34
 
 
 def get_js(
@@ -119,6 +119,6 @@ def get_mock_data(
         else:
             z_end_bub = red_s
         x_b, y_b, z_b, r_bubs = get_bubbles(7.5, 0.8, 50)
-        tau = calculate_taus(x_b, y_b, z_b, r_bubs, red_s, z_end_bub, N_iter=1)
+        tau = calculate_taus(x_b, y_b, z_b, r_bubs, red_s, z_end_bub, n_iter=1)
         tau_data[i, :] = tau[0]
     return tau_data, xs, ys, zs

@@ -2,8 +2,12 @@ import numpy as np
 from scipy import integrate
 import os
 import pandas as pd
+from astropy import units as u
 
 from venv.helpers import optical_depth
+
+
+wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
 
 def get_tl_data(
@@ -141,7 +145,7 @@ def get_bubbles(
         r_hist, p_log_r_norm = get_tl_data(
             xhi=xh
         )
-        rs = np.logspace(np.log10(min(Rhist)), np.log10(max(Rhist)), 1000)
+        rs = np.logspace(np.log10(min(r_hist)), np.log10(max(r_hist)), 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distro(
                 rs,
@@ -162,33 +166,33 @@ def get_bubbles(
     try_i = 0
     tolerance = 0.01
     that_it = False
-    while abs(v_tot - (1 - xh) * z_v * max(Rhist) * max(Rhist)) / (
-            (1 - xh) * z_v * max(Rhist) * max(Rhist)) > tolerance:
+    while abs(v_tot - (1 - xh) * z_v * max(r_hist) * max(r_hist)) / (
+            (1 - xh) * z_v * max(r_hist) * max(r_hist)) > tolerance:
 
         random_numb = np.random.uniform(size=1)
         bubble_now = np.interp(random_numb, cdf / cdf[-1], rs[:-1])
 
-        random_x = np.random.uniform(-max(Rhist), max(Rhist))
-        random_y = np.random.uniform(-max(Rhist), max(Rhist))
+        random_x = np.random.uniform(-max(r_hist), max(r_hist))
+        random_y = np.random.uniform(-max(r_hist), max(r_hist))
         random_z = np.random.uniform(0, z_v)
 
         v = 4. * np.pi / 3. * bubble_now ** 3
         v_ded = 0.0
 
-        if random_x < -max(Rhist) + bubble_now:
-            h = -max(Rhist) - random_x + bubble_now
+        if random_x < -max(r_hist) + bubble_now:
+            h = -max(r_hist) - random_x + bubble_now
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
-        elif random_x > max(Rhist) - bubble_now:
-            h = bubble_now - (max(Rhist) - random_x)
+        elif random_x > max(r_hist) - bubble_now:
+            h = bubble_now - (max(r_hist) - random_x)
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
 
         v = v - v_ded
         v_ded = 0.
-        if random_y < -max(Rhist) + bubble_now:
-            h = -max(Rhist) - random_y + bubble_now
+        if random_y < -max(r_hist) + bubble_now:
+            h = -max(r_hist) - random_y + bubble_now
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
-        elif random_y > max(Rhist) - bubble_now:
-            h = bubble_now - (max(Rhist) - random_y)
+        elif random_y > max(r_hist) - bubble_now:
+            h = bubble_now - (max(r_hist) - random_y)
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
 
         v = v - v_ded
@@ -230,8 +234,8 @@ def get_bubbles(
             else:
                 continue
 
-        if (v_tot + v) / ((1 - xh) * z_v * max(Rhist) * max(Rhist)) > 1.0:
-            if abs(v_tot + v - (1 - xh) * z_v * max(Rhist) * max(Rhist)) / (
+        if (v_tot + v) / ((1 - xh) * z_v * max(r_hist) * max(r_hist)) > 1.0:
+            if abs(v_tot + v - (1 - xh) * z_v * max(r_hist) * max(r_hist)) / (
                     v_tot + v) < tolerance:
                 that_it = True
             else:
