@@ -33,9 +33,9 @@ def get_tl_data(
     dir_fg_z8_rall=datadir+'fg_rall_z'+str(z) + '/'
 
     if bg:
-        box_dir = vars()[dir_bg_z8_rall]
+        box_dir = dir_bg_z8_rall
     else:
-        box_dir = vars()[dir_fg_z8_rall]
+        box_dir = dir_fg_z8_rall
 
     bub_list = {}
     box_fills = np.sort(os.listdir(box_dir))
