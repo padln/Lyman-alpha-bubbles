@@ -49,7 +49,7 @@ def get_tl_data(
     df = bub_list[str(xhi)]
     r_bubs = df.R_cMpc
     bins = np.logspace(np.log10(0.4), np.log10(1.1 * np.max(r_bubs)), 12)
-    pr_hist, r_hist_edge = np.histogram(Rbubs, density=True, bins=bins)
+    pr_hist, r_hist_edge = np.histogram(r_bubs, density=True, bins=bins)
     r_hist = 0.5 * (r_hist_edge[:-1] + r_hist_edge[1:])  # calculate the centers
     yy = pr_hist * r_hist  # calculate the y values for the dP/dlogR plot
 
