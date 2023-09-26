@@ -5,7 +5,7 @@ from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
 
 from venv.helpers import wave_to_dv, gaussian
-from venv,igm_prop import get_bubbles
+from venv.igm_prop import get_bubbles
 from main import calculate_taus
 
 
