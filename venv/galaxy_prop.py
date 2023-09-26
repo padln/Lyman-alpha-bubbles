@@ -4,8 +4,8 @@ from numpy.random import normal
 from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
 
-from helpers import wave_to_dv, gaussian
-from igm_prop import get_bubbles
+from venv.helpers import wave_to_dv, gaussian
+from venv,igm_prop import get_bubbles
 from main import calculate_taus
 
 
