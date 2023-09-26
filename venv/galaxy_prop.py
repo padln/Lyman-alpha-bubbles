@@ -4,10 +4,9 @@ from numpy.random import normal
 from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
 
-from venv.helpers import wave_to_dv, gaussian
-from venv.igm_prop import get_bubbles
-from main import calculate_taus
-
+from venv.helpers import wave_to_dv, gaussian, optical_depth
+from venv.igm_prop import get_bubbles, calculate_taus
++
 
 def delta_v_func(
         muv,
