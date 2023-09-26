@@ -9,7 +9,7 @@ from venv.helpers import optical_depth
 def get_tl_data(
         datadir='/home/inikolic/projects/Lyalpha_bubbles/TL+23/',
         bg=True,
-        z=8.0,
+        z=8,
         xhi=0.8
 ):
     """
@@ -136,7 +136,6 @@ def get_bubbles(
     bubble_zs = []
     bubble_rs = []
     v_tot = 0.0
-
 
     if use_tl_result:
         r_hist, p_log_r_norm = get_tl_data(
