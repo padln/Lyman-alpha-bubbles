@@ -8,6 +8,9 @@ from venv.helpers import wave_to_dv, gaussian, optical_depth
 from venv.igm_prop import get_bubbles, calculate_taus
 
 
+wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+
+
 def delta_v_func(
         muv,
         z=7
