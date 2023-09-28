@@ -6,7 +6,6 @@ from astropy import units as u
 
 from venv.helpers import optical_depth
 
-
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
 
@@ -33,8 +32,9 @@ def get_tl_data(
     :return p_log_r_norm: numpy.array;
         histogram values of the distribution.
     """
-    dir_bg_z8_rall=datadir+'bg_rall_z'+str(z) + '/' # dir for full box bubble list [Rbub]
-    dir_fg_z8_rall=datadir+'fg_rall_z'+str(z) + '/'
+    dir_bg_z8_rall = datadir + 'bg_rall_z' + str(
+        z) + '/'  # dir for full box bubble list [Rbub]
+    dir_fg_z8_rall = datadir + 'fg_rall_z' + str(z) + '/'
 
     if bg:
         box_dir = dir_bg_z8_rall
@@ -155,7 +155,7 @@ def get_bubbles(
             rs
         )
     else:
-        rs = np.logspace(-1,3, 1000)
+        rs = np.logspace(-1, 3, 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distr(
                 rs
@@ -211,7 +211,7 @@ def get_bubbles(
             if (bx - random_x) ** 2 + (by - random_y) ** 2 + (
                     bz - random_z) ** 2 < (br + bubble_now) ** 2:
                 dist = np.sqrt((bx - random_x) ** 2 + (by - random_y) ** 2 + (
-                            bz - random_z) ** 2)
+                        bz - random_z) ** 2)
                 if br > bubble_now:
                     big = br
                     small = bubble_now
@@ -221,8 +221,8 @@ def get_bubbles(
                 if dist + small < big:
                     break_it = True
                 v_ded += (np.pi * (big + small - dist) ** 2 * (
-                            dist ** 2 + 2 * dist * small - 3 * small ** 2 + 2 *
-                            dist * big + 6 * big * small - 3 * big ** 2)
+                        dist ** 2 + 2 * dist * small - 3 * small ** 2 + 2 *
+                        dist * big + 6 * big * small - 3 * big ** 2)
                           / 12 / dist
                           )
         v = v - v_ded
@@ -458,6 +458,148 @@ def calculate_taus(
                         z_s=red_s,
                         z_bubble_center=7.5,
                         inside_hii=False
+                    )
+                )
+        taus.append(tau_i)
+    return taus
+
+
+def calculate_taus_i(
+        x_small,
+        y_small,
+        z_small,
+        r_bubbles,
+        z_source,
+        z_end_bubble,
+        n_iter=500,
+):
+    """
+        A different option to calculate tau distribution.
+        Calculate a couple of taus of a galaxy that is located in zs.
+    """
+    x_random = np.random.uniform(-10, 10, size=n_iter)
+    y_random = np.random.uniform(-10, 10, size=n_iter)
+    taus = []
+    wv = wave_em
+    z = wv.value / 1216 * (1 + z_source) - 1
+    z_start = z_at_value(
+        cosmo.comoving_distance,
+        cosmo.comoving_distance(7.5) - 5 * u.Mpc  # the radius of the big bubble
+    )
+
+    tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
+    r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
+    tau_pref = tau_gp * r_alpha / np.pi
+    for i, (xr, yr) in enumerate(zip(x_random, y_random)):
+        z_edge_up = []
+        z_edge_lo = []
+        red_edge_up = []
+        red_edge_lo = []
+        for xb, yb, zb, rb in zip(x_small, y_small, z_small, r_bubbles):
+            # initialize lists of intersections.
+            # check if galaxy will intersect the bubble.
+            # note that bubbles behind the galaxy don't influence it.
+            if (xr - xb) ** 2 + (yr - yb) ** 2 < rb ** 2:
+                # calculate z-s and redshifts at which it'll happen.
+                z_edge_up_i = zb - np.sqrt(
+                    rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
+                z_edge_lo_i = zb + np.sqrt(
+                    rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
+                # get the redshifts
+                red_edge_up_i = z_at_value(
+                    cosmo.comoving_distance,
+                    cosmo.comoving_distance(
+                        7.5) - z_edge_up_i * u.Mpc - 5 * u.Mpc
+                    # the radius of the big bubble
+                )
+                red_edge_lo_i = z_at_value(
+                    cosmo.comoving_distance,
+                    cosmo.comoving_distance(
+                        7.5) - z_edge_lo_i * u.Mpc - 5 * u.Mpc
+                    # the radius of the big bubble
+                )
+                z_edge_up.append(np.copy(z_edge_up_i)[0])
+                z_edge_lo.append(np.copy(z_edge_lo_i)[0])
+                red_edge_up.append(np.copy(red_edge_up_i)[0])
+                red_edge_lo.append(np.copy(red_edge_lo_i)[0])
+        z_edge_up = np.array(z_edge_up)
+        z_edge_lo = np.array(z_edge_lo)
+        red_edge_up = np.array(red_edge_up)
+        red_edge_lo = np.array(red_edge_lo)
+
+        if len(z_edge_up) == 0:
+            # galaxy doesn't intersect any of the bubbles:
+            taus.append(
+                tau_wv(wv, dist=10, zs=z_source, z_end=5.3, nf=0.8)
+            )
+            # to be checked
+            continue
+        indices_up = z_edge_up.argsort()
+
+        z_edge_up_sorted = z_edge_up[np.flip(indices_up)]
+        z_edge_lo_sorted = z_edge_lo[np.flip(indices_up)]
+        red_edge_up_sorted = red_edge_up[np.flip(indices_up)]
+        red_edge_lo_sorted = red_edge_lo[np.flip(indices_up)]
+
+        indices_to_del_lo = []
+        indices_to_del_up = []
+        for i in range(len(z_edge_up) - 1):
+            if len(z_edge_up_sorted) != 1:
+                if z_edge_lo_sorted[i] < z_edge_up_sorted[i + 1]:
+                    # got an overlapping bubble
+                    indices_to_del_lo.append(i)
+                    indices_to_del_up.append(i + 1)
+        z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
+        z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
+        red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
+        red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
+        tau_i = np.zeros(len(wave_em))
+        for index, (z_up_i, z_lo_i, red_up_i, red_lo_i) in enumerate(
+                zip(z_edge_up_sorted, z_edge_lo_sorted, red_edge_up_sorted,
+                    red_edge_lo_sorted)):
+            if index == 0:
+                if z_up_i < 0 and z_lo_i < 0:
+                    print("wrong bubble, it's above the galaxy.")
+                    raise ValueError
+                if z_up_i < 0 < z_lo_i:
+                    z_bi = z_end_bubble
+                    z_ei = red_lo_i
+                    tau_i = np.array(
+                        tau_pref * ((1 + z) / (1 + z_bi)) ** 1.5 * (
+                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
+                        )
+                    )
+                else:
+                    z_bi = z_end_bubble
+                    z_ei = red_up_i
+
+                    tau_i = np.array(
+                        tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
+                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
+                        )
+                    )
+            elif index != len(z_edge_up_sorted):
+                z_bi = red_edge_lo_sorted[index - 1]
+                z_ei = red_up_i
+                tau_i += np.array(
+                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
+                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
+                    )
+                )
+            else:
+                z_bi = red_edge_lo_sorted[index - 1]
+                z_ei = red_up_i
+                tau_i += np.array(
+                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
+                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
+                    )
+                )
+                z_bi = red_lo_i
+                z_ei = 5.3
+
+                tau_i += np.array(
+                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
+                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
                     )
                 )
         taus.append(tau_i)
