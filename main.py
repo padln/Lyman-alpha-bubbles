@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import LinAlgError
+
 from scipy import integrate
 from scipy.stats import gaussian_kde
 
@@ -7,11 +8,109 @@ from astropy.cosmology import z_at_value
 from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
 
+import itertools
+from joblib import Parallel, delayed
+
 from venv.galaxy_prop import get_js, get_mock_data
 from venv.igm_prop import get_bubbles, calculate_taus
 
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+
+
+def _get_likelihood(
+        i,
+        xb,
+        yb,
+        zb,
+        rb,
+        xs,
+        ys,
+        zs,
+        tau_data,
+        n_iter_bub
+):
+    """
+
+    :param i: integer;
+        index of the calculation
+    :param xb: float;
+        x-coordinate of the bubble
+    :param yb: float;
+        y-coordinate of the bubble
+    :param zb: float;
+        z-coordinate of the bubble
+    :param rb: float;
+        Radius of the bubble.
+    :param xs: list;
+        x-coordinates of galaxies;
+    :param ys: list;
+        y-coordinates of galaxies;
+    :param zs: list;
+        z-coordinates of galaxies;
+    :param tau_data: list;
+        transmissivities of galaxies.
+    :param n_iter_bub: integer;
+        how many times to iterate over the bubbles
+
+    :return:
+
+    Note: to be used only in the sampler
+    """
+    likelihood = 1.0
+    taus_tot = []
+    # For these parameters let's iterate over galaxies
+    for xg, yg, zg in zip(xs, ys, zs):
+        taus_now = []
+        red_s = z_at_value(
+            Cosmo.comoving_distance,
+            Cosmo.comoving_distance(7.5) + zg * u.Mpc
+        )
+        if ((xg - xb) ** 2 - (yg - yb) ** 2
+                + (zg - zb) ** 2 < rb ** 2):
+            dist = zg - zb + np.sqrt(
+                rb ** 2 - (xg - xb) ** 2 - (yg - yb) ** 2
+            )
+            z_end_bub = z_at_value(
+                Cosmo.comoving_distance,
+                Cosmo.comoving_distance(red_s) - dist * u.Mpc
+            )
+        else:
+            z_end_bub = red_s
+        for n in range(n_iter_bub):
+            j_s = get_js(-22, n_iter=40)
+            x_outs, y_outs, z_outs, r_bubs = get_bubbles(
+                7.5,
+                0.8,
+                300
+            )
+            tau_now_i = calculate_taus(
+                x_outs,
+                y_outs,
+                z_outs,
+                r_bubs,
+                red_s,
+                z_end_bub,
+                n_iter=40,
+            )
+            eit = np.exp(-np.array(tau_now_i))
+            taus_now.extend(np.trapz(
+                eit * j_s[0] / integrate.trapz(
+                    j_s[0][0],
+                    wave_em.value),
+                wave_em.value)
+            )
+
+        taus_tot.append(taus_now)
+    try:
+        tau_kde = gaussian_kde(np.array(taus_tot))
+        likelihood *= tau_kde.evaluate(tau_data)
+    except LinAlgError:
+        likelihood *= 0
+    if hasattr(likelihood, '__len__'):
+        return i, likelihood[0]
+    else:
+        return i, likelihood
 
 
 def sample_bubbles_grid(
@@ -60,63 +159,30 @@ def sample_bubbles_grid(
     z_max = 15.5
     z_grid = np.linspace(z_min, z_max, n_grid)
 
-    likelihood_grid = np.zeros((n_grid, n_grid, n_grid, n_grid))
+    like_calc = Parallel(
+        n_jobs=50
+    )(
+        delayed(
+            _get_likelihood
+        )(
+            index,
+            xb,
+            yb,
+            zb,
+            rb,
+            xs,
+            ys,
+            zs,
+            tau_data,
+            n_iter_bub
+        ) for index, (xb, yb, zb, rb) in enumerate(
+            itertools.product(x_grid, y_grid, z_grid, r_grid)
+        )
+    )
+    like_calc.sort(key=lambda x: x[0])
+    likelihood_grid = np.array([l[1] for l in like_calc])
+    likelihood_grid.reshape((n_grid, n_grid, n_grid, n_grid))
 
-    for xi, xb in enumerate(x_grid):
-        for yi, yb in enumerate(y_grid):
-            for zi, zb in enumerate(z_grid):
-                for Ri, Rb in enumerate(r_grid):
-                    likelihood = 1.0
-                    taus_tot = []
-                    # For these parameters let's iterate over galaxies
-                    for xg, yg, zg in zip(xs, ys, zs):
-                        taus_now = []
-                        red_s = z_at_value(
-                            Cosmo.comoving_distance,
-                            Cosmo.comoving_distance(7.5) + zg * u.Mpc
-                        )
-                        if ((xg - xb) ** 2 - (yg - yb) ** 2
-                                + (zg - zb) ** 2 < Rb ** 2):
-                            dist = zg - zb + np.sqrt(
-                                Rb ** 2 - (xg - xb) ** 2 - (yg - yb) ** 2
-                            )
-                            z_end_bub = z_at_value(
-                                Cosmo.comoving_distance,
-                                Cosmo.comoving_distance(red_s) - dist * u.Mpc
-                            )
-                        else:
-                            z_end_bub = red_s
-                        for n in range(n_iter_bub):
-                            j_s = get_js(-22, n_iter=40)
-                            x_outs, y_outs, z_outs, r_bubs = get_bubbles(
-                                7.5,
-                                0.8,
-                                300
-                            )
-                            tau_now_i = calculate_taus(
-                                x_outs,
-                                y_outs,
-                                z_outs,
-                                r_bubs,
-                                red_s,
-                                z_end_bub,
-                                n_iter=40,
-                            )
-                            eit = np.exp(-np.array(tau_now_i))
-                            taus_now.extend(np.trapz(
-                                eit * j_s[0] / integrate.trapz(
-                                    j_s[0][0],
-                                    wave_em.value),
-                                wave_em.value)
-                            )
-
-                        taus_tot.append(taus_now)
-                    try:
-                        tau_kde = gaussian_kde(np.array(taus_tot))
-                        likelihood *= tau_kde.evaluate(tau_data)
-                    except LinAlgError:
-                        likelihood *= 0
-                    likelihood_grid[xi, yi, zi, Ri] = likelihood[0]
     return likelihood_grid
 
 
