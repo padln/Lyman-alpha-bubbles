@@ -88,15 +88,15 @@ def sample_bubbles_grid(
                             z_end_bub = red_s
                         for n in range(n_iter_bub):
                             j_s = get_js(-22, n_iter=40)
-                            xs, ys, zs, r_bubs = get_bubbles(
+                            x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                                 7.5,
                                 0.8,
                                 300
                             )
                             tau_now_i = calculate_taus(
-                                xs,
-                                ys,
-                                zs,
+                                x_outs,
+                                y_outs,
+                                z_outs,
                                 r_bubs,
                                 red_s,
                                 z_end_bub,
@@ -116,7 +116,7 @@ def sample_bubbles_grid(
                         likelihood *= tau_kde.evaluate(tau_data)
                     except LinAlgError:
                         likelihood *= 0
-                    likelihood_grid[xi, yi, zi, Ri] = likelihood
+                    likelihood_grid[xi, yi, zi, Ri] = likelihood[0]
     return likelihood_grid
 
 
