@@ -6,7 +6,7 @@ from astropy.cosmology import Planck18 as Cosmo
 
 from venv.helpers import wave_to_dv, gaussian, optical_depth
 from venv.igm_prop import get_bubbles, calculate_taus
-
+from venv.igm_prop import calculate_taus_i
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
@@ -119,6 +119,7 @@ def get_mock_data(
         else:
             z_end_bub = red_s
         x_b, y_b, z_b, r_bubs = get_bubbles(7.5, 0.8, 50)
-        tau = calculate_taus(x_b, y_b, z_b, r_bubs, red_s, z_end_bub, n_iter=1)
+        tau = calculate_taus_i(x_b, y_b, z_b, r_bubs, red_s, z_end_bub, n_iter=1)
         tau_data[i, :] = tau[0]
     return tau_data, xs, ys, zs
+

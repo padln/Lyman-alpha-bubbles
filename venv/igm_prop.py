@@ -2,11 +2,18 @@ import numpy as np
 from scipy import integrate
 import os
 import pandas as pd
-from astropy import units as u
+from mpmath import nsum, exp, inf, log, ln
 
-from venv.helpers import optical_depth
+from astropy import units as u
+from astropy.cosmology import z_at_value
+from astropy.cosmology import Planck18 as Cosmo
+from astropy import constants as const
+
+from venv.helpers import optical_depth, I
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+wave_Lya = 1215.67 * u.Angstrom
+freq_Lya = (const.c / wave_Lya).to(u.Hz)
 
 
 def get_tl_data(
@@ -483,8 +490,8 @@ def calculate_taus_i(
     wv = wave_em
     z = wv.value / 1216 * (1 + z_source) - 1
     z_start = z_at_value(
-        cosmo.comoving_distance,
-        cosmo.comoving_distance(7.5) - 5 * u.Mpc  # the radius of the big bubble
+        Cosmo.comoving_distance,
+        Cosmo.comoving_distance(7.5) - 5 * u.Mpc  # the radius of the big bubble
     )
 
     tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
@@ -507,14 +514,14 @@ def calculate_taus_i(
                     rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
                 # get the redshifts
                 red_edge_up_i = z_at_value(
-                    cosmo.comoving_distance,
-                    cosmo.comoving_distance(
+                    Cosmo.comoving_distance,
+                    Cosmo.comoving_distance(
                         7.5) - z_edge_up_i * u.Mpc - 5 * u.Mpc
                     # the radius of the big bubble
                 )
                 red_edge_lo_i = z_at_value(
-                    cosmo.comoving_distance,
-                    cosmo.comoving_distance(
+                    Cosmo.comoving_distance,
+                    Cosmo.comoving_distance(
                         7.5) - z_edge_lo_i * u.Mpc - 5 * u.Mpc
                     # the radius of the big bubble
                 )
@@ -604,3 +611,19 @@ def calculate_taus_i(
                 )
         taus.append(tau_i)
     return taus
+
+def tau_wv(wv, dist = 10,zs=7.5, z_end=5.3, nf=0.5):
+    com_end = Cosmo.comoving_distance(7.5).value - Cosmo.comoving_distance(z_end).value
+    z_b1 = z_at_value(Cosmo.comoving_distance, Cosmo.comoving_distance(zs) - dist*u.Mpc)
+    z = wv.value/1216 * (1+zs) - 1
+    Hz = Cosmo.H(z).to(u.cm/u.s/u.Mpc).value
+    tau_GP = 7.16 * 1e5 *((1+zs)/10)**1.5
+    R_alpha = 6.25 * 1e8 /(4 * np.pi * freq_Lya.value)
+    def func(x, f=nf):
+        f = f/(1-f)
+        return 0.5 / x / f * (ln((2*x-1)/(2*x+1)) +ln((4*x*f + 2 * x + 1)/ (4* x*f + 2 * x-1)))
+    xD = 1 + 0.5 * float(nsum(func, [1,inf],))*0.5 + 1
+    tau = tau_GP * R_alpha / np.pi * xD * ((1+z_b1)/(1+z))**1.5 * (I((1+z_b1)/(1+z)) - I((1+z_end)/(1+z)))
+    
+    #tau = tau_GP * R_alpha / np.pi * (1+z) * const.c.cgs.value/Hz * xD *(1/dist - 1/com_end)
+    return tau

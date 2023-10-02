@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data
 from venv.igm_prop import get_bubbles, calculate_taus
-
+from venv.igm_prop import calculate_taus_i
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
@@ -84,7 +84,7 @@ def _get_likelihood(
                 0.8,
                 300
             )
-            tau_now_i = calculate_taus(
+            tau_now_i = calculate_taus_i(
                 x_outs,
                 y_outs,
                 z_outs,
@@ -105,6 +105,7 @@ def _get_likelihood(
     try:
         tau_kde = gaussian_kde(np.array(taus_tot))
         likelihood *= tau_kde.evaluate(tau_data)
+        print(np.array(taus_tot), np.array(tau_data), "This is what evaluate does")
     except LinAlgError:
         likelihood *= 0
     if hasattr(likelihood, '__len__'):
@@ -188,15 +189,20 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd = get_mock_data(
-        n_gal=10,
+        n_gal=8,
         r_bubble=10,
     )
+    tau_data_I = []
+    one_J = get_js(z=7.5)
+    for i in range(len(td)):
+        eit = np.exp(-td[i])
+        tau_data_I.append(np.trapz(eit * one_J[0][0]/integrate.trapz(one_J[0][0], wave_em.value), wave_em.value))
     likelihoods = sample_bubbles_grid(
-        tau_data=td,
+        tau_data=np.array(tau_data_I),
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=20,
+        n_iter_bub=12,
         n_grid=10,
     )
     np.save(

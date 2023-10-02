@@ -8,6 +8,10 @@ sigma_ion0 = 6.304e-18*u.cm**2.
 freq_Lya = (const.c / wave_Lya).to(u.Hz)
 
 
+def I(x):
+    return x**4.5 / (1-x) + 9/7 * x**3.5  + 9/5 * x**2.5 + 3 * x**1.5 + 9 * x**0.5 - np.log(abs((1+x**0.5)/(1-x**0.5)))
+
+
 def wave_to_dv(
         wave
 ):
