@@ -612,18 +612,36 @@ def calculate_taus_i(
         taus.append(tau_i)
     return taus
 
-def tau_wv(wv, dist = 10,zs=7.5, z_end=5.3, nf=0.5):
-    com_end = Cosmo.comoving_distance(7.5).value - Cosmo.comoving_distance(z_end).value
-    z_b1 = z_at_value(Cosmo.comoving_distance, Cosmo.comoving_distance(zs) - dist*u.Mpc)
+
+def tau_wv(
+        wv,
+        dist = 10,
+        zs=7.5,
+        z_end=5.3,
+        nf=0.5
+):
+    z_b1 = z_at_value(
+        Cosmo.comoving_distance,
+        Cosmo.comoving_distance(zs) - dist*u.Mpc
+    )
     z = wv.value/1216 * (1+zs) - 1
-    Hz = Cosmo.H(z).to(u.cm/u.s/u.Mpc).value
-    tau_GP = 7.16 * 1e5 *((1+zs)/10)**1.5
-    R_alpha = 6.25 * 1e8 /(4 * np.pi * freq_Lya.value)
+    tau_gp = 7.16 * 1e5 *((1+zs)/10)**1.5
+    r_alpha = 6.25 * 1e8 /(4 * np.pi * freq_Lya.value)
+
     def func(x, f=nf):
         f = f/(1-f)
-        return 0.5 / x / f * (ln((2*x-1)/(2*x+1)) +ln((4*x*f + 2 * x + 1)/ (4* x*f + 2 * x-1)))
-    xD = 1 + 0.5 * float(nsum(func, [1,inf],))*0.5 + 1
-    tau = tau_GP * R_alpha / np.pi * xD * ((1+z_b1)/(1+z))**1.5 * (I((1+z_b1)/(1+z)) - I((1+z_end)/(1+z)))
+        return 0.5 / x / f * (ln(
+            (2*x-1)/(2*x+1)
+        ) + ln(
+            (4*x*f + 2 * x + 1) / (4 * x*f + 2 * x-1)
+        )
+        )
+
+    x_d = 1 + 0.5 * float(nsum(func, [1, inf],))*0.5 + 1
+    tau = tau_gp * r_alpha / np.pi * x_d * (
+            (1+z_b1)/(1+z)
+    )**1.5 * (
+            I((1+z_b1)/(1+z)) - I((1+z_end)/(1+z))
+    )
     
-    #tau = tau_GP * R_alpha / np.pi * (1+z) * const.c.cgs.value/Hz * xD *(1/dist - 1/com_end)
     return tau

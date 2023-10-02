@@ -19,7 +19,7 @@ wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
 
 def _get_likelihood(
-        i,
+        ndex,
         xb,
         yb,
         zb,
@@ -32,7 +32,7 @@ def _get_likelihood(
 ):
     """
 
-    :param i: integer;
+    :param ndex: integer;
         index of the calculation
     :param xb: float;
         x-coordinate of the bubble
@@ -93,9 +93,9 @@ def _get_likelihood(
                 z_end_bub,
                 n_iter=40,
             )
-            eit = np.exp(-np.array(tau_now_i))
+            eit_l = np.exp(-np.array(tau_now_i))
             taus_now.extend(np.trapz(
-                eit * j_s[0] / integrate.trapz(
+                eit_l * j_s[0] / integrate.trapz(
                     j_s[0][0],
                     wave_em.value),
                 wave_em.value)
@@ -105,13 +105,17 @@ def _get_likelihood(
     try:
         tau_kde = gaussian_kde(np.array(taus_tot))
         likelihood *= tau_kde.evaluate(tau_data)
-        print(np.array(taus_tot), np.array(tau_data), "This is what evaluate does")
+        print(
+            np.array(taus_tot),
+            np.array(tau_data),
+            "This is what evaluate does"
+        )
     except LinAlgError:
         likelihood *= 0
     if hasattr(likelihood, '__len__'):
-        return i, likelihood[0]
+        return ndex, likelihood[0]
     else:
-        return i, likelihood
+        return ndex, likelihood
 
 
 def sample_bubbles_grid(
@@ -196,7 +200,11 @@ if __name__ == '__main__':
     one_J = get_js(z=7.5)
     for i in range(len(td)):
         eit = np.exp(-td[i])
-        tau_data_I.append(np.trapz(eit * one_J[0][0]/integrate.trapz(one_J[0][0], wave_em.value), wave_em.value))
+        tau_data_I.append(
+            np.trapz(
+                eit * one_J[0][0]/integrate.trapz(one_J[0][0], wave_em.value),
+                wave_em.value)
+        )
     likelihoods = sample_bubbles_grid(
         tau_data=np.array(tau_data_I),
         xs=xd,
