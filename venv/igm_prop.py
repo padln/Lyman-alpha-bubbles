@@ -637,7 +637,8 @@ def tau_wv(
         )
         )
 
-    x_d = 1 + 0.5 * float(nsum(func, [1, inf],))*0.5 + 1
+    x_d = 1 + 0.5 * float(nsum(func, [1, inf],))
+    x_d = nf # actually, nf might be better for what we're doing
     tau = tau_gp * r_alpha / np.pi * x_d * (
             (1+z_b1)/(1+z)
     )**1.5 * (

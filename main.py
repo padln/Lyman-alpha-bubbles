@@ -84,7 +84,7 @@ def _get_likelihood(
                 0.8,
                 300
             )
-            tau_now_i = calculate_taus_i(
+            tau_now_i = calculate_taus(
                 x_outs,
                 y_outs,
                 z_outs,
@@ -103,17 +103,27 @@ def _get_likelihood(
 
         taus_tot.append(taus_now)
     try:
-        tau_kde = gaussian_kde(np.array(taus_tot))
+        taus_tot_b = []
+        for li in taus_tot:
+            if np.all(np.array(li)<10.0):
+                taus_tot_b.append(li)
+        #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
+
+        tau_kde = gaussian_kde(np.array(taus_tot_b))
         likelihood *= tau_kde.evaluate(tau_data)
         print(
             np.array(taus_tot),
             np.array(tau_data),
-            "This is what evaluate does"
+            np.shape(taus_tot),
+            np.shape(tau_data),
+            tau_kde.evaluate(tau_data),
+            "This is what evaluate does for this params",
+            xb, yb, zb, rb  
         )
     except LinAlgError:
         likelihood *= 0
     if hasattr(likelihood, '__len__'):
-        return ndex, likelihood[0]
+        return ndex, np.product(likelihood)
     else:
         return ndex, likelihood
 
@@ -148,8 +158,8 @@ def sample_bubbles_grid(
     """
 
     # first specify a range for bubble size and bubble position
-    r_min = 0.5  # small bubble
-    r_max = 49.5  # bubble not bigger than the actual size of the box
+    r_min = 2.5  # small bubble
+    r_max = 35.5  # bubble not bigger than the actual size of the box
     r_grid = np.linspace(r_min, r_max, n_grid)
 
     x_min = -15.5
@@ -160,10 +170,11 @@ def sample_bubbles_grid(
     y_max = 15.5
     y_grid = np.linspace(y_min, y_max, n_grid)
 
-    z_min = -15.5
-    z_max = 15.5
+    z_min = -10.5
+    z_max = 10.5
     z_grid = np.linspace(z_min, z_max, n_grid)
-
+    x_grid = np.array([0.0])
+    y_grid = np.array([0.0])
     like_calc = Parallel(
         n_jobs=50
     )(
@@ -186,13 +197,13 @@ def sample_bubbles_grid(
     )
     like_calc.sort(key=lambda x: x[0])
     likelihood_grid = np.array([l[1] for l in like_calc])
-    likelihood_grid.reshape((n_grid, n_grid, n_grid, n_grid))
+    likelihood_grid.reshape((n_grid, n_grid))
 
     return likelihood_grid
 
 
 if __name__ == '__main__':
-    td, xd, yd, zd = get_mock_data(
+    td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
         n_gal=8,
         r_bubble=10,
     )
@@ -210,10 +221,39 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=12,
-        n_grid=10,
+        n_iter_bub=10,
+        n_grid=3,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
         likelihoods
     )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/x_gal_mock.npy',
+        np.array(xd)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/y_gal_mock.npy',
+        np.array(yd)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/z_gal_mock.npy',
+        np.array(zd)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/x_bub_mock.npy',
+        np.array(x_b)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/y_bub_mock.npy',
+        np.array(y_b)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/z_bub_mock.npy',
+        np.array(z_b)
+    )
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/r_bubs_mock.npy',
+        np.array(r_bubs)
+    )
+
