@@ -12,6 +12,14 @@ def I(x):
     return x**4.5 / (1-x) + 9/7 * x**3.5  + 9/5 * x**2.5 + 3 * x**1.5 + 9 * x**0.5 - np.log(abs((1+x**0.5)/(1-x**0.5)))
 
 
+def comoving_distance_from_source_Mpc(z_2, z_1):
+    """
+    COMOVING distance between z_1 and z_2
+    """
+    R_com = (z_1 - z_2)*(const.c / Planck15.H(z=z_1)).to(u.Mpc)
+    return R_com
+
+
 def wave_to_dv(
         wave
 ):

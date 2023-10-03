@@ -66,7 +66,7 @@ def _get_likelihood(
             Cosmo.comoving_distance,
             Cosmo.comoving_distance(7.5) + zg * u.Mpc
         )
-        if ((xg - xb) ** 2 - (yg - yb) ** 2
+        if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
             dist = zg - zb + np.sqrt(
                 rb ** 2 - (xg - xb) ** 2 - (yg - yb) ** 2
@@ -78,37 +78,46 @@ def _get_likelihood(
         else:
             z_end_bub = red_s
         for n in range(n_iter_bub):
-            j_s = get_js(-22, n_iter=40)
+            j_s = get_js(-22, n_iter=25)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
-                7.5,
                 0.8,
                 300
             )
-            tau_now_i = calculate_taus_i(
+            tau_now_i = calculate_taus(
                 x_outs,
                 y_outs,
                 z_outs,
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=40,
+                n_iter=25,
             )
+            #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))
-            taus_now.extend(np.trapz(
+            res = np.trapz(
                 eit_l * j_s[0] / integrate.trapz(
                     j_s[0][0],
                     wave_em.value),
-                wave_em.value)
+                wave_em.value
             )
+            if np.all(np.array(res)<10):
+                taus_now.extend(res)
 
         taus_tot.append(taus_now)
+    #print(taus_tot) 
+    taus_tot_b = []
+    #for li in taus_tot:
+    #    if np.all(np.array(li)<10.0):
+    #        taus_tot_b.append(li)
+    print(np.shape(taus_tot_b), np.shape(tau_data))
     try:
         taus_tot_b = []
         for li in taus_tot:
             if np.all(np.array(li)<10.0):
                 taus_tot_b.append(li)
         #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
-
+        print(np.shape(taus_tot_b), np.shape(tau_data))
+        #assert 1==0
         tau_kde = gaussian_kde(np.array(taus_tot_b))
         likelihood *= tau_kde.evaluate(tau_data)
         print(
@@ -204,9 +213,11 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=50,
+        n_gal=10,
         r_bubble=10,
     )
+    #print(td,xd,yd,zd,x_b,y_b,z_b,r_bubs)
+    #assert 1==0
     tau_data_I = []
     one_J = get_js(z=7.5)
     for i in range(len(td)):
@@ -221,8 +232,8 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=11,
-        n_grid=5,
+        n_iter_bub=25,
+        n_grid=7,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',

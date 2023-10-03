@@ -266,7 +266,9 @@ def calculate_taus(
         r_bubbles,
         red_s,
         z_end_bub,
-        n_iter=1000
+        n_iter=1000,
+        x_pos = None,
+        y_pos = None,
 ):
     """
     Calculates taus for random sightlines for a given bubble configuration.
@@ -289,8 +291,15 @@ def calculate_taus(
     :return taus: numpy.arrayM
         Optical depths for a given configuration.
     """
-    x_random = np.random.uniform(-10, 10, size=n_iter)
-    y_random = np.random.uniform(-10, 10, size=n_iter)
+    if x_pos is not None and y_pos is not None:
+        x_random = [x_pos]
+        y_random = [y_pos]
+    else:
+        x_random = np.random.uniform(-10, 10, size=n_iter)
+        y_random = np.random.uniform(-10, 10, size=n_iter)
+
+    #x_random = np.random.uniform(-10, 10, size=n_iter)
+    #y_random = np.random.uniform(-10, 10, size=n_iter)
     taus = []
 
     z_start = z_end_bub
