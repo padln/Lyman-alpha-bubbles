@@ -103,6 +103,8 @@ def get_mock_data(
     ys = np.random.uniform(-10, 10, size=n_gal)
     zs = np.random.uniform(-10, 10, size=n_gal)
     tau_data = np.zeros((n_gal, len(wave_em)))
+    x_b, y_b, z_b, r_bubs = get_bubbles(7.5, 0.8, 300)
+
     for i in range(n_gal):
         red_s = z_at_value(
             Cosmo.comoving_distance,
@@ -118,8 +120,17 @@ def get_mock_data(
             )
         else:
             z_end_bub = red_s
-        x_b, y_b, z_b, r_bubs = get_bubbles(7.5, 0.8, 50)
-        tau = calculate_taus(x_b, y_b, z_b, r_bubs, red_s, z_end_bub, n_iter=1)
+        tau = calculate_taus_i(
+            x_b,
+            y_b, 
+            z_b,
+            r_bubs,
+            red_s,
+            z_end_bub,
+            n_iter=1,
+            x_pos = xs[i],
+            y_pos = ys[i],
+        )
         tau_data[i, :] = tau[0]
     return tau_data, xs, ys, zs, x_b, y_b, z_b, r_bubs
 

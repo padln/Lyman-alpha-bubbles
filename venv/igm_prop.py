@@ -479,13 +479,21 @@ def calculate_taus_i(
         z_source,
         z_end_bubble,
         n_iter=500,
+        x_pos = None,
+        y_pos = None,
 ):
     """
         A different option to calculate tau distribution.
         Calculate a couple of taus of a galaxy that is located in zs.
+        If x_pos and y_pos are given, then they determine the sightline used.
     """
-    x_random = np.random.uniform(-10, 10, size=n_iter)
-    y_random = np.random.uniform(-10, 10, size=n_iter)
+
+    if x_pos is not None and y_pos is not None:
+        x_random = [x_pos]
+        y_random = [y_pos]
+    else:
+        x_random = np.random.uniform(-10, 10, size=n_iter)
+        y_random = np.random.uniform(-10, 10, size=n_iter)
     taus = []
     wv = wave_em
     z = wv.value / 1216 * (1 + z_source) - 1

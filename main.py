@@ -84,7 +84,7 @@ def _get_likelihood(
                 0.8,
                 300
             )
-            tau_now_i = calculate_taus(
+            tau_now_i = calculate_taus_i(
                 x_outs,
                 y_outs,
                 z_outs,
@@ -204,7 +204,7 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=8,
+        n_gal=50,
         r_bubble=10,
     )
     tau_data_I = []
@@ -221,8 +221,8 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=10,
-        n_grid=3,
+        n_iter_bub=11,
+        n_grid=5,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
@@ -256,4 +256,7 @@ if __name__ == '__main__':
         '/home/inikolic/projects/Lyalpha_bubbles/code/r_bubs_mock.npy',
         np.array(r_bubs)
     )
-
+    np.save(
+        '/home/inikolic/projects/Lyalpha_bubbles/code/tau_data.npy',
+        np.array(tau_data_I),
+    )
