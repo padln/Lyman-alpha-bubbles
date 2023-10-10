@@ -78,7 +78,7 @@ def _get_likelihood(
         else:
             z_end_bub = red_s
         for n in range(n_iter_bub):
-            j_s = get_js(-22, n_iter=18)
+            j_s = get_js(-22, n_iter=30)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 0.8,
                 300
@@ -90,7 +90,7 @@ def _get_likelihood(
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=18,
+                n_iter=30,
             )
             #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
         n_gal=20,
         r_bubble=10,
-        dist = 15,
+        dist = 10,
     )
     #print(td,xd,yd,zd,x_b,y_b,z_b,r_bubs)
     #assert 1==0
@@ -233,7 +233,7 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=18,
+        n_iter_bub=16,
         n_grid=9,
     )
     np.save(
