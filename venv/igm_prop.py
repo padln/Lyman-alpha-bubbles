@@ -489,7 +489,7 @@ def calculate_taus(
                         wave_em,
                         T=1 * u.K,
                         z_min=5.5,
-                        z_max=redloi,
+                        z_max=red_lo_i,
                         z_s=red_s,
                         z_bubble_center=7.5,
                         inside_HII=False
@@ -507,8 +507,8 @@ def calculate_taus_i(
         z_source,
         z_end_bubble,
         n_iter=500,
-        x_pos = None,
-        y_pos = None,
+        x_pos=None,
+        y_pos=None,
 ):
     """
         A different option to calculate tau distribution.
@@ -647,7 +647,7 @@ def calculate_taus_i(
                 )
             elif index == len(z_edge_up_sorted) - 1 and len(
                     z_edge_up_sorted) == 1:
-                z_bi = redloi
+                z_bi = red_lo_i
                 z_ei = 5.3
 
                 tau_i += np.array(
