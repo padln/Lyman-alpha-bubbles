@@ -487,7 +487,7 @@ def calculate_taus(
                 tau_i += np.array(
                     optical_depth(
                         wave_em,
-                        T=1 * u.K,
+                        t=1 * u.K,
                         z_min=5.5,
                         z_max=red_lo_i,
                         z_s=red_s,
@@ -652,8 +652,9 @@ def calculate_taus_i(
 
                 tau_i += np.array(
                     tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                                I((1 + z_bi) / (1 + z)) - I(
-                            (1 + z_ei) / (1 + z)))
+                                I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z)
+                                                            )
+                    )
                 )
         taus.append(tau_i)
     return taus
@@ -661,7 +662,7 @@ def calculate_taus_i(
 
 def tau_wv(
         wv,
-        dist = 10,
+        dist=10,
         zs=7.5,
         z_end=5.3,
         nf=0.5
