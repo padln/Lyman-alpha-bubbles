@@ -484,7 +484,7 @@ def calculate_taus(
                     )
                 )
             elif index == len_z - 1 and len_z == 1:
-                taui += np.array(
+                tau_i += np.array(
                     optical_depth(
                         wave_em,
                         T=1 * u.K,
@@ -629,7 +629,7 @@ def calculate_taus_i(
                             I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
                     )
                 )
-            if index==len(z_edge_up_sorted)-1 and len(z_edge_up_sorted)!=1:
+            if index == len(z_edge_up_sorted)-1 and len(z_edge_up_sorted) != 1:
                 z_bi = red_edge_lo_sorted[index - 1]
                 z_ei = red_up_i
                 tau_i += np.array(
@@ -650,7 +650,7 @@ def calculate_taus_i(
                 z_bi = redloi
                 z_ei = 5.3
 
-                taui += np.array(
+                tau_i += np.array(
                     tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
                                 I((1 + z_bi) / (1 + z)) - I(
                             (1 + z_ei) / (1 + z)))
