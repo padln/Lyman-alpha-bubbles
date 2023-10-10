@@ -287,9 +287,15 @@ def calculate_taus(
         redshift of the edge from which we calculate taus.
     :param n_iter: integer;
         number of random sightlines sampled.
+    :param x_pos: float,
+        x-position that is taken.
+    :param y_pos: float,
+        y-position that is taken.
 
     :return taus: numpy.arrayM
         Optical depths for a given configuration.
+
+    Note: If position is specified, this is the only LoS to be calculated.
     """
     if x_pos is not None and y_pos is not None:
         x_random = [x_pos]
@@ -298,8 +304,6 @@ def calculate_taus(
         x_random = np.random.uniform(-10, 10, size=n_iter)
         y_random = np.random.uniform(-10, 10, size=n_iter)
 
-    #x_random = np.random.uniform(-10, 10, size=n_iter)
-    #y_random = np.random.uniform(-10, 10, size=n_iter)
     taus = []
 
     z_start = z_end_bub
@@ -376,6 +380,9 @@ def calculate_taus(
         red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
         red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
         tau_i = np.zeros(len(wave_em))
+
+        len_z = len(z_edge_up_sorted)
+
         for index, (z_up_i, z_lo_i, red_up_i, red_lo_i) in enumerate(
                 zip(z_edge_up_sorted, z_edge_lo_sorted, red_edge_up_sorted,
                     red_edge_lo_sorted)):
@@ -419,7 +426,7 @@ def calculate_taus(
                             inside_hii=True
                         )
                     )
-            elif index != len(z_edge_up_sorted):
+            elif index != len(z_edge_up_sorted) - 1:
                 tau_i += np.array(
                     optical_depth(
                         wave_em,
@@ -442,7 +449,7 @@ def calculate_taus(
                         inside_hii=True
                     )
                 )
-            else:
+            if index == len_z - 1 and not len_z == 1:
                 tau_i += np.array(
                     optical_depth(
                         wave_em,
@@ -474,6 +481,18 @@ def calculate_taus(
                         z_s=red_s,
                         z_bubble_center=7.5,
                         inside_hii=False
+                    )
+                )
+            elif index == len_z - 1 and len_z == 1:
+                taui += np.array(
+                    optical_depth(
+                        wave_em,
+                        T=1 * u.K,
+                        z_min=5.5,
+                        z_max=redloi,
+                        z_s=red_s,
+                        z_bubble_center=7.5,
+                        inside_HII=False
                     )
                 )
         taus.append(tau_i)
@@ -533,13 +552,13 @@ def calculate_taus_i(
                 red_edge_up_i = z_at_value(
                     Cosmo.comoving_distance,
                     Cosmo.comoving_distance(
-                        7.5) - z_edge_up_i * u.Mpc - 5 * u.Mpc
+                        7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc
                     # the radius of the big bubble
                 )
                 red_edge_lo_i = z_at_value(
                     Cosmo.comoving_distance,
                     Cosmo.comoving_distance(
-                        7.5) - z_edge_lo_i * u.Mpc - 5 * u.Mpc
+                        7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc
                     # the radius of the big bubble
                 )
                 z_edge_up.append(np.copy(z_edge_up_i)[0])
@@ -602,7 +621,7 @@ def calculate_taus_i(
                             I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
                         )
                     )
-            elif index != len(z_edge_up_sorted):
+            elif index != len(z_edge_up_sorted) - 1:
                 z_bi = red_edge_lo_sorted[index - 1]
                 z_ei = red_up_i
                 tau_i += np.array(
@@ -610,7 +629,7 @@ def calculate_taus_i(
                             I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
                     )
                 )
-            else:
+            if index==len(z_edge_up_sorted)-1 and len(z_edge_up_sorted)!=1:
                 z_bi = red_edge_lo_sorted[index - 1]
                 z_ei = red_up_i
                 tau_i += np.array(
@@ -625,6 +644,16 @@ def calculate_taus_i(
                     tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
                             I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
                     )
+                )
+            elif index == len(z_edge_up_sorted) - 1 and len(
+                    z_edge_up_sorted) == 1:
+                z_bi = redloi
+                z_ei = 5.3
+
+                taui += np.array(
+                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
+                                I((1 + z_bi) / (1 + z)) - I(
+                            (1 + z_ei) / (1 + z)))
                 )
         taus.append(tau_i)
     return taus
@@ -642,8 +671,8 @@ def tau_wv(
         Cosmo.comoving_distance(zs) - dist*u.Mpc
     )
     z = wv.value/1216 * (1+zs) - 1
-    tau_gp = 7.16 * 1e5 *((1+zs)/10)**1.5
-    r_alpha = 6.25 * 1e8 /(4 * np.pi * freq_Lya.value)
+    tau_gp = 7.16 * 1e5 * ((1+zs)/10)**1.5
+    r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
 
     def func(x, f=nf):
         f = f/(1-f)
@@ -654,8 +683,8 @@ def tau_wv(
         )
         )
 
-    x_d = 1 + 0.5 * float(nsum(func, [1, inf],))
-    x_d = nf # actually, nf might be better for what we're doing
+    # x_d = 1 + 0.5 * float(nsum(func, [1, inf],))
+    x_d = nf  # actually, nf might be better for what we're doing
     tau = tau_gp * r_alpha / np.pi * x_d * (
             (1+z_b1)/(1+z)
     )**1.5 * (
