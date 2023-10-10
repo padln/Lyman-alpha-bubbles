@@ -74,6 +74,7 @@ def get_mock_data(
         xb=0.0,
         yb=0.0,
         zb=0.0,
+        dist = 10,
 ):
     """
 
@@ -85,6 +86,14 @@ def get_mock_data(
             redshift of the center of the bubble.
         R_bubble : float,
             radius of the center ionized bubble.
+        xb : float,
+            x-position of the center of the main bubble.
+        yb : float,
+            y-position of the center of the main bubble.
+        zb : float,
+            z-position of the center of the main bubble.
+        dist : float,
+            distance up to which samples of galaxies are taken.
 
         Returns:
         tau_data: numpy.array;
@@ -97,11 +106,19 @@ def get_mock_data(
             z-coordinates of the mock galaxies. This is the LoS direction,
             negative values represent galaxies closer to us w.r.t. the center
             of the bubble.
+        x_b: numpy.array; 
+            x-positions of the outside bubbles.
+        y_b: numpy.array;
+            y-positions of the outside bubbles.
+        z_b: numpy.array;
+            z-positions of the outside bubbles.
+        r_bubs: numpy.array;
+            radii of outside bubbles.
     """
 
-    xs = np.random.uniform(-10, 10, size=n_gal)  # limits could also be variables
-    ys = np.random.uniform(-10, 10, size=n_gal)
-    zs = np.random.uniform(-10, 10, size=n_gal)
+    xs = np.random.uniform(-dist, dist, size=n_gal)
+    ys = np.random.uniform(-dist, dist, size=n_gal)
+    zs = np.random.uniform(-dist, dist, size=n_gal)
     tau_data = np.zeros((n_gal, len(wave_em)))
     x_b, y_b, z_b, r_bubs = get_bubbles(0.8, 300)
     #print(x_b,y_b,z_b,r_bubs)

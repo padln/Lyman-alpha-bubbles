@@ -78,7 +78,7 @@ def _get_likelihood(
         else:
             z_end_bub = red_s
         for n in range(n_iter_bub):
-            j_s = get_js(-22, n_iter=25)
+            j_s = get_js(-22, n_iter=18)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 0.8,
                 300
@@ -90,7 +90,7 @@ def _get_likelihood(
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=25,
+                n_iter=18,
             )
             #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))
@@ -167,8 +167,8 @@ def sample_bubbles_grid(
     """
 
     # first specify a range for bubble size and bubble position
-    r_min = 2.5  # small bubble
-    r_max = 35.5  # bubble not bigger than the actual size of the box
+    r_min = 1  # small bubble
+    r_max = 37  # bubble not bigger than the actual size of the box
     r_grid = np.linspace(r_min, r_max, n_grid)
 
     x_min = -15.5
@@ -213,8 +213,9 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=10,
+        n_gal=20,
         r_bubble=10,
+        dist = 15,
     )
     #print(td,xd,yd,zd,x_b,y_b,z_b,r_bubs)
     #assert 1==0
@@ -232,8 +233,8 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=25,
-        n_grid=7,
+        n_iter_bub=18,
+        n_grid=9,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
