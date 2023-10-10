@@ -215,10 +215,9 @@ if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
         n_gal=20,
         r_bubble=10,
-        dist = 10,
+        dist=10,
     )
-    #print(td,xd,yd,zd,x_b,y_b,z_b,r_bubs)
-    #assert 1==0
+
     tau_data_I = []
     one_J = get_js(z=7.5)
     for i in range(len(td)):

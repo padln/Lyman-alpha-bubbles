@@ -492,7 +492,7 @@ def calculate_taus(
                         z_max=red_lo_i,
                         z_s=red_s,
                         z_bubble_center=7.5,
-                        inside_HII=False
+                        inside_hii=False
                     )
                 )
         taus.append(tau_i)
