@@ -657,6 +657,9 @@ def calculate_taus_i(
                     )
                 )
         taus.append(tau_i)
+
+    taus = np.array(taus)
+    taus[taus<0.0]=np.inf
     return taus
 
 

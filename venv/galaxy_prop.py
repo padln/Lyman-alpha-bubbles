@@ -137,7 +137,7 @@ def get_mock_data(
             )
         else:
             z_end_bub = red_s
-        tau = calculate_taus(
+        tau = calculate_taus_i(
             x_b,
             y_b, 
             z_b,

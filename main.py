@@ -78,19 +78,19 @@ def _get_likelihood(
         else:
             z_end_bub = red_s
         for n in range(n_iter_bub):
-            j_s = get_js(-22, n_iter=30)
+            j_s = get_js(-22, n_iter=50)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 0.8,
                 300
             )
-            tau_now_i = calculate_taus(
+            tau_now_i = calculate_taus_i(
                 x_outs,
                 y_outs,
                 z_outs,
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=30,
+                n_iter=50,
             )
             #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))
@@ -102,6 +102,8 @@ def _get_likelihood(
             )
             if np.all(np.array(res)<10):
                 taus_now.extend(res)
+            else:
+                print("smth wrong", res, flush=True )
 
         taus_tot.append(taus_now)
     #print(taus_tot) 
@@ -109,17 +111,18 @@ def _get_likelihood(
     #for li in taus_tot:
     #    if np.all(np.array(li)<10.0):
     #        taus_tot_b.append(li)
-    print(np.shape(taus_tot_b), np.shape(tau_data))
+    print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+    #assert 1==0
     try:
         taus_tot_b = []
         for li in taus_tot:
             if np.all(np.array(li)<10.0):
                 taus_tot_b.append(li)
         #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
-        print(np.shape(taus_tot_b), np.shape(tau_data))
-        #assert 1==0
+        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+     #   assert 1==0
         tau_kde = gaussian_kde(np.array(taus_tot_b))
-        likelihood *= tau_kde.evaluate(tau_data)
+        likelihood *= tau_kde.evaluate(np.array(tau_data))
         print(
             np.array(taus_tot),
             np.array(tau_data),
@@ -127,10 +130,14 @@ def _get_likelihood(
             np.shape(tau_data),
             tau_kde.evaluate(tau_data),
             "This is what evaluate does for this params",
-            xb, yb, zb, rb  
+            xb, yb, zb, rb  , flush=True
         )
-    except LinAlgError:
+    except (LinAlgError,ValueError,TypeError):
         likelihood *= 0
+        print("OOps there was valu error, let's see why:", flush=True)
+        print(tau_data, flush=True)
+        print(taus_tot_b, flush=True)
+        raise TypeError
     if hasattr(likelihood, '__len__'):
         return ndex, np.product(likelihood)
     else:
@@ -167,8 +174,9 @@ def sample_bubbles_grid(
     """
 
     # first specify a range for bubble size and bubble position
-    r_min = 1  # small bubble
-    r_max = 37  # bubble not bigger than the actual size of the box
+    r_min = 5  # small bubble
+    #r_max = 37  # bubble not bigger than the actual size of the box
+    r_max = 25
     r_grid = np.linspace(r_min, r_max, n_grid)
 
     x_min = -15.5
@@ -213,9 +221,9 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=20,
+        n_gal=10,
         r_bubble=10,
-        dist=10,
+        dist=15,
     )
 
     tau_data_I = []
@@ -232,8 +240,8 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=16,
-        n_grid=9,
+        n_iter_bub=15,
+        n_grid=5,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
