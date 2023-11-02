@@ -225,7 +225,7 @@ if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
         n_gal=10,
         r_bubble=10,
-        dist=15,
+        dist=10,
     )
 
     tau_data_I = []
@@ -242,7 +242,7 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=15,
+        n_iter_bub=30,
         n_grid=5,
     )
     np.save(
