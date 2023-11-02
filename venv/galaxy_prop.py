@@ -136,6 +136,7 @@ def get_mock_data(
                 Cosmo.comoving_distance(red_s) - dist * u.Mpc
             )
         else:
+            dist = 0
             z_end_bub = red_s
         tau = calculate_taus_i(
             x_b,
@@ -147,6 +148,7 @@ def get_mock_data(
             n_iter=1,
             x_pos = xs[i],
             y_pos = ys[i],
+            dist = dist
         )
         tau_data[i, :] = tau[0]
     #print(x_b,y_b,z_b,r_bubs)

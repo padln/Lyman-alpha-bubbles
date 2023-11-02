@@ -77,6 +77,7 @@ def _get_likelihood(
             )
         else:
             z_end_bub = red_s
+            dist = 0
         for n in range(n_iter_bub):
             j_s = get_js(-22, n_iter=50)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
@@ -91,6 +92,7 @@ def _get_likelihood(
                 red_s,
                 z_end_bub,
                 n_iter=50,
+                dist = dist,
             )
             #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))

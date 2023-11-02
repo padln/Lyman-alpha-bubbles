@@ -509,6 +509,7 @@ def calculate_taus_i(
         n_iter=500,
         x_pos=None,
         y_pos=None,
+        dist = 10,
 ):
     """
         A different option to calculate tau distribution.
@@ -573,7 +574,7 @@ def calculate_taus_i(
         if len(z_edge_up) == 0:
             # galaxy doesn't intersect any of the bubbles:
             taus.append(
-                tau_wv(wv, dist=10, zs=z_source, z_end=5.3, nf=0.8)
+                tau_wv(wv, dist=dist, zs=z_source, z_end=5.3, nf=0.8)
             )
             # to be checked
             continue
