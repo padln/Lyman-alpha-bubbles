@@ -123,8 +123,12 @@ def _get_likelihood(
         #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
         print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
      #   assert 1==0
-        tau_kde = gaussian_kde(np.array(taus_tot_b))
-        likelihood *= tau_kde.evaluate(np.array(tau_data))
+        for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
+            tau_kde = gaussian_kde((np.array(tau_line)))
+            if tau_data[ind_data] < 1e-5:
+                likelihood *= tau_kde.integrate_box(0, 1e-5)
+            else:
+                likelihood *= tau_kde.evaluate((tau_data[ind_data]))
         print(
             np.array(taus_tot),
             np.array(tau_data),
