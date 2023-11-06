@@ -227,7 +227,7 @@ def sample_bubbles_grid(
 
 if __name__ == '__main__':
     td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=10,
+        n_gal=20,
         r_bubble=10,
         dist=10,
     )
@@ -247,7 +247,7 @@ if __name__ == '__main__':
         ys=yd,
         zs=zd,
         n_iter_bub=30,
-        n_grid=5,
+        n_grid=13,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
