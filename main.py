@@ -17,6 +17,8 @@ from venv.igm_prop import calculate_taus_i
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
+import argparse
+
 
 def _get_likelihood(
         ndex,
@@ -226,11 +228,58 @@ def sample_bubbles_grid(
 
 
 if __name__ == '__main__':
-    td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-        n_gal=20,
-        r_bubble=10,
-        dist=10,
-    )
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mock_direc", type=str, default=None)
+    inputs = parser.parse_args()
+
+    if inputs.mock_direc is None:
+        td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
+            n_gal=20,
+            r_bubble=10,
+            dist=10,
+        )
+    else:
+        td = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/tau_data.npy'
+        )
+        xd = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/x_gal_mock.npy'
+        )
+        yd = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/y_gal_mock.npy'
+        )
+        zd = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/z_gal_mock.npy'
+        )
+        x_b = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/x_bub_mock.npy'
+        )
+        y_b = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/y_bub_mock.npy'
+        )
+        z_b = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/z_bub_mock.npy'
+        )
+        r_bubs = np.load(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/r_bubs_mock.npy'
+        )
 
     tau_data_I = []
     one_J = get_js(z=7.5)
