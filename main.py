@@ -31,7 +31,8 @@ def _get_likelihood(
         zs,
         tau_data,
         n_iter_bub,
-        muv = None
+        muv=None,
+        include_muv_unc=False,
 ):
     """
 
@@ -54,7 +55,9 @@ def _get_likelihood(
     :param tau_data: list;
         transmissivities of galaxies.
     :param n_iter_bub: integer;
-        how many times to iterate over the bubbles
+        how many times to iterate over the bubbles.
+    :param include_muv_unc: boolean;
+        whether to include the uncertainty in the Muv.
 
     :return:
 
@@ -82,7 +85,7 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(muv=muvi, n_iter=50)
+            j_s = get_js(muv=muvi, n_iter=50, include_muv_unc=include_muv_unc)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 0.8,
                 300
@@ -161,6 +164,7 @@ def sample_bubbles_grid(
         n_iter_bub=100,
         n_grid=10,
         muv=None,
+        include_muv_unc=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -178,6 +182,10 @@ def sample_bubbles_grid(
         number of outside bubble configurations per iteration.
     :param n_grid: integer,
         number of grid points.
+    :param muv: muv,
+        UV magnitude data
+    :param include_muv_unc: boolean,
+        whether to include muv uncertainty.
 
     :return likelihood_grid: np.array of shape (N_grid, N_grid, N_grid, N_grid);
         likelihoods for the data on a grid defined above.
@@ -219,6 +227,7 @@ def sample_bubbles_grid(
             tau_data,
             n_iter_bub,
             muv=muv,
+            include_muv_unc=include_muv_unc,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
@@ -302,6 +311,7 @@ if __name__ == '__main__':
         n_iter_bub=30,
         n_grid=13,
         muv=Muv,
+        include_muv_unc=True,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',

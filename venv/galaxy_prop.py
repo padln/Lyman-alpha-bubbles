@@ -36,7 +36,9 @@ def delta_v_func(
 def get_js(
         muv=-18,
         z=7,
-        n_iter=1):
+        n_iter=1,
+        include_muv_unc=False,
+):
     """
     Function returns Lyman-alpha shape profiles
 
@@ -46,6 +48,8 @@ def get_js(
         redshift of interest.
     :param n_iter: integer,
         number of iterations of Lyman shape to get.
+    :param include_muv_unc: booleanm,
+        whether to include the scatter in Muv.
 
     :return j_s: numpy.array of shape (N_iter, n_wav);
         array of profiles for a number of iterations and wavelengths.
@@ -58,6 +62,12 @@ def get_js(
     wv_off = wave_to_dv(wave_em)
     delta_vs = np.zeros(n_iter)
     j_s = np.zeros((n_iter, n_wav))
+
+    if include_muv_unc and hasattr(muv, '__len__'):
+        muv = np.array([np.random.normal(i, 0.1) for i in muv])
+    else:
+        muv = np.random.normal(muv, i)
+
     if hasattr(muv, '__len__'):
         delta_v_mean = np.array([delta_v_func(i,z) for i in muv])
     else:
