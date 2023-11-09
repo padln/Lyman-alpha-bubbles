@@ -58,10 +58,16 @@ def get_js(
     wv_off = wave_to_dv(wave_em)
     delta_vs = np.zeros(n_iter)
     j_s = np.zeros((n_iter, n_wav))
-    delta_v_mean = delta_v_func(muv, z)
+    if hasattr(muv, '__len__'):
+        delta_v_mean = np.array([delta_v_func(i,z) for i in muv])
+    else:
+        delta_v_mean = delta_v_func(muv, z)
 
     for i in range(n_iter):
-        delta_vs[i] = 10**normal(delta_v_mean, 0.24)
+        if hasattr(muv, '__len__'):
+            delta_vs[i] = 10**normal(delta_v_mean[i], 0.24)
+        else:
+            delta_vs[i] = 10**normal(delta_v_mean, 0.24)
         j_s[i, :] = gaussian(wv_off.value, delta_vs[i], delta_vs[i])
 
     return j_s, delta_vs
@@ -120,7 +126,7 @@ def get_mock_data(
     ys = np.random.uniform(-dist, dist, size=n_gal)
     zs = np.random.uniform(-dist, dist, size=n_gal)
     tau_data = np.zeros((n_gal, len(wave_em)))
-    x_b, y_b, z_b, r_bubs = get_bubbles(0.8, 300)
+    x_b, y_b, z_b, r_bubs = get_bubbles(0.8, 300, mock=True)
     #print(x_b,y_b,z_b,r_bubs)
     for i in range(n_gal):
         red_s = z_at_value(

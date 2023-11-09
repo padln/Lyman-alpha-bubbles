@@ -30,7 +30,8 @@ def _get_likelihood(
         ys,
         zs,
         tau_data,
-        n_iter_bub
+        n_iter_bub,
+        muv = None
 ):
     """
 
@@ -62,7 +63,7 @@ def _get_likelihood(
     likelihood = 1.0
     taus_tot = []
     # For these parameters let's iterate over galaxies
-    for xg, yg, zg in zip(xs, ys, zs):
+    for xg, yg, zg, muvi in zip(xs, ys, zs, muv):
         taus_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
@@ -81,7 +82,7 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(-22, n_iter=50)
+            j_s = get_js(muv=muvi, n_iter=50)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 0.8,
                 300
@@ -127,8 +128,8 @@ def _get_likelihood(
      #   assert 1==0
         for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
             tau_kde = gaussian_kde((np.array(tau_line)))
-            if tau_data[ind_data] < 1e-5:
-                likelihood *= tau_kde.integrate_box(0, 1e-5)
+            if tau_data[ind_data] < 1e-4:
+                likelihood *= tau_kde.integrate_box(0, 1e-4)
             else:
                 likelihood *= tau_kde.evaluate((tau_data[ind_data]))
         print(
@@ -158,7 +159,8 @@ def sample_bubbles_grid(
         ys,
         zs,
         n_iter_bub=100,
-        n_grid=10
+        n_grid=10,
+        muv=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -215,7 +217,8 @@ def sample_bubbles_grid(
             ys,
             zs,
             tau_data,
-            n_iter_bub
+            n_iter_bub,
+            muv=muv,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
@@ -232,15 +235,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--mock_direc", type=str, default=None)
     inputs = parser.parse_args()
-
+    Muv = np.array([-21.5, -21.1, -21.3, -21.0, -21.3, -20.4, -21.5, -20.6, -20.7, -22.0, -21.2, -20.8])
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-            n_gal=20,
+            n_gal=len(Muv),
             r_bubble=10,
             dist=10,
         )
+        tau_data_I = []
+        one_J = get_js(z=7.5,muv=Muv, n_iter = len(Muv))
+        for i in range(len(td)):
+            eit = np.exp(-td[i])
+            tau_data_I.append(
+                np.trapz(
+                    eit * one_J[0][i]/integrate.trapz(one_J[0][i], wave_em.value),
+                    wave_em.value)
+            )
+
     else:
-        td = np.load(
+        tau_data_I = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
             + '/tau_data.npy'
@@ -281,15 +294,6 @@ if __name__ == '__main__':
             + '/r_bubs_mock.npy'
         )
 
-    tau_data_I = []
-    one_J = get_js(z=7.5)
-    for i in range(len(td)):
-        eit = np.exp(-td[i])
-        tau_data_I.append(
-            np.trapz(
-                eit * one_J[0][0]/integrate.trapz(one_J[0][0], wave_em.value),
-                wave_em.value)
-        )
     likelihoods = sample_bubbles_grid(
         tau_data=np.array(tau_data_I),
         xs=xd,
@@ -297,6 +301,7 @@ if __name__ == '__main__':
         zs=zd,
         n_iter_bub=30,
         n_grid=13,
+        muv=Muv,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',

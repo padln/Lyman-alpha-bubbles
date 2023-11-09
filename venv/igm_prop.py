@@ -112,6 +112,7 @@ def get_bubbles(
         xh,
         z_v,
         use_tl_result=True,
+        mock=False,
 ):
     """
     Function takes in some bubble distribution and returns an instance of
@@ -182,6 +183,9 @@ def get_bubbles(
         random_x = np.random.uniform(-max(r_hist), max(r_hist))
         random_y = np.random.uniform(-max(r_hist), max(r_hist))
         random_z = np.random.uniform(0, z_v)
+        if bubble_now**2 > random_x**2 + random_y**2:
+            if mock and random_z - (bubble_now**2 - random_x**2-random_y**2) < 5:
+                continue
 
         v = 4. * np.pi / 3. * bubble_now ** 3
         v_ded = 0.0
