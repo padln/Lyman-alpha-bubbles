@@ -65,8 +65,8 @@ def get_js(
 
     if include_muv_unc and hasattr(muv, '__len__'):
         muv = np.array([np.random.normal(i, 0.1) for i in muv])
-    else:
-        muv = np.random.normal(muv, i)
+    elif include_muv_unc and not hasattr(muv, '__len__'):
+        muv = np.random.normal(muv, 0.1)
 
     if hasattr(muv, '__len__'):
         delta_v_mean = np.array([delta_v_func(i,z) for i in muv])
