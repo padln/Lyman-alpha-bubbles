@@ -1,5 +1,6 @@
 import numpy as np
 import astropy
+from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
