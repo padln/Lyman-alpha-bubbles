@@ -60,7 +60,7 @@ def get_ENDSTA_gals():
     ra_c = Angle('09h59m10s')
     dec_c = Angle('02h25m20s')
     z_c = 6.76
-    dist_c = cosmo.comoving_distance(z_c)
+    dist_c = Cosmo.comoving_distance(z_c)
 
     # flat-sky approximation
     x_data = np.zeros((len(RAs)))
@@ -77,7 +77,7 @@ def get_ENDSTA_gals():
         cosy = np.sin(dec_c.to(u.deg))**2 + np.cos(
             dec_c.to(u.deg)
         )**2 * np.cos(r.to(u.deg)-ra_c.to(u.deg))
-        dist = cosmo.comoving_distance(z)
+        dist = Cosmo.comoving_distance(z)
         x_data[i] = np.sqrt(dist**2 + dist_c**2 - 2 * dist*distc*cosx)
         y_data[i] = np.sqrt(dist**2 + dist_c**2 - 2 * dist*distc*cosy)
 
