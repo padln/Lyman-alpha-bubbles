@@ -4,7 +4,7 @@ from astropy.cosmology import Planck18 as Cosmo
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
 
-RAs = np.array([
+RAs = [
     Angle('09h59m21.68s'),
     Angle('09h59m11.46s'),
     Angle('09h59m09.13s'),
@@ -17,9 +17,9 @@ RAs = np.array([
     Angle('09h59m01.40s'),
     Angle('09h59m09.76s'),
     Angle('09h58m46.20s')
-])
+]
 
-DECs = np.array([
+DECs = [
     Angle('02h14m53.02s'),
     Angle('02h18m10.42s'),
     Angle('02h18m22.38s'),
@@ -32,7 +32,7 @@ DECs = np.array([
     Angle('02h28m02.28s'),
     Angle('02h28m32.95s'),
     Angle('02h28m45.76s'),
-])
+]
 
 zs = np.array([
     6.882,
@@ -66,7 +66,7 @@ def get_ENDSTA_gals():
     x_data = np.zeros((len(RAs)))
     y_data = np.zeros((len(RAs)))
     z_data = np.zeros((len(RAs)))
-    for i,(r,d,z) in enumerate(zip(RAs, DECs, zs)):
+    for i, (r, d, z) in enumerate(zip(RAs, DECs, zs)):
         cosx = np.sin(
             d.to(u.deg)
         ) * np.sin(
