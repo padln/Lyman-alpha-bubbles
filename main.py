@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import LinAlgError
+import argparse
 
 from scipy import integrate
 from scipy.stats import gaussian_kde
@@ -15,9 +16,9 @@ from venv.galaxy_prop import get_js, get_mock_data
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
 
-wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+from venv.data.EndSta import get_ENDSTA_gals
 
-import argparse
+wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
 
 def _get_likelihood(
@@ -244,12 +245,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--mock_direc", type=str, default=None)
     inputs = parser.parse_args()
-    Muv = np.array([-21.5, -21.1, -21.3, -21.0, -21.3, -20.4, -21.5, -20.6, -20.7, -22.0, -21.2, -20.8])
+    Muv = np.array([
+        -21.5,
+        -21.1,
+        -21.3,
+        -21.0,
+        -21.3,
+        -20.4,
+        -21.5,
+        -20.6,
+        -20.7,
+        -22.0,
+        -21.2,
+        -20.8,
+    ])
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
             n_gal=len(Muv),
             r_bubble=10,
             dist=10,
+            ENDSTA_data=True,
         )
         tau_data_I = []
         one_J = get_js(z=7.5,muv=Muv, n_iter = len(Muv))

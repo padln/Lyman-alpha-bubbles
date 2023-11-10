@@ -8,6 +8,8 @@ from venv.helpers import wave_to_dv, gaussian, optical_depth
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
 
+from venv.data.EndSta import get_ENDSTA_gals
+
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
 
@@ -90,7 +92,8 @@ def get_mock_data(
         xb=0.0,
         yb=0.0,
         zb=0.0,
-        dist = 10,
+        dist=10,
+        ENDSTA_data=False,
 ):
     """
 
@@ -110,6 +113,8 @@ def get_mock_data(
             z-position of the center of the main bubble.
         dist : float,
             distance up to which samples of galaxies are taken.
+        ENDSTA_data : False
+            whether to use data from Endsley & Stark 2021.
 
         Returns:
         tau_data: numpy.array;
@@ -131,10 +136,12 @@ def get_mock_data(
         r_bubs: numpy.array;
             radii of outside bubbles.
     """
-
-    xs = np.random.uniform(-dist, dist, size=n_gal)
-    ys = np.random.uniform(-dist, dist, size=n_gal)
-    zs = np.random.uniform(-dist, dist, size=n_gal)
+    if ENDSTA_data:
+        xs,ys,zs = get_ENDSTA_gals()
+    else:
+        xs = np.random.uniform(-dist, dist, size=n_gal)
+        ys = np.random.uniform(-dist, dist, size=n_gal)
+        zs = np.random.uniform(-dist, dist, size=n_gal)
     tau_data = np.zeros((n_gal, len(wave_em)))
     x_b, y_b, z_b, r_bubs = get_bubbles(0.8, 300, mock=True)
     #print(x_b,y_b,z_b,r_bubs)
