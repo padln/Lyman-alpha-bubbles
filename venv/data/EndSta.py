@@ -79,9 +79,9 @@ def get_ENDSTA_gals():
             dec_c.to(u.deg)
         )**2 * np.cos(r.to(u.deg)-ra_c.to(u.deg))
         dist = Cosmo.comoving_distance(z)
-        x_data[i] = np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosx)
-        y_data[i] = np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosy)
+        x_data[i] = (np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosx)).value
+        y_data[i] = (np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosy)).value
 
-        z_data[i] = dist-dist_c
+        z_data[i] = (dist-dist_c).value
 
     return x_data, y_data, z_data
