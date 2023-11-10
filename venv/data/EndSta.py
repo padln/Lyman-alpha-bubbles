@@ -21,18 +21,18 @@ RAs = [
 ]
 
 DECs = [
-    Angle('02h14m53.02s'),
-    Angle('02h18m10.42s'),
-    Angle('02h18m22.38s'),
-    Angle('02h18m28.87s'),
-    Angle('02h18m28.86s'),
-    Angle('02h22m45.93s'),
-    Angle('02h23m32.73s'),
-    Angle('02h23m41.24s'),
-    Angle('02h26m30.48s'),
-    Angle('02h28m02.28s'),
-    Angle('02h28m32.95s'),
-    Angle('02h28m45.76s'),
+    Angle('02d14m53.02s'),
+    Angle('02d18m10.42s'),
+    Angle('02d18m22.38s'),
+    Angle('02d18m28.87s'),
+    Angle('02d18m28.86s'),
+    Angle('02d22m45.93s'),
+    Angle('02d23m32.73s'),
+    Angle('02d23m41.24s'),
+    Angle('02d26m30.48s'),
+    Angle('02d28m02.28s'),
+    Angle('02d28m32.95s'),
+    Angle('02d28m45.76s'),
 ]
 
 zs = np.array([
@@ -40,11 +40,14 @@ zs = np.array([
     6.701,
     6.702,
     6.732,
+    6.73,
     6.748,
     6.814,
     6.759,
     6.847,
     6.750,
+    6.81,
+    6.67
 ])
 
 def get_ENDSTA_gals():
@@ -59,7 +62,7 @@ def get_ENDSTA_gals():
         Z-position based on redshifts of galaxies.
     """
     ra_c = Angle('09h59m10s')
-    dec_c = Angle('02h25m20s')
+    dec_c = Angle('02d25m20s')
     z_c = 6.76
     dist_c = Cosmo.comoving_distance(z_c)
 
@@ -79,8 +82,18 @@ def get_ENDSTA_gals():
             dec_c.to(u.deg)
         )**2 * np.cos(r.to(u.deg)-ra_c.to(u.deg))
         dist = Cosmo.comoving_distance(z)
-        x_data[i] = (np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosx)).value
-        y_data[i] = (np.sqrt(dist**2 + dist_c**2 - 2 * dist*dist_c*cosy)).value
+        if d > dec_c:
+            x_data[i] = (np.sqrt(
+                dist**2 + dist_c**2 - 2 * dist * dist_c * cosx)).value
+        else:
+            x_data[i] = - (np.sqrt(
+                dist ** 2 + dist_c ** 2 - 2 * dist * dist_c * cosx)).value
+        if r > ra_c:
+            y_data[i] = (np.sqrt(
+                dist**2 + dist_c**2 - 2 * dist * dist_c * cosy)).value
+        else:
+            y_data[i] = - (np.sqrt(
+                dist ** 2 + dist_c ** 2 - 2 * dist * dist_c * cosy)).value
 
         z_data[i] = (dist-dist_c).value
 
