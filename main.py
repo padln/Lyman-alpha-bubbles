@@ -88,7 +88,7 @@ def _get_likelihood(
         for n in range(n_iter_bub):
             j_s = get_js(muv=muvi, n_iter=50, include_muv_unc=include_muv_unc)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
-                0.8,
+                0.7,
                 300
             )
             tau_now_i = calculate_taus_i(
@@ -195,7 +195,7 @@ def sample_bubbles_grid(
     # first specify a range for bubble size and bubble position
     r_min = 5  # small bubble
     #r_max = 37  # bubble not bigger than the actual size of the box
-    r_max = 25
+    r_max = 35
     r_grid = np.linspace(r_min, r_max, n_grid)
 
     x_min = -15.5
@@ -206,11 +206,11 @@ def sample_bubbles_grid(
     y_max = 15.5
     y_grid = np.linspace(y_min, y_max, n_grid)
 
-    z_min = -10.5
-    z_max = 10.5
+    z_min = -15.5
+    z_max = 15.5
     z_grid = np.linspace(z_min, z_max, n_grid)
-    x_grid = np.array([0.0])
-    y_grid = np.array([0.0])
+    x_grid = np.linspace(x_min, x_max, n_grid)
+    y_grid = np.linspace(y_min, y_max, n_grid)
     like_calc = Parallel(
         n_jobs=50
     )(
@@ -262,12 +262,12 @@ if __name__ == '__main__':
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
             n_gal=len(Muv),
-            r_bubble=10,
+            r_bubble=15,
             dist=10,
             ENDSTA_data=True,
         )
         tau_data_I = []
-        one_J = get_js(z=7.5,muv=Muv, n_iter = len(Muv))
+        one_J = get_js(z=7.0,muv=Muv, n_iter = len(Muv))
         for i in range(len(td)):
             eit = np.exp(-td[i])
             tau_data_I.append(
