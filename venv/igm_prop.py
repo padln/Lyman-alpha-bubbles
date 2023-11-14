@@ -71,7 +71,9 @@ def get_tl_data(
 def bubble_size_distro(
         r,
         r_hist=None,
-        p_log_r_norm=None
+        p_log_r_norm=None,
+        redshift_fit=False,
+        xH=None,
 ):
     """
     Calculate the PDF of the bubble size distribution.
@@ -96,6 +98,25 @@ def bubble_size_distro(
 
     if type(r_hist) != type(p_log_r_norm) and len(r_hist) != len(p_log_r_norm):
         raise ValueError("Your manual PDF arrays are inconsistent")
+
+    if redshift_fit:
+        if xH is None:
+            raise ValueError("You need to specify neutral fraction for redshift fit")
+        sig_par = np.array([ 211.80041642, -420.19373628,  211.92984014])
+        A_par = np.array([ 29.62577517, -51.82492007,  31.80019508,  -5.99811482])
+        tau_par = np.array([-137.83789264,  333.40850312, -273.79098176,   77.66713409])
+
+        sig = sig_par[0] * xH**2 + sig_par[1] * xH + sig_par[2]
+        A = A_par[0] * xH**3 + A_par[1] * xH**2 + A_par[2] * xH + A_par[3]
+        tau = tau_par[0] * xH**3 + tau_par[1] * xH**2 + tau_par[2] * xH + tau_par[3]
+
+        def f_bub(x, sig_in, A_in, tau_in):
+            return A_in / 2 / np.pi / np.sqrt(sig_in) * np.exp(
+                -0.5 * (x - 0.0) ** 2 / sig ** 2) * scipy.special.erf(
+                (x - 0.0) / tau_in)
+
+        return f_bub(r, sig, A, tau)
+
 
     if r_hist is None:
         alpha = 0.1
