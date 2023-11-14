@@ -50,7 +50,7 @@ def get_js(
         redshift of interest.
     :param n_iter: integer,
         number of iterations of Lyman shape to get.
-    :param include_muv_unc: booleanm,
+    :param include_muv_unc: boolean,
         whether to include the scatter in Muv.
 
     :return j_s: numpy.array of shape (N_iter, n_wav);
@@ -143,7 +143,7 @@ def get_mock_data(
         ys = np.random.uniform(-dist, dist, size=n_gal)
         zs = np.random.uniform(-dist, dist, size=n_gal)
     tau_data = np.zeros((n_gal, len(wave_em)))
-    x_b, y_b, z_b, r_bubs = get_bubbles(0.8, 300, mock=True)
+    x_b, y_b, z_b, r_bubs = get_bubbles(0.65, 300, mock=True)
     #print(x_b,y_b,z_b,r_bubs)
     for i in range(n_gal):
         red_s = z_at_value(

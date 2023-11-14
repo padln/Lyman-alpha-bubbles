@@ -13,10 +13,9 @@ import itertools
 from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data
-from venv.igm_prop import get_bubbles, calculate_taus
-from venv.igm_prop import calculate_taus_i
+from venv.igm_prop import get_bubbles
+from venv.igm_prop import calculate_taus_i, get_xH
 
-from venv.data.EndSta import get_ENDSTA_gals
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
@@ -87,8 +86,9 @@ def _get_likelihood(
             dist = 0
         for n in range(n_iter_bub):
             j_s = get_js(muv=muvi, n_iter=50, include_muv_unc=include_muv_unc)
+            x_H = get_xH(7.5) #make redshift a parameter
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
-                0.7,
+                x_H,
                 300
             )
             tau_now_i = calculate_taus_i(
@@ -267,7 +267,7 @@ if __name__ == '__main__':
             ENDSTA_data=True,
         )
         tau_data_I = []
-        one_J = get_js(z=7.0,muv=Muv, n_iter = len(Muv))
+        one_J = get_js(z=7.5,muv=Muv, n_iter = len(Muv))
         for i in range(len(td)):
             eit = np.exp(-td[i])
             tau_data_I.append(

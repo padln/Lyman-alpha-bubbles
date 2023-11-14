@@ -4,6 +4,8 @@ import os
 import pandas as pd
 from mpmath import nsum, exp, inf, log, ln
 
+from scipy.stats import gaussian_kde
+
 from astropy import units as u
 from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
@@ -39,14 +41,14 @@ def get_tl_data(
     :return p_log_r_norm: numpy.array;
         histogram values of the distribution.
     """
-    dir_bg_z8_rall = datadir + 'bg_rall_z' + str(
+    dir_bg_z8_r_all = datadir + 'bg_rall_z' + str(
         z) + '/'  # dir for full box bubble list [Rbub]
-    dir_fg_z8_rall = datadir + 'fg_rall_z' + str(z) + '/'
+    dir_fg_z8_r_all = datadir + 'fg_rall_z' + str(z) + '/'
 
     if bg:
-        box_dir = dir_bg_z8_rall
+        box_dir = dir_bg_z8_r_all
     else:
-        box_dir = dir_fg_z8_rall
+        box_dir = dir_fg_z8_r_all
 
     bub_list = {}
     box_fills = np.sort(os.listdir(box_dir))
@@ -722,3 +724,23 @@ def tau_wv(
     )
     
     return tau
+
+
+def get_xH(z):
+    """
+        Function returns neutral fraction as a sample from the distribution at a
+        given redshift
+
+    :param z: float
+        redshift at which we get the sample.
+    :return:
+    """
+
+    xHs_all = np.load('./data/global_xHs.npy')
+    node_r = np.load('./data/node_r.npy')
+    xHs = []
+    for x in xHs_all:
+        xHs.append(np.interp(z, np.flip(node_r), np.flip(x)))
+
+    gk = gaussian_kde(xHs)
+    return gk.resample(1)
