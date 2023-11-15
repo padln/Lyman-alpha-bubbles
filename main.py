@@ -12,7 +12,7 @@ from astropy.cosmology import Planck18 as Cosmo
 import itertools
 from joblib import Parallel, delayed
 
-from venv.galaxy_prop import get_js, get_mock_data
+from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 
@@ -33,6 +33,7 @@ def _get_likelihood(
         n_iter_bub,
         muv=None,
         include_muv_unc=False,
+        beta=None,
 ):
     """
 
@@ -66,7 +67,9 @@ def _get_likelihood(
     likelihood = 1.0
     taus_tot = []
     # For these parameters let's iterate over galaxies
-    for xg, yg, zg, muvi in zip(xs, ys, zs, muv):
+    if beta is None:
+        beta = [1]
+    for xg, yg, zg, muvi, beti in zip(xs, ys, zs, muv, beta):
         taus_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
@@ -109,11 +112,13 @@ def _get_likelihood(
                     wave_em.value),
                 wave_em.value
             )
-            if np.all(np.array(res)<10):
+            EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
+
+            if np.all(np.array(res)<10000):
                 taus_now.extend(res)
             else:
                 print("smth wrong", res, flush=True )
-
+            taus_now = calculate_EW_factor(muvi, beti) * np.array(taus_now)
         taus_tot.append(taus_now)
     #print(taus_tot) 
     taus_tot_b = []
@@ -125,15 +130,15 @@ def _get_likelihood(
     try:
         taus_tot_b = []
         for li in taus_tot:
-            if np.all(np.array(li)<10.0):
+            if np.all(np.array(li)<10000.0):
                 taus_tot_b.append(li)
         #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
         print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
      #   assert 1==0
         for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
             tau_kde = gaussian_kde((np.array(tau_line)))
-            if tau_data[ind_data] < 1e-4:
-                likelihood *= tau_kde.integrate_box(0, 1e-4)
+            if tau_data[ind_data] < 3:
+                likelihood *= tau_kde.integrate_box(0, 3)
             else:
                 likelihood *= tau_kde.evaluate((tau_data[ind_data]))
         print(
@@ -259,6 +264,22 @@ if __name__ == '__main__':
         -21.2,
         -20.8,
     ])
+
+    beta = np.array([
+        -2.11,
+        -2.64,
+        -1.95,
+        -2.06,
+        -1.38,
+        -2.77,
+        -2.44,
+        -2.12,
+        -2.59,
+        -1.43,
+        -2.43,
+        -2.02
+    ])
+
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
             n_gal=len(Muv),
@@ -275,6 +296,7 @@ if __name__ == '__main__':
                     eit * one_J[0][i]/integrate.trapz(one_J[0][i], wave_em.value),
                     wave_em.value)
             )
+        EW_data = calculate_EW_factor(Muv, beta) * np.array(tau_data_I)
 
     else:
         tau_data_I = np.load(
