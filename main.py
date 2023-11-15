@@ -235,7 +235,7 @@ def sample_bubbles_grid(
     )
     like_calc.sort(key=lambda x: x[0])
     likelihood_grid = np.array([l[1] for l in like_calc])
-    likelihood_grid.reshape((n_grid, n_grid))
+    likelihood_grid.reshape((len(x_grid), len(y_grid), len(z_grid), len(r_grid)))
 
     return likelihood_grid
 
