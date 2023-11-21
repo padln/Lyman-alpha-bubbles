@@ -736,8 +736,8 @@ def get_xH(z):
     :return:
     """
 
-    xHs_all = np.load('./data/global_xHs.npy')
-    node_r = np.load('./data/node_r.npy')
+    xHs_all = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/global_xHs.npy')
+    node_r = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/node_r.npy')
     xHs = []
     for x in xHs_all:
         xHs.append(np.interp(z, np.flip(node_r), np.flip(x)))

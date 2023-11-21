@@ -112,20 +112,21 @@ def _get_likelihood(
                     wave_em.value),
                 wave_em.value
             )
-            EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
+            #EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
 
             if np.all(np.array(res)<10000):
-                taus_now.extend(res)
+                taus_now.extend((calculate_EW_factor(muvi, beti) * res).tolist())
             else:
                 print("smth wrong", res, flush=True )
-            taus_now = calculate_EW_factor(muvi, beti) * np.array(taus_now)
-        taus_tot.append(taus_now)
-    #print(taus_tot) 
+            #print("This is taus_now", taus_now, flush=True)
+            #taus_now = calculate_EW_factor(muvi, beti) * np.array(taus_now)
+        taus_tot.append(np.array(taus_now).flatten())
+    #print(taus_tot, flush=True) 
     taus_tot_b = []
     #for li in taus_tot:
     #    if np.all(np.array(li)<10.0):
     #        taus_tot_b.append(li)
-    print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+    #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
     #assert 1==0
     try:
         taus_tot_b = []
@@ -133,25 +134,28 @@ def _get_likelihood(
             if np.all(np.array(li)<10000.0):
                 taus_tot_b.append(li)
         #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
-        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+     #   print(taus_tot_b, flush=True)
+     #   print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
      #   assert 1==0
         for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
+            print(tau_line, flush=True)
             tau_kde = gaussian_kde((np.array(tau_line)))
             if tau_data[ind_data] < 3:
                 likelihood *= tau_kde.integrate_box(0, 3)
             else:
                 likelihood *= tau_kde.evaluate((tau_data[ind_data]))
-        print(
-            np.array(taus_tot),
-            np.array(tau_data),
-            np.shape(taus_tot),
-            np.shape(tau_data),
-            tau_kde.evaluate(tau_data),
-            "This is what evaluate does for this params",
-            xb, yb, zb, rb  , flush=True
-        )
+        #print(
+        #    np.array(taus_tot),
+        #    np.array(tau_data),
+        #    np.shape(taus_tot),
+        #    np.shape(tau_data),
+        #    tau_kde.evaluate(tau_data),
+        #    "This is what evaluate does for this params",
+        #    xb, yb, zb, rb  , flush=True
+        #)
     except (LinAlgError,ValueError,TypeError):
         likelihood *= 0
+        raise ValueError
         print("OOps there was valu error, let's see why:", flush=True)
         print(tau_data, flush=True)
         print(taus_tot_b, flush=True)
@@ -171,6 +175,7 @@ def sample_bubbles_grid(
         n_grid=10,
         muv=None,
         include_muv_unc=False,
+        beta=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -214,8 +219,8 @@ def sample_bubbles_grid(
     z_min = -15.5
     z_max = 15.5
     z_grid = np.linspace(z_min, z_max, n_grid)
-    x_grid = np.linspace(x_min, x_max, n_grid)
-    y_grid = np.linspace(y_min, y_max, n_grid)
+    x_grid = np.linspace(x_min, x_max, n_grid)[6:7]
+    y_grid = np.linspace(y_min, y_max, n_grid)[6:7]
     like_calc = Parallel(
         n_jobs=50
     )(
@@ -234,6 +239,7 @@ def sample_bubbles_grid(
             n_iter_bub,
             muv=muv,
             include_muv_unc=include_muv_unc,
+            beta=beta,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
@@ -284,8 +290,8 @@ if __name__ == '__main__':
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
             n_gal=len(Muv),
             r_bubble=15,
-            dist=10,
-            ENDSTA_data=True,
+            dist=15,
+            ENDSTA_data=False,
         )
         tau_data_I = []
         one_J = get_js(z=7.5,muv=Muv, n_iter = len(Muv))
@@ -297,7 +303,8 @@ if __name__ == '__main__':
                     wave_em.value)
             )
         EW_data = calculate_EW_factor(Muv, beta) * np.array(tau_data_I)
-
+        #print(calculate_EW_factor(Muv, beta),flush=True)
+        #assert False 
     else:
         tau_data_I = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
@@ -339,9 +346,11 @@ if __name__ == '__main__':
             + inputs.mock_direc
             + '/r_bubs_mock.npy'
         )
+    #print(EW_data, Muv, beta, tau_data_I, flush=True)
+    #assert 1==0
 
     likelihoods = sample_bubbles_grid(
-        tau_data=np.array(tau_data_I),
+        tau_data=np.array(EW_data),
         xs=xd,
         ys=yd,
         zs=zd,
@@ -349,6 +358,7 @@ if __name__ == '__main__':
         n_grid=13,
         muv=Muv,
         include_muv_unc=True,
+        beta=beta,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
@@ -384,5 +394,5 @@ if __name__ == '__main__':
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/tau_data.npy',
-        np.array(tau_data_I),
+        np.array(EW_data),
     )

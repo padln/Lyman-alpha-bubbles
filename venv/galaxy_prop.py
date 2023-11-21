@@ -196,27 +196,31 @@ def calculate_EW_factor(Muv, beta, mean=False):
         equivalent width that, when multiplied with transmission, gives EW.
     """
 
-    Muv_thesan = np.load('./data/Muv_THESAN.npy')
-    La_thesan = np.load('./data/Lya_THESAN.npy')
+    Muv_thesan = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/Muv_THESAN.npy')
+    La_thesan = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/Lya_THESAN.npy')
     if hasattr(Muv, '__len__'):
+         La_sample = np.zeros((len(Muv)))
          for i,(Muvi, beta_i) in enumerate(zip(Muv, beta)):
-            La_sample = np.zeros((len(Muv)))
+            
             Las = La_thesan[abs(Muv_thesan - Muvi) < 0.1]  # magnitude uncertainty
+            #print(Las, Muv_thesan[abs(Muv_thesan - Muvi) < 0.1], Muvi, flush=True)
             if mean:
                 La_sample[i] = np.mean(Las) * 3.846 * 1e33
             else:
-                gk = gaussian_kde(Las)
-                La_sample[i] = gk.resample(1)[0][0] * 3.846 * 1e33
+                gk = gaussian_kde(Las * 3.846 * 1e33)
+                La_sample[i] = gk.resample(1)[0][0]# * 3.846 * 1e33
     else:
         Las = La_thesan[abs(Muv_thesan - Muv) < 0.1] #magnitude uncertainty
+        #print(Las, Muv_thesan[abs(Muv_thesan - Muv) < 0.1], Muv, flush=True)
         gk = gaussian_kde(Las)
         if mean:
             La_sample = np.mean(Las) * 3.846 * 1e33
         else:
-            gk = gaussian_kde(Las)
-            La_sample = gk.resample(1) * 3.846 * 1e33
+            gk = gaussian_kde(Las * 3.846 * 1e33)
+            La_sample = gk.resample(1)# * 3.846 * 1e33
 
     L_UV_mean = 10**(-0.4*(Muv-51.6))
-
+    #print(La_sample, L_UV_mean, flush=True)
     C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (1500 / 1216) ** (-beta-2)
+    #print(C_const, flush=True)
     return La_sample / C_const.value / L_UV_mean
