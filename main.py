@@ -254,7 +254,7 @@ def sample_bubbles_grid(
             redshift=redshift,
             muv=muv,
             include_muv_unc=include_muv_unc,
-            beta=beta_data,
+            beta_data=beta_data,
             use_EW=use_EW,
             xH_unc=xH_unc,
         ) for index, (xb, yb, zb, rb) in enumerate(
