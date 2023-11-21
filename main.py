@@ -31,9 +31,12 @@ def _get_likelihood(
         zs,
         tau_data,
         n_iter_bub,
+        redshift=7.5,
         muv=None,
         include_muv_unc=False,
-        beta=None,
+        beta_data=None,
+        use_EW=False,
+        xH_unc=False,
 ):
     """
 
@@ -67,13 +70,13 @@ def _get_likelihood(
     likelihood = 1.0
     taus_tot = []
     # For these parameters let's iterate over galaxies
-    if beta is None:
-        beta = [1]
-    for xg, yg, zg, muvi, beti in zip(xs, ys, zs, muv, beta):
+    if beta_data is None:
+        beta_data = np.zeros(len(xs))
+    for xg, yg, zg, muvi, beti in zip(xs, ys, zs, muv, beta_data):
         taus_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
-            Cosmo.comoving_distance(7.5) + zg * u.Mpc
+            Cosmo.comoving_distance(redshift) + zg * u.Mpc
         )
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
@@ -89,7 +92,10 @@ def _get_likelihood(
             dist = 0
         for n in range(n_iter_bub):
             j_s = get_js(muv=muvi, n_iter=50, include_muv_unc=include_muv_unc)
-            x_H = get_xH(7.5) #make redshift a parameter
+            if xH_unc:
+                x_H = get_xH(redshift)  # using the central redshift.
+            else:
+                x_H=0.65
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 x_H,
                 300
@@ -102,9 +108,8 @@ def _get_likelihood(
                 red_s,
                 z_end_bub,
                 n_iter=50,
-                dist = dist,
+                dist=dist,
             )
-            #print("Tau_now_i", tau_now_i,"x_outs", x_outs,"y_outs", y_outs,"z_outs", z_outs,"r_bubs", r_bubs,"red_s", red_s,"z_end_bub", z_end_bub)
             eit_l = np.exp(-np.array(tau_now_i))
             res = np.trapz(
                 eit_l * j_s[0] / integrate.trapz(
@@ -112,46 +117,51 @@ def _get_likelihood(
                     wave_em.value),
                 wave_em.value
             )
-            EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
+            #EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
 
-            if np.all(np.array(res)<10000):
-                taus_now.extend((calculate_EW_factor(muvi, beti) * res).tolist())
+            if np.all(np.array(res) < 10000):
+                if use_EW:
+                    taus_now.extend(
+                        (calculate_EW_factor(muvi, beti) * res).tolist()
+                    )
+                else:
+                    taus_now.extend(np.array(res).tolist()) # just to be sure
             else:
                 print("smth wrong", res, flush=True )
-            #print("This is taus_now", taus_now, flush=True)
-            #taus_now = calculate_EW_factor(muvi, beti) * np.array(taus_now)
+
         taus_tot.append(np.array(taus_now).flatten())
-    #print(taus_tot, flush=True)
     taus_tot_b = []
-    #for li in taus_tot:
-    #    if np.all(np.array(li)<10.0):
-    #        taus_tot_b.append(li)
-    print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-    #assert 1==0
+    #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+
     try:
         taus_tot_b = []
         for li in taus_tot:
-            if np.all(np.array(li)<10000.0):
+            if np.all(np.array(li) < 10000.0): # maybe unnecessary
                 taus_tot_b.append(li)
-        #taus_tot = np.array(taus_tot_b)[np.array(taus_tot)<10] 
-        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-     #   assert 1==0
+#        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+
         for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
             tau_kde = gaussian_kde((np.array(tau_line)))
-            if tau_data[ind_data] < 3:
-                likelihood *= tau_kde.integrate_box(0, 3)
+            if use_EW:
+                if tau_data[ind_data] < 3:
+                    likelihood *= tau_kde.integrate_box(0, 3)
+                else:
+                    likelihood *= tau_kde.evaluate((tau_data[ind_data]))
             else:
-                likelihood *= tau_kde.evaluate((tau_data[ind_data]))
-        print(
-            np.array(taus_tot),
-            np.array(tau_data),
-            np.shape(taus_tot),
-            np.shape(tau_data),
-            tau_kde.evaluate(tau_data),
-            "This is what evaluate does for this params",
-            xb, yb, zb, rb  , flush=True
-        )
-    except (LinAlgError,ValueError,TypeError):
+                if tau_data[ind_data] < 1e-3:
+                    likelihood *= tau_kde.integrate_box(0, 1e-3)
+                else:
+                    likelihood *= tau_kde.evaluate((tau_data[ind_data]))
+        # print(
+        #     np.array(taus_tot),
+        #     np.array(tau_data),
+        #     np.shape(taus_tot),
+        #     np.shape(tau_data),
+        #     tau_kde.evaluate(tau_data),
+        #     "This is what evaluate does for this params",
+        #     xb, yb, zb, rb  , flush=True
+        # )
+    except (LinAlgError, ValueError, TypeError):
         likelihood *= 0
         print("OOps there was valu error, let's see why:", flush=True)
         print(tau_data, flush=True)
@@ -170,8 +180,12 @@ def sample_bubbles_grid(
         zs,
         n_iter_bub=100,
         n_grid=10,
+        redshift=7.5,
         muv=None,
         include_muv_unc=False,
+        beta_data=None,
+        use_EW=False,
+        xH_unc=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -193,6 +207,10 @@ def sample_bubbles_grid(
         UV magnitude data
     :param include_muv_unc: boolean,
         whether to include muv uncertainty.
+    :param beta_data: float,
+        beta data.
+    :param use_EW: boolean
+        whether to use EW or transmissions directly.
 
     :return likelihood_grid: np.array of shape (N_grid, N_grid, N_grid, N_grid);
         likelihoods for the data on a grid defined above.
@@ -233,9 +251,12 @@ def sample_bubbles_grid(
             zs,
             tau_data,
             n_iter_bub,
+            redshift=redshift,
             muv=muv,
             include_muv_unc=include_muv_unc,
-            beta=beta,
+            beta=beta_data,
+            use_EW=use_EW,
+            xH_unc=xH_unc,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
@@ -251,7 +272,18 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mock_direc", type=str, default=None)
+    parser.add_argument("--redshift", type=float, default=7.5)
+    parser.add_argument("--r_bub", type=float, default=15.0)
+    parser.add_argument("--max_dist", type=float, default=15.0)
+    parser.add_argument("--n_gal", type=int, default=20)
+    parser.add_argument("--obs_pos", type=bool, default=True)
+    parser.add_argument("--use_EW", type=bool, default=True)
+    parser.add_argument("diff_mags", type=bool, default=True)
+    parser.add_argument("--mag_unc", type=bool, default=True)
+    parser.add_argument("--xH_unc", type=bool, default=True)
+
     inputs = parser.parse_args()
+
     if inputs.diff_mags:
         Muv = np.array([
             -21.5,
@@ -288,6 +320,7 @@ if __name__ == '__main__':
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
             n_gal=len(Muv),
+            z_start=inputs.redshift,
             r_bubble=inputs.r_bub,
             dist=inputs.max_dist,
             ENDSTA_data=inputs.obs_pos,
@@ -305,13 +338,15 @@ if __name__ == '__main__':
                     wave_em.value)
             )
         if inputs.use_EW:
-            EW_data = calculate_EW_factor(Muv, beta) * np.array(tau_data_I)
+            data = calculate_EW_factor(Muv, beta) * np.array(tau_data_I)
+        else:
+            data = np.array(tau_data_I)
 
     else:
-        tau_data_I = np.load(
+        data = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
-            + '/tau_data.npy'
+            + '/tau_data.npy'  # maybe I'll change this
         )
         xd = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
@@ -350,15 +385,18 @@ if __name__ == '__main__':
         )
 
     likelihoods = sample_bubbles_grid(
-        tau_data=np.array(EW_data),
+        tau_data=np.array(data),
         xs=xd,
         ys=yd,
         zs=zd,
         n_iter_bub=30,
         n_grid=13,
+        redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
-        beta=beta,
+        use_EW=inputs.use_EW,
+        beta_data=beta,
+        xH_unc=inputs.xH_unc
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
@@ -393,6 +431,6 @@ if __name__ == '__main__':
         np.array(r_bubs)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/tau_data.npy',
-        np.array(EW_data),
+        '/home/inikolic/projects/Lyalpha_bubbles/code/data.npy',
+        np.array(data),
     )
