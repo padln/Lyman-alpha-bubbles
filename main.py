@@ -278,7 +278,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_gal", type=int, default=20)
     parser.add_argument("--obs_pos", type=bool, default=True)
     parser.add_argument("--use_EW", type=bool, default=True)
-    parser.add_argument("diff_mags", type=bool, default=True)
+    parser.add_argument("--diff_mags", type=bool, default=True)
     parser.add_argument("--mag_unc", type=bool, default=True)
     parser.add_argument("--xH_unc", type=bool, default=True)
 
