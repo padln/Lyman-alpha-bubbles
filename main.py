@@ -13,6 +13,7 @@ import itertools
 from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor
+from venv.galaxy_prop import get_muv
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 
@@ -279,26 +280,29 @@ if __name__ == '__main__':
     parser.add_argument("--obs_pos", type=bool, default=True)
     parser.add_argument("--use_EW", type=bool, default=True)
     parser.add_argument("--diff_mags", type=bool, default=True)
+    parser.add_argument(
+        "--use_Endsley_Stark_mags",
+        action=argparse.BooleanOptionalAction
+    )
     parser.add_argument("--mag_unc", type=bool, default=True)
     parser.add_argument("--xH_unc", type=bool, default=True)
+    parser.add_argument("--muv_cut", type=float, default=-19.0)
 
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
-        Muv = np.array([
-            -21.5,
-            -21.1,
-            -21.3,
-            -21.0,
-            -21.3,
-            -20.4,
-            -21.5,
-            -20.6,
-            -20.7,
-            -22.0,
-            -21.2,
-            -20.8,
-        ])
+        if inputs.use_Endsley_Stark_mags:
+            Muv = get_muv(
+                10,
+                7.5,
+                obs='EndsleyStark21',
+            )
+        else:
+            Muv = get_muv(
+                n_gal=inputs.n_gal,
+                redshift=inputs.redshift,
+                muv_cut=inputs.muv_cut,
+            )
     else:
         Muv = -22.0 * np.ones(inputs.n_gal)
 

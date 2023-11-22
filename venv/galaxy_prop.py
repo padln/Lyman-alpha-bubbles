@@ -6,6 +6,8 @@ from astropy.cosmology import Planck18 as Cosmo
 
 from scipy.stats import gaussian_kde
 
+import py21cmfast as p21c
+
 from venv.helpers import wave_to_dv, gaussian, optical_depth
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
@@ -224,3 +226,90 @@ def calculate_EW_factor(Muv, beta, mean=False):
     C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (1500 / 1216) ** (-beta-2)
     #print(C_const, flush=True)
     return La_sample / C_const.value / L_UV_mean
+
+
+def get_muv(
+        n_gal,
+        redshift,
+        muv_cut=-19.0,
+        obs=False,
+):
+    """
+    :param n_gal: integer,
+        number of galaxies to sample from.
+    :param redshift: float.
+        redshift for lf.
+    :param muv_cut: float,
+        Muv cut. Default is -19.0
+    :param obs: string or boolean,
+        whether to use observed magnitudes
+    :return: np.array of size ~ n_gal
+        UV magnitudes of galaxies.
+    """
+
+    if obs == 'EndsleyStark21':
+        return np.array([
+            -21.5,
+            -21.1,
+            -21.3,
+            -21.0,
+            -21.3,
+            -20.4,
+            -21.5,
+            -20.6,
+            -20.7,
+            -22.0,
+            -21.2,
+            -20.8,
+        ])
+
+    cosmo_params = {'hlittle': 0.6688, 'OMm': 0.321, 'OMb': 0.04952,
+                    'POWER_INDEX': 0.9626, 'SIGMA_8': 0.8118}
+    flag_options = {'USE_MASS_DEPENDENT_ZETA': True, "INHOMO_RECO": True,
+                    "PHOTON_CONS": True, 'EVOLVING_R_BUBBLE_MAX': True}
+
+    Map_parm = [
+        -0.150343135732268118E+01,
+        0.504878704249769550E+00,
+        0.853431273778827304E+01,
+        0.278575390476855700E+00,
+        -0.971704175935387049E+00,
+        -0.498862738992503996E+00,
+    ]
+
+    names = ['F_STAR10', 'ALPHA_STAR', 'M_TURN', 't_STAR', 'F_ESC10',
+             'ALPHA_ESC']
+
+    astro_params = dict(zip(names, Map_parm))
+
+    Muv, mh, lf = p21c.compute_luminosity_function(
+        astro_params=astro_params,
+        cosmo_params=cosmo_params,
+        flag_options=flag_options,
+        redshifts=[redshift]
+    )
+
+    for i, m in enumerate(Muv[0][0:80]):
+        if m < muv_cut:
+            i = i - 1
+            break
+    Uvlf_cumsum = integrate.cumtrapz(10 ** lf[0][i:80], Muv[0][i:80])
+    cumsum = Uvlf_cumsum / Uvlf_cumsum[-1]
+
+    random_numb = np.random.uniform(size=n_gal)
+    UV_list = np.zeros(shape=n_gal)
+
+    for index, random in enumerate(random_numb):
+        this_gal = 0.0
+        while this_gal > muv_cut:
+            this_gal = np.interp(
+                random,
+                np.concatenate((np.array([0.0]), cumsum)),
+                np.array(Muv[0][i:80])
+            )
+            print(this_gal)
+
+            random = np.random.uniform(size=1)[0]
+        UV_list[index] = this_gal
+
+    return UV_list
