@@ -3,7 +3,7 @@ from scipy import integrate
 import os
 import pandas as pd
 from mpmath import nsum, exp, inf, log, ln
-
+import scipy
 from scipy.stats import gaussian_kde
 
 from astropy import units as u
@@ -171,17 +171,20 @@ def get_bubbles(
     bubble_zs = []
     bubble_rs = []
     v_tot = 0.0
-
+    r_min = 1.0
+    r_max = 60.0
     if use_tl_result:
-        r_hist, p_log_r_norm = get_tl_data(
-            xhi=xh
-        )
-        rs = np.logspace(np.log10(min(r_hist)), np.log10(max(r_hist)), 1000)
+        # r_hist, p_log_r_norm = get_tl_data(
+        #     xhi=xh
+        # )
+        rs = np.logspace(r_min, r_max, 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distro(
                 rs,
-                r_hist=r_hist,
-                p_log_r_norm=p_log_r_norm  # better way to do this tomorrow
+                r_hist=None,
+                p_log_r_norm=None,  # better way to do this tomorrow
+                redshift_fit=True,
+                xH=xh,
             ) / rs,
             rs
         )
@@ -197,14 +200,14 @@ def get_bubbles(
     try_i = 0
     tolerance = 0.01
     that_it = False
-    while abs(v_tot - (1 - xh) * z_v * max(r_hist) * max(r_hist)) / (
-            (1 - xh) * z_v * max(r_hist) * max(r_hist)) > tolerance:
+    while abs(v_tot - (1 - xh) * z_v * r_max * r_max) / (
+            (1 - xh) * z_v * r_max *r_max) > tolerance:
 
         random_numb = np.random.uniform(size=1)
         bubble_now = np.interp(random_numb, cdf / cdf[-1], rs[:-1])
 
-        random_x = np.random.uniform(-max(r_hist), max(r_hist))
-        random_y = np.random.uniform(-max(r_hist), max(r_hist))
+        random_x = np.random.uniform(-r_max, r_max)
+        random_y = np.random.uniform(-r_max, r_max)
         random_z = np.random.uniform(0, z_v)
         if bubble_now**2 > random_x**2 + random_y**2:
             if mock and random_z - (bubble_now**2 - random_x**2-random_y**2) < 5:
@@ -213,20 +216,20 @@ def get_bubbles(
         v = 4. * np.pi / 3. * bubble_now ** 3
         v_ded = 0.0
 
-        if random_x < -max(r_hist) + bubble_now:
-            h = -max(r_hist) - random_x + bubble_now
+        if random_x < -r_max + bubble_now:
+            h = -r_max - random_x + bubble_now
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
-        elif random_x > max(r_hist) - bubble_now:
-            h = bubble_now - (max(r_hist) - random_x)
+        elif random_x > r_max - bubble_now:
+            h = bubble_now - (r_max - random_x)
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
 
         v = v - v_ded
         v_ded = 0.
-        if random_y < -max(r_hist) + bubble_now:
-            h = -max(r_hist) - random_y + bubble_now
+        if random_y < -r_max + bubble_now:
+            h = -r_max - random_y + bubble_now
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
-        elif random_y > max(r_hist) - bubble_now:
-            h = bubble_now - (max(r_hist) - random_y)
+        elif random_y > r_max - bubble_now:
+            h = bubble_now - (r_max - random_y)
             v_ded = np.pi * 2. / 3. * h ** 2 * (3 * bubble_now - h)
 
         v = v - v_ded
@@ -268,8 +271,8 @@ def get_bubbles(
             else:
                 continue
 
-        if (v_tot + v) / ((1 - xh) * z_v * max(r_hist) * max(r_hist)) > 1.0:
-            if abs(v_tot + v - (1 - xh) * z_v * max(r_hist) * max(r_hist)) / (
+        if (v_tot + v) / ((1 - xh) * z_v * r_max * r_max) > 1.0:
+            if abs(v_tot + v - (1 - xh) * z_v * r_max * r_max) / (
                     v_tot + v) < tolerance:
                 that_it = True
             else:

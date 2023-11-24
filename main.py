@@ -277,15 +277,15 @@ if __name__ == '__main__':
     parser.add_argument("--r_bub", type=float, default=15.0)
     parser.add_argument("--max_dist", type=float, default=15.0)
     parser.add_argument("--n_gal", type=int, default=20)
-    parser.add_argument("--obs_pos", type=bool, default=True)
-    parser.add_argument("--use_EW", type=bool, default=True)
+    parser.add_argument("--obs_pos", type=bool, default=False)
+    parser.add_argument("--use_EW", type=bool, default=False)
     parser.add_argument("--diff_mags", type=bool, default=True)
     parser.add_argument(
         "--use_Endsley_Stark_mags",
-        action=argparse.BooleanOptionalAction
+        type=bool, default=False
     )
     parser.add_argument("--mag_unc", type=bool, default=True)
-    parser.add_argument("--xH_unc", type=bool, default=True)
+    parser.add_argument("--xH_unc", type=bool, default=False)
     parser.add_argument("--muv_cut", type=float, default=-19.0)
 
     inputs = parser.parse_args()
@@ -304,22 +304,25 @@ if __name__ == '__main__':
                 muv_cut=inputs.muv_cut,
             )
     else:
-        Muv = -22.0 * np.ones(inputs.n_gal)
+        Muv = -22.0 * np.ones((inputs.n_gal))
 
-    beta = np.array([
-        -2.11,
-        -2.64,
-        -1.95,
-        -2.06,
-        -1.38,
-        -2.77,
-        -2.44,
-        -2.12,
-        -2.59,
-        -1.43,
-        -2.43,
-        -2.02
-    ])
+    if inputs.use_Endsley_Stark_mags:
+        beta = np.array([
+            -2.11,
+            -2.64,
+            -1.95,
+            -2.06,
+            -1.38,
+            -2.77,
+            -2.44,
+            -2.12,
+            -2.59,
+            -1.43,
+            -2.43,
+            -2.02
+        ])
+    else:
+        beta = -2.0 * np.ones((inputs.n_gal))
 
     if inputs.mock_direc is None:
         td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(

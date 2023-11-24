@@ -3,7 +3,7 @@ from astropy import units as u
 from numpy.random import normal
 from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
-
+from scipy import integrate
 from scipy.stats import gaussian_kde
 
 import py21cmfast as p21c
