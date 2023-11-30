@@ -98,6 +98,7 @@ def get_mock_data(
         zb=0.0,
         dist=10,
         ENDSTA_data=False,
+        diff_pos_prob=False,
 ):
     """
 
@@ -119,6 +120,9 @@ def get_mock_data(
             distance up to which samples of galaxies are taken.
         ENDSTA_data : False
             whether to use data from Endsley & Stark 2021.
+        diff_pos_prob : False
+            whether galaxies have a different probability to be inside or out
+            of the ionized region. Default is False.
 
         Returns:
         tau_data: numpy.array;
@@ -143,9 +147,37 @@ def get_mock_data(
     if ENDSTA_data:
         xs,ys,zs = get_ENDSTA_gals()
     else:
-        xs = np.random.uniform(-dist, dist, size=n_gal)
-        ys = np.random.uniform(-dist, dist, size=n_gal)
-        zs = np.random.uniform(-dist, dist, size=n_gal)
+        if diff_pos_prob:
+            success = False
+            xs = np.zeros(n_gal)
+            ys = np.zeros(n_gal)
+            zs = np.zeros(n_gal)
+            for i in range(n_gal):
+                while not success:
+                    x_try = np.random.uniform(size=1)[0]
+                    y_try = np.random.uniform(size=1)[0]
+                    z_try = np.random.uniform(size=1)[0]
+                    dist = np.sqrt(
+                        (x_try-xb)**2 + (y_try-yb)**2 + (z_try-zb)**2
+                    )
+                    if dist < r_bubble:
+                        if np.random.binomial(0.75):
+                            success = True
+                            xs[i] = x_try
+                            ys[i] = y_try
+                            zs[i] = z_try
+                    else:
+                        if np.random.binomial(0.25):
+                            success = True
+                            xs[i] = x_try
+                            ys[i] = y_try
+                            zs[i] = z_try
+
+        else:
+            xs = np.random.uniform(-dist, dist, size=n_gal)
+            ys = np.random.uniform(-dist, dist, size=n_gal)
+            zs = np.random.uniform(-dist, dist, size=n_gal)
+
     tau_data = np.zeros((n_gal, len(wave_em)))
     x_b, y_b, z_b, r_bubs = get_bubbles(0.65, 300, mock=True)
     #print(x_b,y_b,z_b,r_bubs)

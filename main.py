@@ -287,7 +287,7 @@ if __name__ == '__main__':
     parser.add_argument("--mag_unc", type=bool, default=True)
     parser.add_argument("--xH_unc", type=bool, default=False)
     parser.add_argument("--muv_cut", type=float, default=-19.0)
-
+    parser.add_argument("--diff_poss_prob", type=bool, default=True)
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
@@ -331,6 +331,7 @@ if __name__ == '__main__':
             r_bubble=inputs.r_bub,
             dist=inputs.max_dist,
             ENDSTA_data=inputs.obs_pos,
+            diff_pos_prob=inputs.diff_pos_prob,
         )
         tau_data_I = []
         one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
