@@ -218,6 +218,7 @@ def sample_bubbles_grid(
         use_EW=False,
         xH_unc=False,
         la_e=None,
+        multiple_iter=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -267,36 +268,77 @@ def sample_bubbles_grid(
     z_grid = np.linspace(z_min, z_max, n_grid)
     x_grid = np.linspace(x_min, x_max, n_grid)[6:7]
     y_grid = np.linspace(y_min, y_max, n_grid)[6:7]
-    like_calc = Parallel(
-        n_jobs=50
-    )(
-        delayed(
-            _get_likelihood
-        )(
-            index,
-            xb,
-            yb,
-            zb,
-            rb,
-            xs,
-            ys,
-            zs,
-            tau_data,
-            n_iter_bub,
-            redshift=redshift,
-            muv=muv,
-            include_muv_unc=include_muv_unc,
-            beta_data=beta_data,
-            use_EW=use_EW,
-            xH_unc=xH_unc,
-            la_e=la_e,
-        ) for index, (xb, yb, zb, rb) in enumerate(
-            itertools.product(x_grid, y_grid, z_grid, r_grid)
+    if multiple_iter:
+        like_grid_top = np.zeros(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid), multiple_iter)
         )
-    )
-    like_calc.sort(key=lambda x: x[0])
-    likelihood_grid = np.array([l[1] for l in like_calc])
-    likelihood_grid.reshape((len(x_grid), len(y_grid), len(z_grid), len(r_grid)))
+        for ind_iter in range(multiple_iter):
+            like_calc = Parallel(
+                n_jobs=50
+            )(
+                delayed(
+                    _get_likelihood
+                )(
+                    index,
+                    xb,
+                    yb,
+                    zb,
+                    rb,
+                    xs[ind_iter],
+                    ys[ind_iter],
+                    zs[ind_iter],
+                    tau_data[ind_iter],
+                    n_iter_bub,
+                    redshift=redshift,
+                    muv=muv[ind_iter],
+                    include_muv_unc=include_muv_unc,
+                    beta_data=beta_data[ind_iter],
+                    use_EW=use_EW,
+                    xH_unc=xH_unc,
+                    la_e=la_e[ind_iter],
+                ) for index, (xb, yb, zb, rb) in enumerate(
+                    itertools.product(x_grid, y_grid, z_grid, r_grid)
+                )
+            )
+            like_calc.sort(key=lambda x: x[0])
+            likelihood_grid = np.array([l[1] for l in like_calc])
+            likelihood_grid.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid))
+            )
+            like_grid_top[:,:,:,:, ind_iter] = likelihood_grid
+        likelihood_grid = like_grid_top
+
+    else:
+        like_calc = Parallel(
+            n_jobs=50
+        )(
+            delayed(
+                _get_likelihood
+            )(
+                index,
+                xb,
+                yb,
+                zb,
+                rb,
+                xs,
+                ys,
+                zs,
+                tau_data,
+                n_iter_bub,
+                redshift=redshift,
+                muv=muv,
+                include_muv_unc=include_muv_unc,
+                beta_data=beta_data,
+                use_EW=use_EW,
+                xH_unc=xH_unc,
+                la_e=la_e,
+            ) for index, (xb, yb, zb, rb) in enumerate(
+                itertools.product(x_grid, y_grid, z_grid, r_grid)
+            )
+        )
+        like_calc.sort(key=lambda x: x[0])
+        likelihood_grid = np.array([l[1] for l in like_calc])
+        likelihood_grid.reshape((len(x_grid), len(y_grid), len(z_grid), len(r_grid)))
 
     return likelihood_grid
 
@@ -320,6 +362,7 @@ if __name__ == '__main__':
     parser.add_argument("--xH_unc", type=bool, default=False)
     parser.add_argument("--muv_cut", type=float, default=-19.0)
     parser.add_argument("--diff_poss_prob", type=bool, default=True)
+    parser.add_argument("--multiple_iter", default=None)
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
@@ -330,13 +373,25 @@ if __name__ == '__main__':
                 obs='EndsleyStark21',
             )
         else:
-            Muv = get_muv(
-                n_gal=inputs.n_gal,
-                redshift=inputs.redshift,
-                muv_cut=inputs.muv_cut,
-            )
+            if inputs.multiple_iter:
+                Muv = np.zeros((inputs.multiple_iter, inputs.n_gal))
+                for index_iter in range(inputs.multiple_iter):
+                    Muv[index_iter,:] = get_muv(
+                        n_gal = inputs.n_gal,
+                        redshift = inputs.redshift,
+                        muv_cut = inputs.muv_cut
+                    )
+            else:
+                Muv = get_muv(
+                    n_gal=inputs.n_gal,
+                    redshift=inputs.redshift,
+                    muv_cut=inputs.muv_cut,
+                )
     else:
-        Muv = -22.0 * np.ones((inputs.n_gal))
+        if inputs.multiple_iter:
+            Muv = -22.0 * np.ones((inputs.multiple_iter, inputs.n_gal))
+        else:
+            Muv = -22.0 * np.ones(inputs.n_gal)
 
     if inputs.use_Endsley_Stark_mags:
         beta = np.array([
@@ -354,17 +409,61 @@ if __name__ == '__main__':
             -2.02
         ])
     else:
-        beta = -2.0 * np.ones((inputs.n_gal))
+        if inputs.multiple_iter:
+            beta = -2.0 * np.ones((inputs.multiple_iter, inputs.n_gal))
+        else:
+            beta = -2.0 * np.ones(inputs.n_gal)
 
     if inputs.mock_direc is None:
-        td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-            n_gal=len(Muv),
-            z_start=inputs.redshift,
-            r_bubble=inputs.r_bub,
-            dist=inputs.max_dist,
-            ENDSTA_data=inputs.obs_pos,
-            diff_pos_prob=inputs.diff_pos_prob,
-        )
+        if inputs.multiple_iter:
+            td = np.zeros((inputs.multiple_iter, inputs.n_gal, 100))
+            xd = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            yd = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            zd = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            x_b = []
+            y_b = []
+            z_b = []
+            r_bubs = []
+            tau_data_I = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            for index_iter in range(inputs.multiple_iter):
+                tdi, xdi, ydi, zdi, x_bi, y_bi, z_bi, r_bubs_i = get_mock_data(
+                    n_gal=len(Muv),
+                    z_start=inputs.redshift,
+                    r_bubble=inputs.r_bub,
+                    dist=inputs.max_dist,
+                    ENDSTA_data=inputs.obs_pos,
+                    diff_pos_prob=inputs.diff_pos_prob,
+                )
+                td[index_iter, :, :] = tdi
+                xd[index_iter, :] = xdi
+                yd[index_iter, :] = ydi
+                zd[index_iter, :] = zdi
+                x_b.append(x_bi)
+                y_b.append(y_bi)
+                z_b.append(z_bi)
+                r_bubs.append(r_bubs_i)
+                one_J = get_js(
+                    z=inputs.redshift,
+                    muv=Muv[index_iter],
+                    n_iter=inputs.n_gal,
+                )
+                for i_gal in range(len(tdi)):
+                    eit = np.exp(-tdi[i_gal])
+                    tau_data_I[index_iter, i_gal] = np.trapz(
+                        eit * one_J[0][i_gal] / integrate.trapz(
+                            one_J[0][i_gal],
+                            wave_em.value
+                        ), wave_em.value)
+
+        else:
+            td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
+                n_gal=len(Muv),
+                z_start=inputs.redshift,
+                r_bubble=inputs.r_bub,
+                dist=inputs.max_dist,
+                ENDSTA_data=inputs.obs_pos,
+                diff_pos_prob=inputs.diff_pos_prob,
+            )
         tau_data_I = []
         one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
         for i in range(len(td)):
@@ -378,7 +477,9 @@ if __name__ == '__main__':
                     wave_em.value)
             )
         if inputs.use_EW:
-            ew_factor, la_e = calculate_EW_factor(Muv, beta, return_lum=True)
+            ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
+            ew_factor.reshape((np.shape(Muv)))
+            la_e.reshape((np.shape(la_e)))
             data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)
@@ -438,7 +539,8 @@ if __name__ == '__main__':
         use_EW=inputs.use_EW,
         beta_data=beta,
         xH_unc=inputs.xH_unc,
-        la_e=la_e
+        la_e=la_e,
+        multiple_iter=inputs.multiple_iter,
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
@@ -456,21 +558,42 @@ if __name__ == '__main__':
         '/home/inikolic/projects/Lyalpha_bubbles/code/z_gal_mock.npy',
         np.array(zd)
     )
+    if inputs.multiple_iter:
+        max_len_bubs = 0
+        for xbi in x_b:
+            if len(xbi)>max_len_bubs:
+                max_len_bubs = len(xbi)
+
+        x_b_arr = np.zeros((inputs.multiple_iter, max_len_bubs))
+        y_b_arr = np.zeros((inputs.multiple_iter, max_len_bubs))
+        z_b_arr = np.zeros((inputs.multiple_iter, max_len_bubs))
+        r_b_arr = np.zeros((inputs.multiple_iter, max_len_bubs))
+
+        for ind_iter in range(inputs.multiple_iter):
+            x_b_arr[ind_iter, :len(x_b[ind_iter])] = x_b[ind_iter]
+            y_b_arr[ind_iter, :len(y_b[ind_iter])] = y_b[ind_iter]
+            z_b_arr[ind_iter, :len(z_b[ind_iter])] = z_b[ind_iter]
+            r_b_arr[ind_iter, :len(r_bubs[ind_iter])] = r_bubs[ind_iter]
+    else:
+        x_b_arr = np.array(x_b)
+        y_b_arr = np.array(y_b)
+        z_b_arr = np.array(z_b)
+        r_b_arr = np.array(r_bubs)
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/x_bub_mock.npy',
-        np.array(x_b)
+        np.array(x_b_arr)
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/y_bub_mock.npy',
-        np.array(y_b)
+        np.array(y_b_arr)
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/z_bub_mock.npy',
-        np.array(z_b)
+        np.array(z_b_arr)
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/r_bubs_mock.npy',
-        np.array(r_bubs)
+        np.array(r_b_arr)
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/data.npy',
