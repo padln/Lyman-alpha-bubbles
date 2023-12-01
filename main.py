@@ -38,6 +38,7 @@ def _get_likelihood(
         beta_data=None,
         use_EW=False,
         xH_unc=False,
+        la_e=None,
 ):
     """
 
@@ -70,15 +71,28 @@ def _get_likelihood(
     """
     likelihood = 1.0
     taus_tot = []
+    if la_e is not None:
+        flux_mock = np.zeros(len(xs))
+    flux_limit = 1e-18
     # For these parameters let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
-    for xg, yg, zg, muvi, beti in zip(xs, ys, zs, muv, beta_data):
+    for index_gal, xg, yg, zg, muvi, beti, li in enumerate(
+            zip(xs, ys, zs, muv, beta_data, la_e)
+    ):
         taus_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
             Cosmo.comoving_distance(redshift) + zg * u.Mpc
         )
+
+        # calculating fluxes if they are given
+        if la_e is not None:
+            flux_mock[index_gal] = li * (
+                    4 * np.pi * Cosmo.luminosity_distance(
+                red_s).to(u.cm).value**2
+            )
+
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
             dist = zg - zb + np.sqrt(
@@ -143,14 +157,30 @@ def _get_likelihood(
 
         for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
             tau_kde = gaussian_kde((np.array(tau_line)))
+
+            if la_e is not None:
+                flux_tau = flux_mock[ind_data] * tau_data[ind_data]
+
             if use_EW:
                 if tau_data[ind_data] < 3:
                     likelihood *= tau_kde.integrate_box(0, 3)
                 else:
                     likelihood *= tau_kde.evaluate((tau_data[ind_data]))
+
             else:
-                if tau_data[ind_data] < 1e-3:
-                    likelihood *= tau_kde.integrate_box(0, 1e-3)
+                if flux_tau < flux_limit:
+                    _, la_limit_muv = calculate_EW_factor(
+                        muv[ind_data],
+                        beta_data[ind_data],
+                        mean=True,
+                        return_lum=True,
+                    )
+                    flux_limit_muv = la_limit_muv * (
+                            4 * np.pi * Cosmo.luminosity_distance(
+                        red_s).to(u.cm).value**2
+                    ) #TODO implement redshift dependence
+                    tau_limit = flux_limit/flux_limit_muv
+                    likelihood *= tau_kde.integrate_box(0, tau_limit)
                 else:
                     likelihood *= tau_kde.evaluate((tau_data[ind_data]))
         # print(
@@ -187,6 +217,7 @@ def sample_bubbles_grid(
         beta_data=None,
         use_EW=False,
         xH_unc=False,
+        la_e=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -258,6 +289,7 @@ def sample_bubbles_grid(
             beta_data=beta_data,
             use_EW=use_EW,
             xH_unc=xH_unc,
+            la_e=la_e,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
@@ -346,7 +378,8 @@ if __name__ == '__main__':
                     wave_em.value)
             )
         if inputs.use_EW:
-            data = calculate_EW_factor(Muv, beta) * np.array(tau_data_I)
+            ew_factor, la_e = calculate_EW_factor(Muv, beta, return_lum=True)
+            data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)
 
@@ -404,7 +437,8 @@ if __name__ == '__main__':
         include_muv_unc=inputs.mag_unc,
         use_EW=inputs.use_EW,
         beta_data=beta,
-        xH_unc=inputs.xH_unc
+        xH_unc=inputs.xH_unc,
+        la_e=la_e
     )
     np.save(
         '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',

@@ -214,7 +214,12 @@ def get_mock_data(
     #assert 1==0
     return tau_data, xs, ys, zs, x_b, y_b, z_b, r_bubs
 
-def calculate_EW_factor(Muv, beta, mean=False):
+def calculate_EW_factor(
+        Muv,
+        beta,
+        mean=False,
+        return_lum=True,
+):
     """
     Function calculates the luminosity factor that is necessary to calculate
     equivalent width
@@ -222,9 +227,12 @@ def calculate_EW_factor(Muv, beta, mean=False):
     :param Muv: float
         UV magnitude of a given galaxy.
     :param beta: float
-        beta slope of SED.
+        a beta slope of SED.
     :param mean: boolean
-        whether to just take the mean from the distribution. Default is False
+        whether to just take the means from the distribution.
+        Default is False
+    :param return_flux: boolean;
+        Do I return only the EW factor, or also the lyman-alpha luminosity.
 
     :return: EW_fac: float
         equivalent width that, when multiplied with transmission, gives EW.
@@ -234,6 +242,7 @@ def calculate_EW_factor(Muv, beta, mean=False):
     La_thesan = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/Lya_THESAN.npy')
     if hasattr(Muv, '__len__'):
          La_sample = np.zeros((len(Muv)))
+         La_sample_mean = np.zeros((len(Muv)))
          for i,(Muvi, beta_i) in enumerate(zip(Muv, beta)):
             
             Las = La_thesan[abs(Muv_thesan - Muvi) < 0.1]  # magnitude uncertainty
@@ -241,6 +250,7 @@ def calculate_EW_factor(Muv, beta, mean=False):
             if mean:
                 La_sample[i] = np.mean(Las) * 3.846 * 1e33
             else:
+                La_sample_mean[i] = np.mean(Las) * 3.846 * 1e33
                 gk = gaussian_kde(Las * 3.846 * 1e33)
                 La_sample[i] = gk.resample(1)[0][0]# * 3.846 * 1e33
     else:
@@ -250,6 +260,7 @@ def calculate_EW_factor(Muv, beta, mean=False):
         if mean:
             La_sample = np.mean(Las) * 3.846 * 1e33
         else:
+            La_sample_mean = np.mean(Las) * 3.846 * 1e33
             gk = gaussian_kde(Las * 3.846 * 1e33)
             La_sample = gk.resample(1)# * 3.846 * 1e33
 
@@ -257,7 +268,12 @@ def calculate_EW_factor(Muv, beta, mean=False):
     #print(La_sample, L_UV_mean, flush=True)
     C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (1500 / 1216) ** (-beta-2)
     #print(C_const, flush=True)
-    return La_sample / C_const.value / L_UV_mean
+
+
+    if return_lum:
+        return La_sample / C_const.value / L_UV_mean, La_sample
+    else:
+        return La_sample / C_const.value / L_UV_mean
 
 
 def get_muv(
