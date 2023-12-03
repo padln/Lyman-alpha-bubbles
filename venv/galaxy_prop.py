@@ -161,13 +161,13 @@ def get_mock_data(
                         (x_try-xb)**2 + (y_try-yb)**2 + (z_try-zb)**2
                     )
                     if dist < r_bubble:
-                        if np.random.binomial(0.75):
+                        if np.random.binomial(1,0.75):
                             success = True
                             xs[i] = x_try
                             ys[i] = y_try
                             zs[i] = z_try
                     else:
-                        if np.random.binomial(0.25):
+                        if np.random.binomial(1,0.25):
                             success = True
                             xs[i] = x_try
                             ys[i] = y_try
