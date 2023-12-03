@@ -362,7 +362,7 @@ if __name__ == '__main__':
     parser.add_argument("--xH_unc", type=bool, default=False)
     parser.add_argument("--muv_cut", type=float, default=-19.0)
     parser.add_argument("--diff_poss_prob", type=bool, default=True)
-    parser.add_argument("--multiple_iter", type=float, default=None)
+    parser.add_argument("--multiple_iter", type=int, default=None)
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
