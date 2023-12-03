@@ -93,7 +93,7 @@ def get_js(
         j_s[i, :] = gaussian(wv_off.value, delta_vs[i], delta_vs[i])
 
     if  hasattr(muv, '__len__'):
-        j_s.reshape(tot_it_shape, n_wav)
+        j_s.reshape((*tot_it_shape, n_wav))
         delta_vs.reshape(tot_it_shape)
 
     return j_s, delta_vs
