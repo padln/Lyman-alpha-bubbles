@@ -427,7 +427,7 @@ if __name__ == '__main__':
             tau_data_I = np.zeros((inputs.multiple_iter, inputs.n_gal))
             for index_iter in range(inputs.multiple_iter):
                 tdi, xdi, ydi, zdi, x_bi, y_bi, z_bi, r_bubs_i = get_mock_data(
-                    n_gal=input.n_gal,
+                    n_gal=inputs.n_gal,
                     z_start=inputs.redshift,
                     r_bubble=inputs.r_bub,
                     dist=inputs.max_dist,
