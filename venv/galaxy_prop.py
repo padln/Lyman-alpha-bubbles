@@ -145,6 +145,7 @@ def get_mock_data(
             radii of outside bubbles.
     """
     if ENDSTA_data:
+        print("Using ENDSTA data")
         xs,ys,zs = get_ENDSTA_gals()
     else:
         if diff_pos_prob:
