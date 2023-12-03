@@ -66,8 +66,14 @@ def get_js(
 
     wave_em = np.linspace(1213, 1219., n_wav) * u.Angstrom
     wv_off = wave_to_dv(wave_em)
-    delta_vs = np.zeros(n_iter)
-    j_s = np.zeros((n_iter, n_wav))
+    #figure out how many iterations
+
+    if hasattr(muv, '__len__'):
+        tot_it_shape = (n_iter, *np.shape(muv))
+    else:
+        tot_it_shape = (n_iter)
+    delta_vs = np.zeros(np.product(tot_it_shape))
+    j_s = np.zeros((np.product(tot_it_shape), n_wav))
 
     if include_muv_unc and hasattr(muv, '__len__'):
         muv = np.array([np.random.normal(i, 0.1) for i in muv])
@@ -87,8 +93,8 @@ def get_js(
         j_s[i, :] = gaussian(wv_off.value, delta_vs[i], delta_vs[i])
 
     if  hasattr(muv, '__len__'):
-        j_s.reshape(100, *np.shape(muv))
-        delta_vs.reshape(np.shape(muv))
+        j_s.reshape(tot_it_shape, n_wav)
+        delta_vs.reshape(tot_it_shape)
 
     return j_s, delta_vs
 
