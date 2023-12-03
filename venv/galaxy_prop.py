@@ -75,7 +75,7 @@ def get_js(
         muv = np.random.normal(muv, 0.1)
 
     if hasattr(muv, '__len__'):
-        delta_v_mean = np.array([delta_v_func(i,z) for i in muv])
+        delta_v_mean = np.array([delta_v_func(i,z) for i in muv.flatten()])
     else:
         delta_v_mean = delta_v_func(muv, z)
 
@@ -85,6 +85,10 @@ def get_js(
         else:
             delta_vs[i] = 10**normal(delta_v_mean, 0.24)
         j_s[i, :] = gaussian(wv_off.value, delta_vs[i], delta_vs[i])
+
+    if  hasattr(muv, '__len__'):
+        j_s.reshape(100, *np.shape(muv))
+        delta_vs.reshape(np.shape(muv))
 
     return j_s, delta_vs
 
