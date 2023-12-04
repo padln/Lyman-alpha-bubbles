@@ -159,11 +159,11 @@ def get_mock_data(
         xs,ys,zs = get_ENDSTA_gals()
     else:
         if diff_pos_prob:
-            success = False
             xs = np.zeros(n_gal)
             ys = np.zeros(n_gal)
             zs = np.zeros(n_gal)
             for i in range(n_gal):
+                success = False
                 while not success:
                     x_try = np.random.uniform(-dist, dist,size=1)[0]
                     y_try = np.random.uniform(-dist, dist,size=1)[0]
