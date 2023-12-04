@@ -77,7 +77,7 @@ def _get_likelihood(
     # For these parameters let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
-    print(xs,ys,zs, muv,beta_data, la_e)
+    print(xs,ys,zs, muv,beta_data, la_e, flush=True)
     for index_gal, xg, yg, zg, muvi, beti, li in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e)
     ):
