@@ -480,7 +480,7 @@ if __name__ == '__main__':
             )
         if inputs.use_EW:
             ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
-            print("This is la_e now", la_e)
+            print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
             ew_factor.reshape((np.shape(Muv)))
             la_e.reshape((np.shape(Muv)))
             print("and this is it now: ", la_e, "\n with a shape", np.shape(la_e))
