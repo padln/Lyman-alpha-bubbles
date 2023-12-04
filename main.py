@@ -138,7 +138,7 @@ def _get_likelihood(
             if np.all(np.array(res) < 10000):
                 if use_EW:
                     taus_now.extend(
-                        (calculate_EW_factor(muvi, beti) * res).tolist()
+                        res.tolist()
                     )
                 else:
                     taus_now.extend(np.array(res).tolist()) # just to be sure
@@ -482,10 +482,10 @@ if __name__ == '__main__':
             )
         if inputs.use_EW:
             ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
-            print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
+            #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
             ew_factor=ew_factor.reshape((np.shape(Muv)))
             la_e=la_e.reshape((np.shape(Muv)))
-            print("and this is it now: ", la_e, "\n with a shape", np.shape(la_e))
+            #print("and this is it now: ", la_e, "\n with a shape", np.shape(la_e))
             data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)

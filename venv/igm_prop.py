@@ -197,7 +197,7 @@ def get_bubbles(
             ),
             rs
         )
-    print(rs, cdf, flush=True)
+    #print(rs, cdf, flush=True)
     try_i = 0
     tolerance = 0.01
     that_it = False
