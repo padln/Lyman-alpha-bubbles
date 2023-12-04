@@ -165,9 +165,9 @@ def get_mock_data(
             zs = np.zeros(n_gal)
             for i in range(n_gal):
                 while not success:
-                    x_try = np.random.uniform(size=1)[0]
-                    y_try = np.random.uniform(size=1)[0]
-                    z_try = np.random.uniform(size=1)[0]
+                    x_try = np.random.uniform(-dist, dist,size=1)[0]
+                    y_try = np.random.uniform(-dist, dist,size=1)[0]
+                    z_try = np.random.uniform(-dist, dist,size=1)[0]
                     dist = np.sqrt(
                         (x_try-xb)**2 + (y_try-yb)**2 + (z_try-zb)**2
                     )
