@@ -366,7 +366,7 @@ def get_muv(
                 np.concatenate((np.array([0.0]), cumsum)),
                 np.array(Muv[0][i:80])
             )
-            print(this_gal)
+            #print(this_gal)
 
             random = np.random.uniform(size=1)[0]
         UV_list[index] = this_gal

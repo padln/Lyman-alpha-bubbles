@@ -77,6 +77,7 @@ def _get_likelihood(
     # For these parameters let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
+    print(xs,ys,zs, muv,beta_data, la_e)
     for index_gal, xg, yg, zg, muvi, beti, li in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e)
     ):
@@ -425,7 +426,7 @@ if __name__ == '__main__':
             z_b = []
             r_bubs = []
             tau_data_I = np.zeros((inputs.multiple_iter, inputs.n_gal))
-            print("using obs pos: ",inputs.obs_pos)
+
             for index_iter in range(inputs.multiple_iter):
                 tdi, xdi, ydi, zdi, x_bi, y_bi, z_bi, r_bubs_i = get_mock_data(
                     n_gal=inputs.n_gal,
