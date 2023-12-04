@@ -303,7 +303,7 @@ def sample_bubbles_grid(
             )
             like_calc.sort(key=lambda x: x[0])
             likelihood_grid = np.array([l[1] for l in like_calc])
-            likelihood_grid.reshape(
+            likelihood_grid = likelihood_grid.reshape(
                 (len(x_grid), len(y_grid), len(z_grid), len(r_grid))
             )
             like_grid_top[:,:,:,:, ind_iter] = likelihood_grid
@@ -339,7 +339,9 @@ def sample_bubbles_grid(
         )
         like_calc.sort(key=lambda x: x[0])
         likelihood_grid = np.array([l[1] for l in like_calc])
-        likelihood_grid.reshape((len(x_grid), len(y_grid), len(z_grid), len(r_grid)))
+        likelihood_grid= likelihood_grid.reshape(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid))
+        )
 
     return likelihood_grid
 
@@ -481,8 +483,8 @@ if __name__ == '__main__':
         if inputs.use_EW:
             ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
             print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
-            ew_factor.reshape((np.shape(Muv)))
-            la_e.reshape((np.shape(Muv)))
+            ew_factor=ew_factor.reshape((np.shape(Muv)))
+            la_e=la_e.reshape((np.shape(Muv)))
             print("and this is it now: ", la_e, "\n with a shape", np.shape(la_e))
             data = np.array(tau_data_I)
         else:
