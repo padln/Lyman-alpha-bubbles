@@ -188,6 +188,7 @@ def get_bubbles(
             ) / rs,
             rs
         )
+        cdf = cdf.flatten()
     else:
         rs = np.logspace(-1, 3, 1000)
         cdf = integrate.cumtrapz(
