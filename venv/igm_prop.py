@@ -171,8 +171,8 @@ def get_bubbles(
     bubble_zs = []
     bubble_rs = []
     v_tot = 0.0
-    r_min = 1.0
-    r_max = 60.0
+    r_min = np.log10(1.0)
+    r_max = np.log10(60.0)
     if use_tl_result:
         # r_hist, p_log_r_norm = get_tl_data(
         #     xhi=xh
@@ -196,7 +196,7 @@ def get_bubbles(
             ),
             rs
         )
-
+    print(rs, cdf, flush=True)
     try_i = 0
     tolerance = 0.01
     that_it = False
