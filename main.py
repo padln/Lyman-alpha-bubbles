@@ -481,7 +481,7 @@ if __name__ == '__main__':
         if inputs.use_EW:
             ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
             ew_factor.reshape((np.shape(Muv)))
-            la_e.reshape((np.shape(la_e)))
+            la_e.reshape((np.shape(Muv)))
             data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)
