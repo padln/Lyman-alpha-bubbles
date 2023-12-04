@@ -162,7 +162,7 @@ def _get_likelihood(
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
 
-            if use_EW:
+            if not use_EW:
                 if tau_data[ind_data] < 3:
                     likelihood *= tau_kde.integrate_box(0, 3)
                 else:
