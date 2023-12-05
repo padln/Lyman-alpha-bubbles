@@ -168,10 +168,10 @@ def get_mock_data(
                     x_try = np.random.uniform(-dist, dist,size=1)[0]
                     y_try = np.random.uniform(-dist, dist,size=1)[0]
                     z_try = np.random.uniform(-dist, dist,size=1)[0]
-                    dist = np.sqrt(
+                    d_gal = np.sqrt(
                         (x_try-xb)**2 + (y_try-yb)**2 + (z_try-zb)**2
                     )
-                    if dist < r_bubble:
+                    if d_gal < r_bubble:
                         if np.random.binomial(1,0.75):
                             success = True
                             xs[i] = x_try
@@ -183,6 +183,8 @@ def get_mock_data(
                             xs[i] = x_try
                             ys[i] = y_try
                             zs[i] = z_try
+            #print("using this dist",dist,"and this radius", r_bubble, "this n_gal", n_gal, xs,ys,zs)
+            #assert False
 
         else:
             xs = np.random.uniform(-dist, dist, size=n_gal)
