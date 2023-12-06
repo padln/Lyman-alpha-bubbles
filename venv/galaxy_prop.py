@@ -375,7 +375,7 @@ def get_muv(
     return UV_list
 
 
-def p_EW(Muv, mean=False, beta=-2, return_lum=True):
+def p_EW(Muv, beta=-2, mean=False, return_lum=True):
     """
     Function shall give sample from the distribution
     """
