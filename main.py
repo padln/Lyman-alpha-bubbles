@@ -12,7 +12,7 @@ from astropy.cosmology import Planck18 as Cosmo
 import itertools
 from joblib import Parallel, delayed
 
-from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor
+from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor, p_EW
 from venv.galaxy_prop import get_muv
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
@@ -172,7 +172,7 @@ def _get_likelihood(
 
             else:
                 if flux_tau < flux_limit:
-                    _, la_limit_muv = calculate_EW_factor(
+                    _, la_limit_muv = p_EW(
                         muv[ind_data],
                         beta_data[ind_data],
                         mean=True,
@@ -485,7 +485,7 @@ if __name__ == '__main__':
                     wave_em.value)
             )
         if inputs.use_EW:
-            ew_factor, la_e = calculate_EW_factor(Muv.flatten(), beta.flatten(), return_lum=True)
+            ew_factor, la_e = p_EW(Muv.flatten(), beta.flatten(), return_lum=True)
             #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
             ew_factor=ew_factor.reshape((np.shape(Muv)))
             la_e=la_e.reshape((np.shape(Muv)))

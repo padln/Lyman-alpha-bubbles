@@ -373,3 +373,73 @@ def get_muv(
         UV_list[index] = this_gal
 
     return UV_list
+
+
+def p_EW(Muv, mean=False, beta=-2, return_lum=True):
+    """
+    Function shall give sample from the distribution
+    """
+
+    def A(m):
+        return 0.65 + 0.1 * np.tanh(3 * (m + 20.75))
+
+    def W(m):
+        return 31 + 12 * np.tanh(4 * (m + 20.25))
+
+    Ws = np.linspace(0, 500, 1000)
+
+    if hasattr(Muv, '__len__') and not hasattr(beta, '__len__'):
+        beta = beta * np.ones(len(Muv))
+
+    C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (1500 / 1216) ** (
+                -(beta) - 2)
+    L_UV_mean = 10 ** (-0.4 * (Muv - 51.6))
+
+    if mean:
+        if return_lum:
+            return W(Muv) * A(Muv), W(Muv) * A(Muv) * C_const.value * L_UV_mean
+        else:
+            return W(Muv) * A(Muv)
+
+    if hasattr(Muv, '__len__'):
+        EWs = np.zeros((len(Muv)))
+        if return_lum:
+            lum_alpha = np.zeros((len(Muv)))
+        for i, (muvi, beti) in enumerate(zip(Muv, beta)):
+            if np.random.binomial(1, A(muvi)):
+                EW_cumsum = integrate.cumtrapz(
+                    1 / W(muvi) * np.exp(-Ws / W(muvi)), Ws)
+                cumsum = EW_cumsum / EW_cumsum[-1]
+                rn = np.random.uniform(size=1)
+                EW_now = \
+                np.interp(rn, np.concatenate((np.array([0.0]), cumsum)), Ws)[0]
+            else:
+                EW_now = 0.0
+            EWs[i] = EW_now
+            if return_lum:
+                C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (
+                            1500 / 1216) ** (-(beti) - 2)
+                L_UV_mean = 10 ** (-0.4 * (muvi - 51.6))
+                lum_alpha[i] = EW_now * C_const.value * L_UV_mean
+        if return_lum:
+            return EWs, lum_alpha
+        else:
+            return EWs
+    else:
+        if np.random.binomial(1, A(Muv)):
+            EW_cumsum = integrate.cumtrapz(1 / W(Muv) * np.exp(-Ws / W(Muv)),
+                                           Ws)
+            cumsum = EW_cumsum / EW_cumsum[-1]
+            rn = np.random.uniform(size=1)
+            EW_now = \
+            np.interp(rn, np.concatenate((np.array([0.0]), cumsum)), Ws)[0]
+            if return_lum:
+                return EW_now, EW_now * C_const.value * L_UV_mean
+            else:
+                return EW_now
+        else:
+            if return_lum:
+                return (0., 0.)
+            else:
+                return 0.
+
