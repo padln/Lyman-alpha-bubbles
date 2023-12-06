@@ -90,7 +90,7 @@ def _get_likelihood(
 
         # calculating fluxes if they are given
         if la_e is not None:
-            flux_mock[index_gal] = li * (
+            flux_mock[index_gal] = li / (
                     4 * np.pi * Cosmo.luminosity_distance(
                 red_s).to(u.cm).value**2
             )
@@ -183,8 +183,10 @@ def _get_likelihood(
                         red_s).to(u.cm).value**2
                     ) #TODO implement redshift dependence
                     tau_limit = flux_limit/flux_limit_muv
+                    print("This galaxy failed the tau test, it's flux is", flux_tau, "new to test flux is", flux_limit_muv, "tau_limit is ", tau_limit)
                     likelihood *= tau_kde.integrate_box(0, tau_limit)
                 else:
+                    print("all good", flux_tau)
                     likelihood *= tau_kde.evaluate((tau_data[ind_data]))
         # print(
         #     np.array(taus_tot),
@@ -369,9 +371,6 @@ if __name__ == '__main__':
     parser.add_argument("--diff_pos_prob", type=bool, default=True)
     parser.add_argument("--multiple_iter", type=int, default=None)
     inputs = parser.parse_args()
-
-    print(inputs, "these are the inputs")
-    assert False
 
     if inputs.diff_mags:
         if inputs.use_Endsley_Stark_mags:
