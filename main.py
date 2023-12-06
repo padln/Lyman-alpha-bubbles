@@ -84,7 +84,8 @@ def _get_likelihood(
         taus_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
-            Cosmo.comoving_distance(redshift) + zg * u.Mpc
+            Cosmo.comoving_distance(redshift) + zg * u.Mpc,
+            ztol=0.00005
         )
 
         # calculating fluxes if they are given
@@ -101,7 +102,8 @@ def _get_likelihood(
             )
             z_end_bub = z_at_value(
                 Cosmo.comoving_distance,
-                Cosmo.comoving_distance(red_s) - dist * u.Mpc
+                Cosmo.comoving_distance(red_s) - dist * u.Mpc,
+                ztol=0.00005
             )
         else:
             z_end_bub = red_s
@@ -367,6 +369,9 @@ if __name__ == '__main__':
     parser.add_argument("--diff_pos_prob", type=bool, default=True)
     parser.add_argument("--multiple_iter", type=int, default=None)
     inputs = parser.parse_args()
+
+    print(inputs, "these are the inputs")
+    assert False
 
     if inputs.diff_mags:
         if inputs.use_Endsley_Stark_mags:

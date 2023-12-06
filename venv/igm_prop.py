@@ -584,13 +584,15 @@ def calculate_taus_i(
                 red_edge_up_i = z_at_value(
                     Cosmo.comoving_distance,
                     Cosmo.comoving_distance(
-                        7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc
+                        7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc,
+                    ztol=0.00005
                     # the radius of the big bubble
                 )
                 red_edge_lo_i = z_at_value(
                     Cosmo.comoving_distance,
                     Cosmo.comoving_distance(
-                        7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc
+                        7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc,
+                    ztol=0.00005
                     # the radius of the big bubble
                 )
                 z_edge_up.append(np.copy(z_edge_up_i)[0])
