@@ -178,7 +178,7 @@ def _get_likelihood(
                         mean=True,
                         return_lum=True,
                     )
-                    flux_limit_muv = la_limit_muv * (
+                    flux_limit_muv = la_limit_muv / (
                             4 * np.pi * Cosmo.luminosity_distance(
                         red_s).to(u.cm).value**2
                     ) #TODO implement redshift dependence
