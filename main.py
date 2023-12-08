@@ -391,7 +391,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--save_dir",
         type=str,
-        default='/home/user/Documents/projects/Lyman_alpha_distr/code/'
+        default='/home/inikolic/projects/Lyalpha_bubbles/code/'
     )
     inputs = parser.parse_args()
 
