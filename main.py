@@ -71,6 +71,7 @@ def _get_likelihood(
     """
     likelihood = 1.0
     taus_tot = []
+    flux_tot = []
     if la_e is not None:
         flux_mock = np.zeros(len(xs))
     flux_limit = 1e-18
@@ -82,6 +83,7 @@ def _get_likelihood(
             zip(xs, ys, zs, muv, beta_data, la_e)
     ):
         taus_now = []
+        flux_now = []
         red_s = z_at_value(
             Cosmo.comoving_distance,
             Cosmo.comoving_distance(redshift) + zg * u.Mpc,
@@ -147,19 +149,34 @@ def _get_likelihood(
             else:
                 print("smth wrong", res, flush=True )
 
+            lae_now = np.array(
+                [p_EW(muvi, beti, )[1] for blah in range(len(taus_now))]
+            )
+            flux_now = lae_now * np.array(taus_now).flatten() / (
+                            4 * np.pi * Cosmo.luminosity_distance(
+                        red_s).to(u.cm).value**2
+            )
+
+        flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
+
     taus_tot_b = []
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
     try:
         taus_tot_b = []
-        for li in taus_tot:
+        flux_tot_b = []
+        for fi,li in zip(flux_tot,taus_tot):
             if np.all(np.array(li) < 10000.0): # maybe unnecessary
                 taus_tot_b.append(li)
+                flux_tot_b.append(fi)
 #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
-        for ind_data, tau_line in enumerate(np.array(taus_tot_b)):
+        for ind_data, (flux_line,tau_line) in enumerate(
+                zip(np.array(flux_tot_b),np.array(taus_tot_b))
+        ):
             tau_kde = gaussian_kde((np.array(tau_line)))
+            flux_kde = gaussian_kde((np.array(flux_line)))
 
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
@@ -172,22 +189,23 @@ def _get_likelihood(
 
             else:
                 if flux_tau < flux_limit:
-                    _, la_limit_muv = p_EW(
-                        muv[ind_data],
-                        beta_data[ind_data],
-                        mean=True,
-                        return_lum=True,
-                    )
-                    flux_limit_muv = la_limit_muv / (
-                            4 * np.pi * Cosmo.luminosity_distance(
-                        red_s).to(u.cm).value**2
-                    ) #TODO implement redshift dependence
-                    tau_limit = flux_limit/flux_limit_muv
-                    print("This galaxy failed the tau test, it's flux is", flux_tau, "new to test flux is", flux_limit_muv, "tau_limit is ", tau_limit)
-                    likelihood *= tau_kde.integrate_box(0, tau_limit)
+                    # _, la_limit_muv = p_EW(
+                    #     muv[ind_data],
+                    #     beta_data[ind_data],
+                    #     mean=True,
+                    #     return_lum=True,
+                    # )
+                    # flux_limit_muv = la_limit_muv / (
+                    #         4 * np.pi * Cosmo.luminosity_distance(
+                    #     red_s).to(u.cm).value**2
+                    # ) #TODO implement redshift dependence
+                    # tau_limit = flux_limit/flux_limit_muv
+                    print("This galaxy failed the tau test, it's flux is", flux_tau)
+                    likelihood *= flux_kde.integrate_box(0, flux_limit)
+                    print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
                 else:
                     print("all good", flux_tau)
-                    likelihood *= tau_kde.evaluate((tau_data[ind_data]))
+                    likelihood *= flux_kde.evaluate(flux_tau)
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
