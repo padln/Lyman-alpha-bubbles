@@ -370,6 +370,11 @@ if __name__ == '__main__':
     parser.add_argument("--muv_cut", type=float, default=-19.0)
     parser.add_argument("--diff_pos_prob", type=bool, default=True)
     parser.add_argument("--multiple_iter", type=int, default=None)
+    parser.add_argument(
+        "--save_dir",
+        type=str,
+        default='/home/user/Documents/projects/Lyman_alpha_distr/code/main.py'
+    )
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
@@ -553,19 +558,19 @@ if __name__ == '__main__':
         multiple_iter=inputs.multiple_iter,
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/likelihoods.npy',
+        inputs.save_dir + '/likelihoods.npy',
         likelihoods
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/x_gal_mock.npy',
+        inputs.save_dir + '/x_gal_mock.npy',
         np.array(xd)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/y_gal_mock.npy',
+        inputs.save_dir + '/y_gal_mock.npy',
         np.array(yd)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/z_gal_mock.npy',
+        inputs.save_dir + '/z_gal_mock.npy',
         np.array(zd)
     )
     if inputs.multiple_iter:
@@ -590,22 +595,22 @@ if __name__ == '__main__':
         z_b_arr = np.array(z_b)
         r_b_arr = np.array(r_bubs)
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/x_bub_mock.npy',
+        inputs.save_dir + '/x_bub_mock.npy',
         np.array(x_b_arr)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/y_bub_mock.npy',
+        inputs.save_dir + '/y_bub_mock.npy',
         np.array(y_b_arr)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/z_bub_mock.npy',
+        inputs.save_dir + '/z_bub_mock.npy',
         np.array(z_b_arr)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/r_bubs_mock.npy',
+        inputs.save_dir + '/r_bubs_mock.npy',
         np.array(r_b_arr)
     )
     np.save(
-        '/home/inikolic/projects/Lyalpha_bubbles/code/data.npy',
+        inputs.save_dir + '/data.npy',
         np.array(data),
     )
