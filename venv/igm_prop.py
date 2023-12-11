@@ -201,6 +201,8 @@ def get_bubbles(
     try_i = 0
     tolerance = 0.01
     that_it = False
+    r_max = 10**r_max
+
     while abs(v_tot - (1 - xh) * z_v * r_max * r_max) / (
             (1 - xh) * z_v * r_max *r_max) > tolerance:
 
