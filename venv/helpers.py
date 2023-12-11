@@ -320,4 +320,3 @@ def optical_depth(
         tau[ww] = np.trapz(d_tau, z_tab)
 
     return tau
-

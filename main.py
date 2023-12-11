@@ -13,7 +13,7 @@ import itertools
 from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor, p_EW
-from venv.galaxy_prop import get_muv
+from venv.galaxy_prop import get_muv, tau_CGM
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 
@@ -131,8 +131,9 @@ def _get_likelihood(
                 dist=dist,
             )
             eit_l = np.exp(-np.array(tau_now_i))
+            tau_cgm_gal = tau_CGM(muvi)
             res = np.trapz(
-                eit_l * j_s[0] / integrate.trapz(
+                eit_l * tau_cgm_gal * j_s[0] / integrate.trapz(
                     j_s[0][0],
                     wave_em.value),
                 wave_em.value
@@ -479,9 +480,10 @@ if __name__ == '__main__':
                     n_iter=inputs.n_gal,
                 )
                 for i_gal in range(len(tdi)):
+                    tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal])
                     eit = np.exp(-tdi[i_gal])
                     tau_data_I[index_iter, i_gal] = np.trapz(
-                        eit * one_J[0][i_gal] / integrate.trapz(
+                        eit * tau_cgm_gal * one_J[0][i_gal] / integrate.trapz(
                             one_J[0][i_gal],
                             wave_em.value
                         ), wave_em.value)
@@ -499,9 +501,10 @@ if __name__ == '__main__':
         one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
         for i in range(len(td)):
             eit = np.exp(-td[i])
+            tau_cgm_gal = tau_CGM(Muv[i])
             tau_data_I.append(
                 np.trapz(
-                    eit * one_J[0][i]/integrate.trapz(
+                    eit * tau_cgm_gal * one_J[0][i]/integrate.trapz(
                         one_J[0][i],
                         wave_em.value
                     ),
