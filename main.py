@@ -612,6 +612,8 @@ if __name__ == '__main__':
         y_b_arr = np.array(y_b)
         z_b_arr = np.array(z_b)
         r_b_arr = np.array(r_bubs)
+    print("Where am I saving?")
+    print(inputs.save_dir + '/x_bub_mock.npy')
     np.save(
         inputs.save_dir + '/x_bub_mock.npy',
         np.array(x_b_arr)
