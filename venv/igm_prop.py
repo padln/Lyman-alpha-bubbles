@@ -203,8 +203,8 @@ def get_bubbles(
     that_it = False
     r_max = 10**r_max
 
-    while abs(v_tot - (1 - xh) * z_v * r_max * r_max) / (
-            (1 - xh) * z_v * r_max *r_max) > tolerance:
+    while abs(v_tot - (1 - xh) * 3.2* z_v * r_max * r_max) / (
+            (1 - xh) * 3.2*z_v * r_max *r_max) > tolerance:
 
         random_numb = np.random.uniform(size=1)
         bubble_now = np.interp(random_numb, cdf / cdf[-1], rs[:-1])
@@ -274,8 +274,8 @@ def get_bubbles(
             else:
                 continue
 
-        if (v_tot + v) / ((1 - xh) * z_v * r_max * r_max) > 1.0:
-            if abs(v_tot + v - (1 - xh) * z_v * r_max * r_max) / (
+        if (v_tot + v) / ((1 - xh) * 3.2*z_v * r_max * r_max) > 1.0:
+            if abs(v_tot + v - (1 - xh) *3.2* z_v * r_max * r_max) / (
                     v_tot + v) < tolerance:
                 that_it = True
             else:
