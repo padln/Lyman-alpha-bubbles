@@ -5,6 +5,7 @@ from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
 from scipy import integrate
 from scipy.stats import gaussian_kde
+from astropy import constants as const
 
 import py21cmfast as p21c
 
@@ -445,8 +446,8 @@ def p_EW(Muv, beta=-2, mean=False, return_lum=True):
 
 
 def tau_CGM(Muv):
-    Muvs = np.load('./data/Muv.npy')
-    mh = np.load('./data/mh.npy')
+    Muvs = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/Muv.npy')
+    mh = np.load('/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/venv/data/mh.npy')
     mh_now = np.interp(Muv, np.flip(Muvs), np.flip(mh))
     v_c = ((10 * const.G * mh_now*u.M_sun *  Cosmo.H(7.5))**( 1/3)).to(u.km/u.s).value
     tau_CGM = np.ones((100))
