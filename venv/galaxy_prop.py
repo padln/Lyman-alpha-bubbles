@@ -448,11 +448,19 @@ def tau_CGM(Muv):
     Muvs = np.load('./data/Muv.npy')
     mh = np.load('./data/mh.npy')
     mh_now = np.interp(Muv, np.flip(Muvs), np.flip(mh))
-    v_c = ((10 * const.G * mh_now*u.M_sun *  Cosmo.H(7.5))**( 1/3)).to(u.km/u.s).value
-    tau_CGM = np.ones((100))
-    for i_w, wv in enumerate(wave_em):
-        if wave_to_dv(wv).value < v_c:
-            tau_CGM[i_w] = 0.0
-        else:
-            break
+    v_c = ((10 * const.G * mh_now*u.M_sun * Cosmo.H(7.5))**( 1/3)).to(u.km/u.s).value
+    if hasattr(Muv, '__len__'):
+        tau_CGM = np.ones((len(Muv),100))
+        for imi,mi in enumerate(Muv):
+            for i_w,wv in enumerate(wave_em):
+                if wave_to_dv(wv).value < v_c[imi]
+                    tau_CGM[imi,i_w] = 0.0
+
+    else:
+        tau_CGM = np.ones(100)
+        for i_w, wv in enumerate(wave_em):
+            if wave_to_dv(wv).value < v_c:
+                tau_CGM[i_w] = 0.0
+            else:
+                break
     return tau_CGM
