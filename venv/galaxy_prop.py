@@ -454,7 +454,7 @@ def tau_CGM(Muv):
         tau_CGM = np.ones((len(Muv),100))
         for imi,mi in enumerate(Muv):
             for i_w,wv in enumerate(wave_em):
-                if wave_to_dv(wv).value < v_c[imi]
+                if wave_to_dv(wv).value < v_c[imi]:
                     tau_CGM[imi,i_w] = 0.0
 
     else:
