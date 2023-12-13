@@ -637,3 +637,24 @@ if __name__ == '__main__':
         inputs.save_dir + '/data.npy',
         np.array(data),
     )
+
+    flux_to_save = np.zeros(len(Muv.flatten()))
+    for i,xdi,ydi,zdi, tdi, li in enumerate(zip(
+            xd.flatten(), yd.flatten(),zd.flatten(),data.flatten(),la_e.flatten()
+    )):
+        red_s = z_at_value(
+            Cosmo.comoving_distance,
+            Cosmo.comoving_distance(inputs.redshift) + zdi * u.Mpc,
+            ztol=0.00005
+        )
+
+        # calculating fluxes if they are given
+        if la_e is not None:
+            flux_to_save[i] = li / (
+                    4 * np.pi * Cosmo.luminosity_distance(
+                red_s).to(u.cm).value ** 2
+            )
+    np.save(
+        inputs.save_dir + '/flux_data.npy',
+        np.array(flux_to_save.reshape(np.shape(Muv)))
+    )
