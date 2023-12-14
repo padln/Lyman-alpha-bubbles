@@ -39,6 +39,7 @@ def _get_likelihood(
         use_EW=False,
         xH_unc=False,
         la_e=None,
+        flux_limit=1e-18,
 ):
     """
 
@@ -74,7 +75,7 @@ def _get_likelihood(
     flux_tot = []
     if la_e is not None:
         flux_mock = np.zeros(len(xs))
-    flux_limit = 1e-18
+
     # For these parameters let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
@@ -243,6 +244,7 @@ def sample_bubbles_grid(
         xH_unc=False,
         la_e=None,
         multiple_iter=False,
+        flux_limit=1e-18
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -320,6 +322,7 @@ def sample_bubbles_grid(
                     use_EW=use_EW,
                     xH_unc=xH_unc,
                     la_e=la_e[ind_iter],
+                    flux_limit=flux_limit,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -356,6 +359,7 @@ def sample_bubbles_grid(
                 use_EW=use_EW,
                 xH_unc=xH_unc,
                 la_e=la_e,
+                flux_limit=flux_limit,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -394,6 +398,7 @@ if __name__ == '__main__':
         type=str,
         default='/home/inikolic/projects/Lyalpha_bubbles/code/'
     )
+    parser.add_argument("--flux_limt", type=float, default=1e-18)
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
@@ -577,6 +582,7 @@ if __name__ == '__main__':
         xH_unc=inputs.xH_unc,
         la_e=la_e,
         multiple_iter=inputs.multiple_iter,
+        flux_limit=inputs.flux_limit
     )
     np.save(
         inputs.save_dir + '/likelihoods.npy',
