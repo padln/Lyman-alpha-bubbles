@@ -639,7 +639,7 @@ if __name__ == '__main__':
     )
 
     flux_to_save = np.zeros(len(Muv.flatten()))
-    for i,xdi,ydi,zdi, tdi, li in enumerate(zip(
+    for i,(xdi,ydi,zdi, tdi, li) in enumerate(zip(
             xd.flatten(), yd.flatten(),zd.flatten(),data.flatten(),la_e.flatten()
     )):
         red_s = z_at_value(
