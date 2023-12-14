@@ -398,7 +398,7 @@ if __name__ == '__main__':
         type=str,
         default='/home/inikolic/projects/Lyalpha_bubbles/code/'
     )
-    parser.add_argument("--flux_limt", type=float, default=1e-18)
+    parser.add_argument("--flux_limit", type=float, default=1e-18)
     inputs = parser.parse_args()
 
     if inputs.diff_mags:
