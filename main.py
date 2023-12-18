@@ -278,7 +278,7 @@ def sample_bubbles_grid(
     # first specify a range for bubble size and bubble position
     r_min = 5  # small bubble
     #r_max = 37  # bubble not bigger than the actual size of the box
-    r_max = 35
+    r_max = 30
     r_grid = np.linspace(r_min, r_max, n_grid)
 
     x_min = -15.5
@@ -289,11 +289,11 @@ def sample_bubbles_grid(
     y_max = 15.5
     y_grid = np.linspace(y_min, y_max, n_grid)
 
-    z_min = -15.5
-    z_max = 15.5
+    z_min = -12.5
+    z_max = 12.5
     z_grid = np.linspace(z_min, z_max, n_grid)
-    x_grid = np.linspace(x_min, x_max, n_grid)[6:7]
-    y_grid = np.linspace(y_min, y_max, n_grid)[6:7]
+    x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
+    y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
     if multiple_iter:
         like_grid_top = np.zeros(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid), multiple_iter)
@@ -484,6 +484,7 @@ if __name__ == '__main__':
                     muv=Muv[index_iter],
                     n_iter=inputs.n_gal,
                 )
+     #           print(tau_data_I, np.shape(tau_data_I))
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal])
                     eit = np.exp(-tdi[i_gal])
@@ -492,6 +493,7 @@ if __name__ == '__main__':
                             one_J[0][i_gal],
                             wave_em.value
                         ), wave_em.value)
+      #          print(tau_data_I, np.shape(tau_data_I))
 
         else:
             td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
@@ -502,19 +504,19 @@ if __name__ == '__main__':
                 ENDSTA_data=inputs.obs_pos,
                 diff_pos_prob=inputs.diff_pos_prob,
             )
-        tau_data_I = []
-        one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
-        for i in range(len(td)):
-            eit = np.exp(-td[i])
-            tau_cgm_gal = tau_CGM(Muv[i])
-            tau_data_I.append(
-                np.trapz(
-                    eit * tau_cgm_gal * one_J[0][i]/integrate.trapz(
-                        one_J[0][i],
-                        wave_em.value
-                    ),
-                    wave_em.value)
-            )
+            tau_data_I = []
+            one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
+            for i in range(len(td)):
+                eit = np.exp(-td[i])
+                tau_cgm_gal = tau_CGM(Muv[i])
+                tau_data_I.append(
+                    np.trapz(
+                        eit * tau_cgm_gal * one_J[0][i]/integrate.trapz(
+                            one_J[0][i],
+                            wave_em.value
+                        ),
+                        wave_em.value)
+                )
         if inputs.use_EW:
             ew_factor, la_e = p_EW(Muv.flatten(), beta.flatten(), return_lum=True)
             #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
@@ -566,14 +568,16 @@ if __name__ == '__main__':
             + inputs.mock_direc
             + '/r_bubs_mock.npy'
         )
-
+    #print(tau_data_I, np.shape(tau_data_I))
+    #print(np.array(data), np.shape(np.array(data)))
+    #assert False
     likelihoods = sample_bubbles_grid(
         tau_data=np.array(data),
         xs=xd,
         ys=yd,
         zs=zd,
         n_iter_bub=30,
-        n_grid=13,
+        n_grid=11,
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
