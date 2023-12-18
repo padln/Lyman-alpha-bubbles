@@ -2,6 +2,7 @@ from astropy import constants as const
 from astropy import units as u
 import numpy as np
 from astropy.cosmology import Planck15
+from astropy.cosmology import Planck18 as Cosmo
 
 wave_Lya = 1215.67 * u.Angstrom
 sigma_ion0 = 6.304e-18*u.cm**2.
@@ -320,3 +321,9 @@ def optical_depth(
         tau[ww] = np.trapz(d_tau, z_tab)
 
     return tau
+
+
+def z_at_proper_distance(R_p, z_1=7.):
+    R_H = (const.c / Cosmo.H(z=z_1)).to(u.Mpc)
+    R_com = R_p * (1+z_1)
+    return z_1 - R_com/R_H

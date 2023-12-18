@@ -17,6 +17,7 @@ from venv.galaxy_prop import get_muv, tau_CGM
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 
+from venv.helpers import z_at_proper_distance
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 
@@ -85,10 +86,13 @@ def _get_likelihood(
     ):
         taus_now = []
         flux_now = []
-        red_s = z_at_value(
-            Cosmo.comoving_distance,
-            Cosmo.comoving_distance(redshift) + zg * u.Mpc,
-            ztol=0.00005
+        # red_s = z_at_value(
+        #     Cosmo.comoving_distance,
+        #     Cosmo.comoving_distance(redshift) + zg * u.Mpc,
+        #     ztol=0.00005
+        # )
+        red_s = z_at_proper_distance(
+            - zg / (1 + redshift) * u.Mpc, redshift
         )
 
         # calculating fluxes if they are given
@@ -103,11 +107,12 @@ def _get_likelihood(
             dist = zg - zb + np.sqrt(
                 rb ** 2 - (xg - xb) ** 2 - (yg - yb) ** 2
             )
-            z_end_bub = z_at_value(
-                Cosmo.comoving_distance,
-                Cosmo.comoving_distance(red_s) - dist * u.Mpc,
-                ztol=0.00005
-            )
+            # z_end_bub = z_at_value(
+            #     Cosmo.comoving_distance,
+            #     Cosmo.comoving_distance(red_s) - dist * u.Mpc,
+            #     ztol=0.00005
+            # )
+            z_end_bub = z_at_proper_distance( dist / (1+ redshift) * u.Mpc, redshift)
         else:
             z_end_bub = red_s
             dist = 0

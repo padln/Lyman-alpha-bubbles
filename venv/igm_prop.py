@@ -11,7 +11,7 @@ from astropy.cosmology import z_at_value
 from astropy.cosmology import Planck18 as Cosmo
 from astropy import constants as const
 
-from venv.helpers import optical_depth, I
+from venv.helpers import optical_depth, I, z_at_proper_distance
 
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -583,19 +583,25 @@ def calculate_taus_i(
                 z_edge_lo_i = zb + np.sqrt(
                     rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
                 # get the redshifts
-                red_edge_up_i = z_at_value(
-                    Cosmo.comoving_distance,
-                    Cosmo.comoving_distance(
-                        7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc,
-                    ztol=0.00005
-                    # the radius of the big bubble
+                # red_edge_up_i = z_at_value(
+                #     Cosmo.comoving_distance,
+                #     Cosmo.comoving_distance(
+                #         7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc,
+                #     ztol=0.00005
+                #     # the radius of the big bubble
+                # )
+                red_edge_up_i = z_at_proper_distance(
+                    (z_edge_up_i + 10) / (1+7.5) * u.Mpc, 7.5 #needs to be fixed
                 )
-                red_edge_lo_i = z_at_value(
-                    Cosmo.comoving_distance,
-                    Cosmo.comoving_distance(
-                        7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc,
-                    ztol=0.00005
-                    # the radius of the big bubble
+                # red_edge_lo_i = z_at_value(
+                #     Cosmo.comoving_distance,
+                #     Cosmo.comoving_distance(
+                #         7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc,
+                #     ztol=0.00005
+                #     # the radius of the big bubble
+                # )
+                red_edge_lo_i = z_at_proper_distance(
+                    (z_edge_lo_i + 10) / (1+7.5) * u.Mpc, 7.5
                 )
                 z_edge_up.append(np.copy(z_edge_up_i)[0])
                 z_edge_lo.append(np.copy(z_edge_lo_i)[0])

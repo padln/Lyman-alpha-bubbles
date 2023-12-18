@@ -9,7 +9,7 @@ from astropy import constants as const
 
 import py21cmfast as p21c
 
-from venv.helpers import wave_to_dv, gaussian, optical_depth
+from venv.helpers import wave_to_dv, gaussian, optical_depth, z_at_proper_distance
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
 
@@ -196,17 +196,23 @@ def get_mock_data(
     x_b, y_b, z_b, r_bubs = get_bubbles(0.65, 300, mock=True)
     #print(x_b,y_b,z_b,r_bubs)
     for i in range(n_gal):
-        red_s = z_at_value(
-            Cosmo.comoving_distance,
-            Cosmo.comoving_distance(z_start) + zs[i] * u.Mpc
+        # red_s = z_at_value(
+        #     Cosmo.comoving_distance,
+        #     Cosmo.comoving_distance(z_start) + zs[i] * u.Mpc
+        # )
+        red_s = z_at_proper_distance(
+            - zs[i] /(1+z_start) * u.Mpc, z_start
         )
         if (xs[i] - xb) ** 2 + (ys[i] - yb) ** 2 + (
                 zs[i] - zb) ** 2 < r_bubble ** 2:
             dist = zs[i] - zb + np.sqrt(
                 r_bubble ** 2 - (xs[i] - xb) ** 2 - (ys[i] - yb) ** 2)
-            z_end_bub = z_at_value(
-                Cosmo.comoving_distance,
-                Cosmo.comoving_distance(red_s) - dist * u.Mpc
+            # z_end_bub = z_at_value(
+            #     Cosmo.comoving_distance,
+            #     Cosmo.comoving_distance(red_s) - dist * u.Mpc
+            # )
+            z_end_bub = z_at_proper_distance(
+                dist / (1+red_s) * u.Mpc, red_s
             )
         else:
             dist = 0
