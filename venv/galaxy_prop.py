@@ -9,14 +9,22 @@ from astropy import constants as const
 
 import py21cmfast as p21c
 
-from venv.helpers import wave_to_dv, gaussian, optical_depth, z_at_proper_distance
+from venv.helpers import (
+    wave_to_dv,
+    gaussian,
+    optical_depth,
+    z_at_proper_distance,
+    hmf_integral_gtm
+)
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
 
 from venv.data.EndSta import get_ENDSTA_gals
 
-wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+from venv.chmf import chmf as chmf_func
 
+wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+dir_all = '/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/'
 
 def delta_v_func(
         muv,
@@ -471,3 +479,65 @@ def tau_CGM(Muv):
             else:
                 break
     return tau_CGM
+
+
+def calculate_number(
+        fluct_level,
+        x_dim=10,
+        y_dim=10,
+        z_dim=10,
+        redshift=7.5,
+        muv_cut=-19
+):
+    """
+    Function calculates number of galaxies for a given setup which includes
+    spatial dimensions, overdensity of the region (Lagrangian), redshift and
+    muv cut.
+    :param fluct_level: float,
+        overdensity level of the region of interest.
+    :param x_dim: float,
+        x dimension of the region.
+    :param y_dim: float,
+        y dimension of the region.
+    :param z_dim: float,
+        z dimension of the region.
+    :param redshift: float,
+        redshift of the region
+    :param muv_cut: float,
+        Muv cut for galaxies.
+
+    :return: N: int,
+        number of galaxies to sample.
+    """
+
+    V = x_dim * y_dim * z_dim
+    R_eq = np.sqrt(x_dim**2 + y_dim**2 + z_dim**2)
+
+    Muvs = np.load(
+        dir_all + 'venv/data/Muv.npy'
+    )
+    mh = np.load(
+        dir_all + 'venv/data/mh.npy'
+    )
+
+    mh_cut = np.interp(muv_cut, Muvs, mh)
+    hmf_this = chmf_func(z=redshift, delta_bias=0.0, R_bias=R_eq)
+    hmf_this.prep_for_hmf_st(5.0, 15.0, 0.01)
+    hmf_this.prep_collapsed_fractions(check_cache=False)
+
+    masses = hmf_this.bins
+
+    delta = hmf_this.sigma_cell *hmf_this.dicke() * fluct_level
+
+    mass_func = hmf_this.ST_hmf(delta)
+
+    for index_to_stop, mass_func_element in enumerate(mass_func):
+        if mass_func_element == 0 or np.isnan(mass_func_element):
+            break
+    masses = masses[:index_to_stop]
+    mass_func = mass_func[:index_to_stop]
+
+    N_cs = hmf_integral_gtm(masses, mass_func) * V
+
+    N = np.interp(mh_cut, np.log10(masses[:len(N_cs)]), N_cs)
+    return int(N)

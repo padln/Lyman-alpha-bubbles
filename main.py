@@ -13,7 +13,7 @@ import itertools
 from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor, p_EW
-from venv.galaxy_prop import get_muv, tau_CGM
+from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 
@@ -404,7 +404,23 @@ if __name__ == '__main__':
         default='/home/inikolic/projects/Lyalpha_bubbles/code/'
     )
     parser.add_argument("--flux_limit", type=float, default=1e-18)
+    parser.add_argument("--uvlf_consistently", type=bool, default=False)
+    parser.add_argument("--fluct_level", type=float, default=None)
     inputs = parser.parse_args()
+
+    if inputs.uvlf_consistently:
+        if inputs.fluct_level is None:
+            raise ValueError("set you density value")
+        n_gal = calculate_number(
+            fluct_level = inputs.fluct_level,
+            x_dim = inputs.max_dist * 2,
+            y_dim = inputs.max_dist * 2,
+            z_dim = inputs.max_dist * 2,
+            redshift = inputs.redshift,
+            muv_cut = inputs.muv_cut,
+        )
+    else:
+        n_gal = inputs.n_gal
 
     if inputs.diff_mags:
         if inputs.use_Endsley_Stark_mags:
@@ -415,24 +431,24 @@ if __name__ == '__main__':
             )
         else:
             if inputs.multiple_iter:
-                Muv = np.zeros((inputs.multiple_iter, inputs.n_gal))
+                Muv = np.zeros((inputs.multiple_iter, n_gal))
                 for index_iter in range(inputs.multiple_iter):
                     Muv[index_iter,:] = get_muv(
-                        n_gal = inputs.n_gal,
+                        n_gal = n_gal,
                         redshift = inputs.redshift,
                         muv_cut = inputs.muv_cut
                     )
             else:
                 Muv = get_muv(
-                    n_gal=inputs.n_gal,
+                    n_gal=n_gal,
                     redshift=inputs.redshift,
                     muv_cut=inputs.muv_cut,
                 )
     else:
         if inputs.multiple_iter:
-            Muv = -22.0 * np.ones((inputs.multiple_iter, inputs.n_gal))
+            Muv = -22.0 * np.ones((inputs.multiple_iter, n_gal))
         else:
-            Muv = -22.0 * np.ones(inputs.n_gal)
+            Muv = -22.0 * np.ones(n_gal)
 
     if inputs.use_Endsley_Stark_mags:
         beta = np.array([
@@ -451,25 +467,25 @@ if __name__ == '__main__':
         ])
     else:
         if inputs.multiple_iter:
-            beta = -2.0 * np.ones((inputs.multiple_iter, inputs.n_gal))
+            beta = -2.0 * np.ones((inputs.multiple_iter, n_gal))
         else:
-            beta = -2.0 * np.ones(inputs.n_gal)
+            beta = -2.0 * np.ones(n_gal)
 
     if inputs.mock_direc is None:
         if inputs.multiple_iter:
-            td = np.zeros((inputs.multiple_iter, inputs.n_gal, 100))
-            xd = np.zeros((inputs.multiple_iter, inputs.n_gal))
-            yd = np.zeros((inputs.multiple_iter, inputs.n_gal))
-            zd = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            td = np.zeros((inputs.multiple_iter, n_gal, 100))
+            xd = np.zeros((inputs.multiple_iter, n_gal))
+            yd = np.zeros((inputs.multiple_iter, n_gal))
+            zd = np.zeros((inputs.multiple_iter, n_gal))
             x_b = []
             y_b = []
             z_b = []
             r_bubs = []
-            tau_data_I = np.zeros((inputs.multiple_iter, inputs.n_gal))
+            tau_data_I = np.zeros((inputs.multiple_iter, n_gal))
 
             for index_iter in range(inputs.multiple_iter):
                 tdi, xdi, ydi, zdi, x_bi, y_bi, z_bi, r_bubs_i = get_mock_data(
-                    n_gal=inputs.n_gal,
+                    n_gal=n_gal,
                     z_start=inputs.redshift,
                     r_bubble=inputs.r_bub,
                     dist=inputs.max_dist,
@@ -487,7 +503,7 @@ if __name__ == '__main__':
                 one_J = get_js(
                     z=inputs.redshift,
                     muv=Muv[index_iter],
-                    n_iter=inputs.n_gal,
+                    n_iter=n_gal,
                 )
      #           print(tau_data_I, np.shape(tau_data_I))
                 for i_gal in range(len(tdi)):
@@ -502,7 +518,7 @@ if __name__ == '__main__':
 
         else:
             td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
-                n_gal=inputs.n_gal,
+                n_gal=n_gal,
                 z_start=inputs.redshift,
                 r_bubble=inputs.r_bub,
                 dist=inputs.max_dist,
