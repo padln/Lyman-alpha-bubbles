@@ -527,7 +527,7 @@ def calculate_number(
 
     masses = hmf_this.bins
 
-    delta = hmf_this.sigma_cell *hmf_this.dicke() * fluct_level
+    delta = hmf_this.sigma_cell * hmf_this.dicke * fluct_level
 
     mass_func = hmf_this.ST_hmf(delta)
 
