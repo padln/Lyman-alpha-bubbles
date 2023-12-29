@@ -3,6 +3,7 @@ from astropy import units as u
 import numpy as np
 from astropy.cosmology import Planck15
 from astropy.cosmology import Planck18 as Cosmo
+from scipy.interpolate import InterpolatedUnivariateSpline as _spline
 
 wave_Lya = 1215.67 * u.Angstrom
 sigma_ion0 = 6.304e-18*u.cm**2.
