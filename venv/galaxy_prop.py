@@ -520,7 +520,8 @@ def calculate_number(
         dir_all + 'venv/data/mh.npy'
     )
 
-    mh_cut = np.interp(muv_cut, Muvs, mh)
+    mh_cut = np.interp(muv_cut, np.flip(Muvs),np.flip( mh))
+    
     hmf_this = chmf_func(z=redshift, delta_bias=0.0, R_bias=R_eq)
     hmf_this.prep_for_hmf_st(5.0, 15.0, 0.01)
     hmf_this.prep_collapsed_fractions(check_cache=False)
@@ -538,6 +539,7 @@ def calculate_number(
     mass_func = mass_func[:index_to_stop]
 
     N_cs = hmf_integral_gtm(masses, mass_func) * V
-
-    N = np.interp(mh_cut, np.log10(masses[:len(N_cs)]), N_cs)
+    #print(" these are cumulative numbers", N_cs)
+    N = np.interp(np.log10(mh_cut), np.log10(masses[:len(N_cs)]), N_cs)
+    #print("some numbers, mh_cut", mh_cut,"N in the end", N)
     return int(N)

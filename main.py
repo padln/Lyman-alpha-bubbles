@@ -421,7 +421,8 @@ if __name__ == '__main__':
         )
     else:
         n_gal = inputs.n_gal
-
+    print("here is the number of galaxies", n_gal)
+    #assert False
     if inputs.diff_mags:
         if inputs.use_Endsley_Stark_mags:
             Muv = get_muv(
