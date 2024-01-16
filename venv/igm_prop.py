@@ -552,6 +552,10 @@ def calculate_taus_i(
         Calculate a couple of taus of a galaxy that is located in zs.
         If x_pos and y_pos are given, then they determine the sightline used.
     """
+    x_small = np.array(x_small)
+    y_small = np.array(y_small)
+    z_small = np.array(z_small)
+    r_bubbles = np.array(r_bubbles).flatten()
 
     if x_pos is not None and y_pos is not None:
         x_random = [x_pos]
@@ -559,61 +563,46 @@ def calculate_taus_i(
     else:
         x_random = np.random.uniform(-10, 10, size=n_iter)
         y_random = np.random.uniform(-10, 10, size=n_iter)
-    taus = []
-    wv = wave_em
-    z = wv.value / 1216 * (1 + z_source) - 1
+    taus = np.zeros((n_iter, len(wave_em)))
+    z = wave_em.value / 1216 * (1 + z_source) - 1
+    one_over_onepz = 1/(1+z)
+    one_over_onesource = 1/(1+z_source)
 
     tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
     tau_pref = tau_gp * r_alpha / np.pi
     for i, (xr, yr) in enumerate(zip(x_random, y_random)):
-        z_edge_up = []
-        z_edge_lo = []
-        red_edge_up = []
-        red_edge_lo = []
-        for xb, yb, zb, rb in zip(x_small, y_small, z_small, r_bubbles):
-            # initialize lists of intersections.
-            # check if galaxy will intersect the bubble.
-            # note that bubbles behind the galaxy don't influence it.
-            if (xr - xb) ** 2 + (yr - yb) ** 2 < rb ** 2:
-                # calculate z-s and redshifts at which it'll happen.
-                z_edge_up_i = zb - np.sqrt(
-                    rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
-                z_edge_lo_i = zb + np.sqrt(
-                    rb ** 2 - ((xr - xb) ** 2 + (yr - yb) ** 2))
-                # get the redshifts
-                # red_edge_up_i = z_at_value(
-                #     Cosmo.comoving_distance,
-                #     Cosmo.comoving_distance(
-                #         7.5) - z_edge_up_i * u.Mpc - 10 * u.Mpc,
-                #     ztol=0.00005
-                #     # the radius of the big bubble
-                # )
-                red_edge_up_i = z_at_proper_distance(
-                    (z_edge_up_i + 10) / (1+7.5) * u.Mpc, 7.5 #needs to be fixed
-                )
-                # red_edge_lo_i = z_at_value(
-                #     Cosmo.comoving_distance,
-                #     Cosmo.comoving_distance(
-                #         7.5) - z_edge_lo_i * u.Mpc - 10 * u.Mpc,
-                #     ztol=0.00005
-                #     # the radius of the big bubble
-                # )
-                red_edge_lo_i = z_at_proper_distance(
-                    (z_edge_lo_i + 10) / (1+7.5) * u.Mpc, 7.5
-                )
-                z_edge_up.append(np.copy(z_edge_up_i)[0])
-                z_edge_lo.append(np.copy(z_edge_lo_i)[0])
-                red_edge_up.append(np.copy(red_edge_up_i)[0])
-                red_edge_lo.append(np.copy(red_edge_lo_i)[0])
-        z_edge_up = np.array(z_edge_up)
-        z_edge_lo = np.array(z_edge_lo)
-        red_edge_up = np.array(red_edge_up)
-        red_edge_lo = np.array(red_edge_lo)
+        dist_arr = np.sqrt(
+            r_bubbles ** 2 - ((xr - x_small) ** 2 + (yr - y_small) ** 2)
+        )
+
+        # t0  =time.time()
+        z_edge_up_arr = z_small - dist_arr
+
+        z_edge_lo_arr = z_small + dist_arr
+
+        red_edge_up_arr = z_at_proper_distance(
+            (z_edge_up_arr + 10) * one_over_onesource * u.Mpc, 7.5
+            # needs to be fixed
+        )
+        red_edge_lo_arr = z_at_proper_distance(
+            (z_edge_lo_arr + 10) * one_over_onesource * u.Mpc, 7.5
+        )
+        z_edge_up = z_edge_up_arr[~ np.isnan(z_edge_up_arr)]
+        z_edge_lo = z_edge_lo_arr[~ np.isnan(z_edge_lo_arr)]
+        red_edge_up = red_edge_up_arr[~ np.isnan(red_edge_up_arr)]
+        red_edge_lo = red_edge_lo_arr[~ np.isnan(red_edge_lo_arr)]
+
+        #|| up is the shorter version of the code that was there once searching
+        #where small bubbles intersect each sighltine
 
         if len(z_edge_up) == 0:
             # galaxy doesn't intersect any of the bubbles:
-            taus.append(
-                tau_wv(wv, dist=dist, zs=z_source, z_end=5.3, nf=0.8)
+            taus[i,:] = tau_wv(
+                wave_em,
+                dist=dist,
+                zs=z_source,
+                z_end=5.3,
+                nf=0.8
             )
             # to be checked
             continue
@@ -626,12 +615,12 @@ def calculate_taus_i(
 
         indices_to_del_lo = []
         indices_to_del_up = []
-        for i in range(len(z_edge_up) - 1):
+        for i_fi in range(len(z_edge_up) - 1):
             if len(z_edge_up_sorted) != 1:
-                if z_edge_lo_sorted[i] < z_edge_up_sorted[i + 1]:
+                if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
                     # got an overlapping bubble
-                    indices_to_del_lo.append(i)
-                    indices_to_del_up.append(i + 1)
+                    indices_to_del_lo.append(i_fi)
+                    indices_to_del_up.append(i_fi + 1)
         z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
         z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
         red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
@@ -647,59 +636,55 @@ def calculate_taus_i(
                 if z_up_i < 0 < z_lo_i:
                     z_bi = z_end_bubble
                     z_ei = red_lo_i
-                    tau_i = np.array(
-                        tau_pref * ((1 + z) / (1 + z_bi)) ** 1.5 * (
-                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
-                        )
+                    zb_ar = (1 + z_bi) * one_over_onepz
+                    tau_i = tau_pref * zb_ar ** 1.5 * (
+                            I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                     )
                 else:
                     z_bi = z_end_bubble
                     z_ei = red_up_i
-
-                    tau_i = np.array(
-                        tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
-                        )
+                    zb_ar = (1 + z_bi) * one_over_onepz
+                    tau_i = tau_pref * zb_ar ** 1.5 * (
+                            I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                     )
             elif index != len(z_edge_up_sorted) - 1:
                 z_bi = red_edge_lo_sorted[index - 1]
                 z_ei = red_up_i
-                tau_i += np.array(
-                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
-                    )
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                 )
             if index == len(z_edge_up_sorted)-1 and len(z_edge_up_sorted) != 1:
                 z_bi = red_edge_lo_sorted[index - 1]
                 z_ei = red_up_i
-                tau_i += np.array(
-                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
-                    )
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                 )
                 z_bi = red_lo_i
                 z_ei = 5.3
 
-                tau_i += np.array(
-                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                            I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z))
-                    )
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                 )
             elif index == len(z_edge_up_sorted) - 1 and len(
                     z_edge_up_sorted) == 1:
                 z_bi = red_lo_i
                 z_ei = 5.3
-
-                tau_i += np.array(
-                    tau_pref * ((1 + z_bi) / (1 + z)) ** 1.5 * (
-                                I((1 + z_bi) / (1 + z)) - I((1 + z_ei) / (1 + z)
-                                                            )
-                    )
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz
+                                     )
                 )
-        taus.append(tau_i)
-
-    taus = np.array(taus)
-    taus[taus<0.0]=np.inf
+        try:
+            taus[i,:]= tau_i
+        except IndexError:
+            if n_iter==1:
+                taus = tau_i
+            else:
+                raise IndexError("Something else")
+    taus[taus < 0.0] = np.inf
     return taus
 
 
