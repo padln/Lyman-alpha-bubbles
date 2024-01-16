@@ -122,11 +122,10 @@ def bubble_size_distro(
 
 
     if r_hist is None:
-        alpha = 0.1
-        beta = 1.0
-        gamma = 1 / 10
-
-        return np.exp(-r * beta) * (r * gamma) ** alpha
+        r = np.log10(r)
+        mu = np.log10(5.0)
+        sig = 0.5
+        return 1 / np.sqrt(2 * np.pi) / sig * np.exp(-(r - mu) ** 2 / sig ** 2)
 
     else:
         return np.interp(r, r_hist, p_log_r_norm)
