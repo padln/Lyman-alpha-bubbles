@@ -521,7 +521,7 @@ def calculate_number(
     )
 
     mh_cut = np.interp(muv_cut, np.flip(Muvs),np.flip( mh))
-    
+
     hmf_this = chmf_func(z=redshift, delta_bias=0.0, R_bias=R_eq)
     hmf_this.prep_for_hmf_st(5.0, 15.0, 0.01)
     hmf_this.prep_collapsed_fractions(check_cache=False)
@@ -543,3 +543,45 @@ def calculate_number(
     N = np.interp(np.log10(mh_cut), np.log10(masses[:len(N_cs)]), N_cs)
     #print("some numbers, mh_cut", mh_cut,"N in the end", N)
     return int(N)
+
+
+def get_spectrum(
+        cont,
+        noise=None,
+        resolution=None,
+):
+    """
+    Function returns binned spectrum that mimics how an actual observation might
+    look like.
+
+    :param cont: ~numpy.array
+        continuous spectrum
+    :param noise: None or float,
+        Noise level to be added to create the mock spectrum.
+        If 'None', then no noise is added to the spectrum
+    :param resolution: None or float,
+        Spectral resolution of the mock power spectrum
+
+    :return:
+    bins: ~numpy.array:
+        bins of the power spectrum.
+    ps: ~numpy.array
+        binned power spectrum.
+    """
+    bins = np.arange(wave_em[0].value, wave_em[-1].value, resolution)
+    wave_em_dig = np.digitize(wave_em.value, bins)
+    bins_po = np.append(bins, bins[-1] + spec_res)
+
+    cont_flux = [
+        np.trapz(
+            x = wave_em.value[wave_em_dig == i+1],
+            y = cont[wave_em_dig == i+1]
+        )
+        for i in range(len(bins))
+    ]
+
+    if noise is not None:
+        cont_flux += np.random.normal(0, noise, len(bins))
+
+    return 0.5 * (bins_po[1:] + bins_po[:-1]), cont_flux
+
