@@ -16,6 +16,7 @@ from venv.helpers import optical_depth, I, z_at_proper_distance
 wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
 freq_Lya = (const.c / wave_Lya).to(u.Hz)
+r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
 
 
 def get_tl_data(
@@ -172,12 +173,13 @@ def get_bubbles(
     bubble_rs = []
     v_tot = 0.0
     r_min = np.log10(1.0)
-    r_max = np.log10(60.0)
+    r_max = 60.0
+    log_r_max = np.log10(60.0)
     if use_tl_result:
         # r_hist, p_log_r_norm = get_tl_data(
         #     xhi=xh
         # )
-        rs = np.logspace(r_min, r_max, 1000)
+        rs = np.logspace(r_min, log_r_max, 1000)
         cdf = integrate.cumtrapz(
             bubble_size_distro(
                 rs,
@@ -197,17 +199,17 @@ def get_bubbles(
             ),
             rs
         )
-    #print(rs, cdf, flush=True)
+    vol_box = z_v * r_max * r_max
     try_i = 0
     tolerance = 0.01
     that_it = False
-    r_max = 10**r_max
+    cdf_norm = cdf/cdf[-1]
 
-    while abs(v_tot - (1 - xh) * 3.2* z_v * r_max * r_max) / (
-            (1 - xh) * 3.2*z_v * r_max *r_max) > tolerance:
+    while abs(v_tot - (1 - xh) * 3.2* vol_box) / (
+            (1 - xh) * 3.2*vol_box) > tolerance:
 
         random_numb = np.random.uniform(size=1)
-        bubble_now = np.interp(random_numb, cdf / cdf[-1], rs[:-1])
+        bubble_now = np.interp(random_numb, cdf_norm, rs[:-1])
 
         random_x = np.random.uniform(-r_max, r_max)
         random_y = np.random.uniform(-r_max, r_max)
@@ -248,10 +250,10 @@ def get_bubbles(
         break_it = False
         v_ded = 0
         for bx, by, bz, br in zip(bubble_xs, bubble_ys, bubble_zs, bubble_rs):
-            if (bx - random_x) ** 2 + (by - random_y) ** 2 + (
-                    bz - random_z) ** 2 < (br + bubble_now) ** 2:
-                dist = np.sqrt((bx - random_x) ** 2 + (by - random_y) ** 2 + (
-                        bz - random_z) ** 2)
+            dist_mod = (bx - random_x) ** 2 + (by - random_y) ** 2 + (
+                    bz - random_z) ** 2
+            if dist_mod < (br + bubble_now) ** 2:
+                dist = np.sqrt(dist_mod)
                 if br > bubble_now:
                     big = br
                     small = bubble_now
@@ -274,9 +276,10 @@ def get_bubbles(
             else:
                 continue
 
-        if (v_tot + v) / ((1 - xh) * 3.2*z_v * r_max * r_max) > 1.0:
-            if abs(v_tot + v - (1 - xh) *3.2* z_v * r_max * r_max) / (
-                    v_tot + v) < tolerance:
+        ion_vol = (1 - xh) * 3.2 * vol_box
+        vtotpv = v_tot + v
+        if vtotpv / (ion_vol) > 1.0:
+            if abs(vtotpv - ion_vol) / vtotpv < tolerance:
                 that_it = True
             else:
                 continue
@@ -559,13 +562,8 @@ def calculate_taus_i(
     taus = []
     wv = wave_em
     z = wv.value / 1216 * (1 + z_source) - 1
-    z_start = z_at_value(
-        Cosmo.comoving_distance,
-        Cosmo.comoving_distance(7.5) - 5 * u.Mpc  # the radius of the big bubble
-    )
 
     tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
-    r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
     tau_pref = tau_gp * r_alpha / np.pi
     for i, (xr, yr) in enumerate(zip(x_random, y_random)):
         z_edge_up = []
