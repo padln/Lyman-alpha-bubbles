@@ -19,7 +19,7 @@ from venv.igm_prop import calculate_taus_i, get_xH
 
 from venv.helpers import z_at_proper_distance
 
-wave_em = np.linspace(1213, 1219., 100) * u.Angstrom
+wave_em = np.linspace(1213, 1221., 100) * u.Angstrom
 
 
 def _get_likelihood(
