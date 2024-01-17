@@ -683,7 +683,10 @@ def calculate_taus_i(
                 taus = tau_i
             else:
                 raise IndexError("Something else")
-    taus[taus < 0.0] = np.inf
+    taus = taus.flatten()
+    taus[taus<0.0]=np.inf
+    taus.reshape((n_iter, len(wave_em)))
+
     return taus
 
 
