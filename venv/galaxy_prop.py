@@ -237,7 +237,7 @@ def get_mock_data(
             y_pos = ys[i],
             dist = dist
         )
-        tau_data[i, :] = tau[0]
+        tau_data[i, :] = tau
     #print(x_b,y_b,z_b,r_bubs)
     #assert 1==0
     return tau_data, xs, ys, zs, x_b, y_b, z_b, r_bubs
