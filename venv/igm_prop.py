@@ -685,9 +685,8 @@ def calculate_taus_i(
                 raise IndexError("Something else")
     taus = taus.flatten()
     taus[taus<0.0]=np.inf
-    taus.reshape((n_iter, len(wave_em)))
 
-    return taus
+    return taus.reshape((n_iter, len(wave_em)))
 
 
 def tau_wv(
