@@ -294,11 +294,18 @@ def sample_bubbles_grid(
     y_max = 15.5
     y_grid = np.linspace(y_min, y_max, n_grid)
 
-    z_min = -12.5
-    z_max = 12.5
+    #z_min = -12.5
+    #z_max = 12.5
+    z_min = -5.0
+    z_max = 5.0
+    r_min = 5.0
+    r_max = 15.0
     z_grid = np.linspace(z_min, z_max, n_grid)
-    x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
-    y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
+    #x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
+    #y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
+    x_grid = np.linspace(0.0,0.0,1)
+    y_grid = np.linspace(0.0,0.0,1)
+    r_grid = np.linspace(r_min,r_max,n_grid)
     if multiple_iter:
         like_grid_top = np.zeros(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid), multiple_iter)
@@ -599,7 +606,7 @@ if __name__ == '__main__':
         ys=yd,
         zs=zd,
         n_iter_bub=30,
-        n_grid=11,
+        n_grid=5,
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
