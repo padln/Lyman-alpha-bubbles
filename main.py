@@ -627,22 +627,22 @@ if __name__ == '__main__':
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
             + '/tau_data.npy'  # maybe I'll change this
-        )
+        )[:n_gal]
         xd = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
             + '/x_gal_mock.npy'
-        )
+        )[:n_gal]
         yd = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
             + '/y_gal_mock.npy'
-        )
+        )[:n_gal]
         zd = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
             + '/z_gal_mock.npy'
-        )
+        )[:n_gal]
         x_b = np.load(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
@@ -673,7 +673,7 @@ if __name__ == '__main__':
                 '/home/inikolic/projects/Lyalpha_bubbles/code/'
                 + inputs.mock_direc
                 + '/tau_shape.npy'
-            )
+            )[:n_gal]
         if os.path.isfile(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
@@ -683,7 +683,7 @@ if __name__ == '__main__':
                 '/home/inikolic/projects/Lyalpha_bubbles/code/'
                 + inputs.mock_direc
                 + '/Muvs.npy'
-            )
+            )[:n_gal]
         if os.path.isfile(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
@@ -693,7 +693,7 @@ if __name__ == '__main__':
                 '/home/inikolic/projects/Lyalpha_bubbles/code/'
                 + inputs.mock_direc
                 + '/one_J.npy'
-            )
+            )[:n_gal]
         if os.path.isfile(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
@@ -703,7 +703,7 @@ if __name__ == '__main__':
                 '/home/inikolic/projects/Lyalpha_bubbles/code/'
                 + inputs.mock_direc
                 + '/la_e.npy'
-            )
+            )[:n_gal]
     #print(tau_data_I, np.shape(tau_data_I))
     #print(np.array(data), np.shape(np.array(data)))
     #assert False
