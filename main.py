@@ -183,7 +183,7 @@ def _get_likelihood(
                             4 * np.pi * Cosmo.luminosity_distance(
                         red_s).to(u.cm).value**2
             )
-            print(np.shape(lae_now), np.shape(j_s), np.shape(j_s[0), np.shape(tau_now_i))
+            print(np.shape(lae_now), np.shape(j_s), np.shape(j_s[0]), np.shape(tau_now_i))
             spectrum_now = np.array([[
                     np.trapz(x=wave_em.value[wave_em_dig == i + 1],
                              y=(lae_now[ind_igor] * j_s[0][ind_igor] * np.exp(
