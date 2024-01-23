@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import LinAlgError
 import argparse
-
+import os
 from scipy import integrate
 from scipy.stats import gaussian_kde
 
@@ -662,6 +662,47 @@ if __name__ == '__main__':
             + inputs.mock_direc
             + '/r_bubs_mock.npy'
         )
+
+        if os.path.isfile(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/tau_shape.npy'
+        ):
+            td = np.load(
+                '/home/inikolic/projects/Lyalpha_bubbles/code/'
+                + inputs.mock_direc
+                + '/tau_shape.npy'
+            )
+        if os.path.isfile(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/Muvs.npy'
+        ):
+            Muv = np.load(
+                '/home/inikolic/projects/Lyalpha_bubbles/code/'
+                + inputs.mock_direc
+                + '/Muvs.npy'
+            )
+        if os.path.isfile(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/one_J.npy'
+        ):
+            one_J = np.load(
+                '/home/inikolic/projects/Lyalpha_bubbles/code/'
+                + inputs.mock_direc
+                + '/one_J.npy'
+            )
+        if os.path.isfile(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/la_e.npy'
+        ):
+            la_e = np.load(
+                '/home/inikolic/projects/Lyalpha_bubbles/code/'
+                + inputs.mock_direc
+                + '/la_e.npy'
+            )
     #print(tau_data_I, np.shape(tau_data_I))
     #print(np.array(data), np.shape(np.array(data)))
     #assert False
@@ -678,15 +719,17 @@ if __name__ == '__main__':
         else:
             flux_noise_mock = np.zeros((n_gal, len(bins)))
         if not inputs.multiple_iter:
+            if not inputs.mock_direc:
+                one_J = one_J[0]
             for index_gal in range(n_gal):
                 flux_noise_mock[index_gal,:] = [
                     np.trapz(x=wave_em.value[wave_em_dig == i + 1],
-                             y=(la_e[index_gal] * one_J[0][index_gal] * np.exp(
+                             y=(la_e[index_gal] * one_J[index_gal] * np.exp(
                                  -td[index_gal]
                             ) * tau_CGM(Muv[index_gal]) / (
                                             4 * np.pi * Cosmo.luminosity_distance(
                                     7.5).to(u.cm).value ** 2) / integrate.trapz(
-                              one_J[0][index_gal],
+                              one_J[index_gal],
                                 wave_em.value)
                                 )[wave_em_dig == i + 1]) for i in range(len(bins))
                 ]
