@@ -177,7 +177,7 @@ def _get_likelihood(
                 print("smth wrong", res, flush=True )
 
             lae_now = np.array(
-                [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
+                [p_EW(muvi, beti, )[1] for blah in range(len(taus_now))]
             )
             flux_now = lae_now * np.array(taus_now).flatten() / (
                             4 * np.pi * Cosmo.luminosity_distance(
