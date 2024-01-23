@@ -194,7 +194,7 @@ def _get_likelihood(
                               j_s[0][ind_igor],
                                 wave_em.value)
                                 )[wave_em_dig == i + 1]) for i in range(len(bins))
-                ] for ind_igor in range(len(eit))])
+                ] for ind_igor in range(len(eit_l))])
             spectrum_now = np.array(spectrum_now)
             spectrum_now += np.random.normal(
                 0,
