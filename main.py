@@ -20,6 +20,7 @@ from venv.igm_prop import calculate_taus_i, get_xH
 from venv.helpers import z_at_proper_distance
 
 wave_em = np.linspace(1213, 1221., 100) * u.Angstrom
+wave_Lya = 1215.67 * u.Angstrom
 
 
 def _get_likelihood(
@@ -41,6 +42,7 @@ def _get_likelihood(
         xH_unc=False,
         la_e=None,
         flux_limit=1e-18,
+        like_on_flux=False,
 ):
     """
 
@@ -66,26 +68,44 @@ def _get_likelihood(
         how many times to iterate over the bubbles.
     :param include_muv_unc: boolean;
         whether to include the uncertainty in the Muv.
+    :param beta_data: numpy.array or None.
+        UV-slopes for each of the mock galaxies. If None, then a default choice
+        of -2.0 is used.
+    :param use_EW: boolean
+        Whether likelihood calculation is done on flux and other flux-related
+        quantities, unlike the False option when the likelihood is calculated
+        on transmission directly.
 
     :return:
 
     Note: to be used only in the sampler
     """
-    likelihood = 1.0
+
+    if like_on_flux is not False:
+        spec_res = wave_Lya.value * (1 + redshift) / 2700
+        bins = np.arange(wave_em.value[0] * (1 + redshift),
+                         wave_em.value[-1] * (1 + redshift), spec_res)
+        wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
+        bins_po = np.append(bins, bins[-1] + spec_res)
+
+    likelihood = 0.0
     taus_tot = []
     flux_tot = []
+    spectrum_tot = []
     if la_e is not None:
         flux_mock = np.zeros(len(xs))
 
     # For these parameters let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
-    #print(xs,ys,zs, muv,beta_data, la_e, flush=True)
+    reds_of_galaxies = np.zeros(len(xs))
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e)
     ):
         taus_now = []
         flux_now = []
+        if like_on_flux is not False:
+            spectrum_now = []
         # red_s = z_at_value(
         #     Cosmo.comoving_distance,
         #     Cosmo.comoving_distance(redshift) + zg * u.Mpc,
@@ -94,7 +114,7 @@ def _get_likelihood(
         red_s = z_at_proper_distance(
             - zg / (1 + redshift) * u.Mpc, redshift
         )
-
+        reds_of_galaxies[index_gal] = red_s
         # calculating fluxes if they are given
         if la_e is not None:
             flux_mock[index_gal] = li / (
@@ -163,9 +183,26 @@ def _get_likelihood(
                             4 * np.pi * Cosmo.luminosity_distance(
                         red_s).to(u.cm).value**2
             )
-
+            spectrum_now = np.array([[
+                    np.trapz(x=wave_em.value[wave_em_dig == i + 1],
+                             y=(lae_now[ind_igor] * j_s[0][ind_igor] * np.exp(
+                                 -tau_now_i[ind_igor]
+                            ) * tau_CGM(muvi) / (
+                                            4 * np.pi * Cosmo.luminosity_distance(
+                                    red_s).to(u.cm).value ** 2) / integrate.trapz(
+                              j_s[0][ind_igor],
+                                wave_em.value)
+                                )[wave_em_dig == i + 1]) for i in range(len(bins))
+                ] for ind_igor in range(len(taus_now))])
+            spectrum_now = np.array(spectrum_now)
+            spectrum_now += np.random.normal(
+                0,
+                1e-19,
+                np.shape(spectrum_now)
+            )
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
+        spectrum_tot.append(spectrum_now)
 
     taus_tot_b = []
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
@@ -173,46 +210,56 @@ def _get_likelihood(
     try:
         taus_tot_b = []
         flux_tot_b = []
-        for fi,li in zip(flux_tot,taus_tot):
+        spectrum_tot_b = []
+        for fi,li, speci in zip(flux_tot,taus_tot, spectrum_tot):
             if np.all(np.array(li) < 10000.0): # maybe unnecessary
                 taus_tot_b.append(li)
                 flux_tot_b.append(fi)
+                spectrum_tot_b.append(speci)
 #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
-        for ind_data, (flux_line,tau_line) in enumerate(
-                zip(np.array(flux_tot_b),np.array(taus_tot_b))
+        for ind_data, (flux_line,tau_line, spec_line) in enumerate(
+                zip(np.array(flux_tot_b),np.array(taus_tot_b),np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
-
+            if like_on_flux is not False:
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(len(bins))]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
 
             if not use_EW:
                 if tau_data[ind_data] < 3:
-                    likelihood *= tau_kde.integrate_box(0, 3)
+                    likelihood += np.log(tau_kde.integrate_box(0, 3))
                 else:
-                    likelihood *= tau_kde.evaluate((tau_data[ind_data]))
+                    likelihood += np.log(tau_kde.evaluate((tau_data[ind_data])))
 
             else:
-                if flux_tau < flux_limit:
-                    # _, la_limit_muv = p_EW(
-                    #     muv[ind_data],
-                    #     beta_data[ind_data],
-                    #     mean=True,
-                    #     return_lum=True,
-                    # )
-                    # flux_limit_muv = la_limit_muv / (
-                    #         4 * np.pi * Cosmo.luminosity_distance(
-                    #     red_s).to(u.cm).value**2
-                    # ) #TODO implement redshift dependence
-                    # tau_limit = flux_limit/flux_limit_muv
-                    print("This galaxy failed the tau test, it's flux is", flux_tau)
-                    likelihood *= flux_kde.integrate_box(0, flux_limit)
-                    print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
+                if like_on_flux is not False:
+                    for bi in range(len(bins)):
+                        if like_on_flux[ind_data,bi] < 1e-19:
+                            likelihood += np.log(spec_kde[bi].integrate_box(0, 1e-19))
+                        else:
+                            likelihood += np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi]))
                 else:
-                    print("all good", flux_tau)
-                    likelihood *= flux_kde.evaluate(flux_tau)
+                    if flux_tau < flux_limit:
+                        # _, la_limit_muv = p_EW(
+                        #     muv[ind_data],
+                        #     beta_data[ind_data],
+                        #     mean=True,
+                        #     return_lum=True,
+                        # )
+                        # flux_limit_muv = la_limit_muv / (
+                        #         4 * np.pi * Cosmo.luminosity_distance(
+                        #     red_s).to(u.cm).value**2
+                        # ) #TODO implement redshift dependence
+                        # tau_limit = flux_limit/flux_limit_muv
+                        print("This galaxy failed the tau test, it's flux is", flux_tau)
+                        likelihood += np.log(flux_kde.integrate_box(0, flux_limit))
+                        print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
+                    else:
+                        print("all good", flux_tau)
+                        likelihood += np.log(flux_kde.evaluate(flux_tau))
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -223,7 +270,7 @@ def _get_likelihood(
         #     xb, yb, zb, rb  , flush=True
         # )
     except (LinAlgError, ValueError, TypeError):
-        likelihood *= 0
+        likelihood += -np.inf
         print("OOps there was valu error, let's see why:", flush=True)
         print(tau_data, flush=True)
         print(taus_tot_b, flush=True)
@@ -249,7 +296,8 @@ def sample_bubbles_grid(
         xH_unc=False,
         la_e=None,
         multiple_iter=False,
-        flux_limit=1e-18
+        flux_limit=1e-18,
+        like_on_flux=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -275,6 +323,12 @@ def sample_bubbles_grid(
         beta data.
     :param use_EW: boolean
         whether to use EW or transmissions directly.
+    :param xH_unc: boolean
+        whether to use uncertainty in the underlying neutral fraction in the
+        likelihood analysis
+    :param la_e: ~np.array or None
+        If provided, it's a numpy array consisting of Lyman-alpha total
+        luminosity for each mock-galaxy.
 
     :return likelihood_grid: np.array of shape (N_grid, N_grid, N_grid, N_grid);
         likelihoods for the data on a grid defined above.
@@ -310,7 +364,10 @@ def sample_bubbles_grid(
         like_grid_top = np.zeros(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid), multiple_iter)
         )
+
         for ind_iter in range(multiple_iter):
+            if like_on_flux is not False:
+                like_on_flux = like_on_flux[ind_iter]
             like_calc = Parallel(
                 n_jobs=50
             )(
@@ -335,6 +392,7 @@ def sample_bubbles_grid(
                     xH_unc=xH_unc,
                     la_e=la_e[ind_iter],
                     flux_limit=flux_limit,
+                    like_on_flux=like_on_flux,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -372,6 +430,7 @@ def sample_bubbles_grid(
                 xH_unc=xH_unc,
                 la_e=la_e,
                 flux_limit=flux_limit,
+                like_on_flix=like_on_flux,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -413,6 +472,9 @@ if __name__ == '__main__':
     parser.add_argument("--flux_limit", type=float, default=1e-18)
     parser.add_argument("--uvlf_consistently", type=bool, default=False)
     parser.add_argument("--fluct_level", type=float, default=None)
+
+    parser.add_argument("--like_on_flux", type=bool, default=False)
+
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -485,6 +547,7 @@ if __name__ == '__main__':
             xd = np.zeros((inputs.multiple_iter, n_gal))
             yd = np.zeros((inputs.multiple_iter, n_gal))
             zd = np.zeros((inputs.multiple_iter, n_gal))
+            one_J_arr = np.zeros((inputs.multiple_iter, n_gal, len(wave_em)))
             x_b = []
             y_b = []
             z_b = []
@@ -513,6 +576,8 @@ if __name__ == '__main__':
                     muv=Muv[index_iter],
                     n_iter=n_gal,
                 )
+                one_J_arr[index_iter,:,:] = np.array(one_J[0][:n_gal])
+
      #           print(tau_data_I, np.shape(tau_data_I))
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal])
@@ -600,6 +665,56 @@ if __name__ == '__main__':
     #print(tau_data_I, np.shape(tau_data_I))
     #print(np.array(data), np.shape(np.array(data)))
     #assert False
+
+    if inputs.like_on_flux:
+        #calculate mock flux
+        spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
+        bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
+                         wave_em.value[-1] * (1 + inputs.redshift), spec_res)
+        wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
+        bins_po = np.append(bins, bins[-1] + spec_res)
+        if inputs.multiple_iter:
+            flux_noise_mock = np.zeros((inputs.multiple_iter,n_gal, len(bins)))
+        else:
+            flux_noise_mock = np.zeros((n_gal, len(bins)))
+        if not inputs.multiple_iter:
+            for index_gal in range(n_gal):
+                flux_noise_mock[index_gal,:] = [
+                    np.trapz(x=wave_em.value[wave_em_dig == i + 1],
+                             y=(la_e[index_gal] * one_J[0][index_gal] * np.exp(
+                                 -td[index_gal]
+                            ) * tau_CGM(Muv[index_gal]) / (
+                                            4 * np.pi * Cosmo.luminosity_distance(
+                                    7.5).to(u.cm).value ** 2) / integrate.trapz(
+                              one_J[0][index_gal],
+                                wave_em.value)
+                                )[wave_em_dig == i + 1]) for i in range(len(bins))
+                ]
+        else:
+            for index_iter in range(inputs.multiple_iter):
+                for index_gal in range(n_gal):
+                    flux_noise_mock[index_iter,index_gal,:] = [
+                        np.trapz(x=wave_em.value[wave_em_dig == i + 1],
+                                 y=(la_e[index_iter,index_gal] * one_J_arr[index_iter,index_gal,:] * np.exp(
+                                     -td[index_iter,index_gal,:]
+                                ) * tau_CGM(Muv[index_iter, index_gal]) / (
+                                                4 * np.pi * Cosmo.luminosity_distance(
+                                        7.5).to(u.cm).value ** 2) / integrate.trapz(
+                                one_J_arr[index_iter,index_gal,:],
+                                    wave_em.value)
+                                    )[wave_em_dig == i + 1]) for i in range(len(bins))
+                    ]
+        flux_noise_mock = flux_noise_mock + np.random.normal(
+            0,
+            1e-19,
+            np.shape(flux_noise_mock)
+        )
+
+    if inputs.like_on_flux:
+        like_on_flux = flux_noise_mock
+    else:
+        like_on_flux = False
+
     likelihoods = sample_bubbles_grid(
         tau_data=np.array(data),
         xs=xd,
@@ -615,7 +730,8 @@ if __name__ == '__main__':
         xH_unc=inputs.xH_unc,
         la_e=la_e,
         multiple_iter=inputs.multiple_iter,
-        flux_limit=inputs.flux_limit
+        flux_limit=inputs.flux_limit,
+        like_on_flux=like_on_flux,
     )
     np.save(
         inputs.save_dir + '/likelihoods.npy',
@@ -697,3 +813,8 @@ if __name__ == '__main__':
         inputs.save_dir + '/flux_data.npy',
         np.array(flux_to_save.reshape(np.shape(Muv)))
     )
+    if inputs.like_on_flux:
+        np.save(
+            inputs.save_dir + '/flux_spectrum.npy',
+            np.array(like_on_flux)
+        )
