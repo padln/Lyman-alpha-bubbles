@@ -177,13 +177,13 @@ def _get_likelihood(
                 print("smth wrong", res, flush=True )
 
             lae_now = np.array(
-                [p_EW(muvi, beti, )[1] for blah in range(len(taus_now))]
+                [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
             )
             flux_now = lae_now * np.array(taus_now).flatten() / (
                             4 * np.pi * Cosmo.luminosity_distance(
                         red_s).to(u.cm).value**2
             )
-            print(np.shape(lae_now[49] * j_s[0][49] *np.exp(-tau_now_i[49])* tau_CGM(muvi)), len(taus_now),flush=True)
+            #print(np.shape(lae_now[49] * j_s[0][49] *np.exp(-tau_now_i[49])* tau_CGM(muvi)), len(taus_now),flush=True)
             spectrum_now = np.array([[
                     np.trapz(x=wave_em.value[wave_em_dig == i + 1],
                              y=(lae_now[ind_igor] * j_s[0][ind_igor] * np.exp(
@@ -194,7 +194,7 @@ def _get_likelihood(
                               j_s[0][ind_igor],
                                 wave_em.value)
                                 )[wave_em_dig == i + 1]) for i in range(len(bins))
-                ] for ind_igor in range(len(taus_now))])
+                ] for ind_igor in range(len(eit))])
             spectrum_now = np.array(spectrum_now)
             spectrum_now += np.random.normal(
                 0,
