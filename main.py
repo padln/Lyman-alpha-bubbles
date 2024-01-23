@@ -430,7 +430,7 @@ def sample_bubbles_grid(
                 xH_unc=xH_unc,
                 la_e=la_e,
                 flux_limit=flux_limit,
-                like_on_flix=like_on_flux,
+                like_on_flux=like_on_flux,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
