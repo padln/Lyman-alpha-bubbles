@@ -358,8 +358,8 @@ def sample_bubbles_grid(
     z_grid = np.linspace(z_min, z_max, n_grid)
     #x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
     #y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
-    x_grid = np.linspace(0.0,0.0,1)
-    y_grid = np.linspace(0.0,0.0,1)
+    x_grid = np.linspace(-5.0,5.0,3)
+    y_grid = np.linspace(-5.0,5.0,3)
     r_grid = np.linspace(r_min,r_max,n_grid)
     if multiple_iter:
         like_grid_top = np.zeros(
