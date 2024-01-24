@@ -100,13 +100,14 @@ def _get_likelihood(
     if beta_data is None:
         beta_data = np.zeros(len(xs))
     reds_of_galaxies = np.zeros(len(xs))
+    print(len(xs), "this is the number of galaxies senor", flush=True)
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e)
     ):
         taus_now = []
         flux_now = []
         if like_on_flux is not False:
-            spectrum_now = []
+            spectrum_now = np.zeros((n_iter_bub*50, 18))
         # red_s = z_at_value(
         #     Cosmo.comoving_distance,
         #     Cosmo.comoving_distance(redshift) + zg * u.Mpc,
@@ -201,7 +202,7 @@ def _get_likelihood(
             #), flush=True)
             #print(np.shape(lae_now[:, np.newaxis] * j_s[0] * eit_l * tau_CGM(muvi)[np.newaxis,:] * com_factor[index_gal]), flush=True)
             #t2=time.time()
-            spectrum_now = np.array(
+            spectrum_now_i = np.array(
                 [np.trapz(x=wave_em.value[wave_em_dig == i_bin + 1],
                              y=(lae_now[n*50:(n+1)*50, np.newaxis] * j_s[0] * eit_l * tau_CGM(muvi)[np.newaxis,:] * com_factor[index_gal] / integrate.trapz(
                               j_s[0],
@@ -213,12 +214,16 @@ def _get_likelihood(
             #print(t3-t2, spectrum_now_new.T, spectrum_now, flush=True)
             #assert False
             
-            spectrun_now = spectrum_now.T
-            spectrum_now += np.random.normal(
+            #spectrun_now_i = spectrum_now_i.T
+            spectrum_now_i += np.random.normal(
                 0,
-                1e-19,
-                np.shape(spectrum_now)
+                2e-20,
+                np.shape(spectrum_now_i)
             )
+            #let's investigate properties of this calculation
+    #        print(spectrum_now, np.mean(spectrum_now, axis=0), np.mean(spectrum_now,axis=1), np.shape(spectrum_now), np.max(spectrum_now), flush =True)
+    #        assert False
+            spectrum_now[n*50:(n+1)*50, :] = spectrum_now_i.T
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
         spectrum_tot.append(spectrum_now)
@@ -226,7 +231,10 @@ def _get_likelihood(
     #assert False
     taus_tot_b = []
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-
+    #print(np.shape(np.array(spectrum_tot)))
+    #spectrum_tot = np.concatenate(spectrum_tot, axis=0)
+    #print(np.shape(spectrum_tot), flush=True)
+    #assert False
     try:
         taus_tot_b = []
         flux_tot_b = []
@@ -257,9 +265,9 @@ def _get_likelihood(
             else:
                 if like_on_flux is not False:
                     for bi in range(len(bins)):
-                        if like_on_flux[ind_data,bi] < 3e-19:
-                            print("integrating likelihood", np.log(spec_kde[bi].integrate_box(0, 3e-19)))
-                            likelihood += np.log(spec_kde[bi].integrate_box(0, 3e-19))
+                        if like_on_flux[ind_data,bi] < 1e-19:
+                            print("integrating likelihood", np.log(spec_kde[bi].integrate_box(0, 1e-19)))
+                            likelihood += np.log(spec_kde[bi].integrate_box(0, 1e-19))
                         else:
                             likelihood += np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi]))
                             print("evaluating likelihood", np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
@@ -771,10 +779,11 @@ if __name__ == '__main__':
                     ]
         flux_noise_mock = flux_noise_mock + np.random.normal(
             0,
-            1e-19,
+            2e-20,
             np.shape(flux_noise_mock)
         )
-
+    #print(np.shape(xd), flush=True)
+    #assert False
     if inputs.like_on_flux:
         like_on_flux = flux_noise_mock
     else:
@@ -787,7 +796,7 @@ if __name__ == '__main__':
         ys=yd,
         zs=zd,
         n_iter_bub=30,
-        n_grid=5,
+        n_grid=3,
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
@@ -803,18 +812,18 @@ if __name__ == '__main__':
         inputs.save_dir + '/likelihoods.npy',
         likelihoods
     )
-    np.save(
-        inputs.save_dir + '/x_gal_mock.npy',
-        np.array(xd)
-    )
-    np.save(
-        inputs.save_dir + '/y_gal_mock.npy',
-        np.array(yd)
-    )
-    np.save(
-        inputs.save_dir + '/z_gal_mock.npy',
-        np.array(zd)
-    )
+#    np.save(
+#        inputs.save_dir + '/x_gal_mock.npy',
+#        np.array(xd)
+#    )
+#    np.save(
+#        inputs.save_dir + '/y_gal_mock.npy',
+#        np.array(yd)
+#    )
+#    np.save(
+#        inputs.save_dir + '/z_gal_mock.npy',
+#        np.array(zd)
+#    )
     if inputs.multiple_iter:
         max_len_bubs = 0
         for xbi in x_b:
@@ -854,10 +863,10 @@ if __name__ == '__main__':
         inputs.save_dir + '/r_bubs_mock.npy',
         np.array(r_b_arr)
     )
-    np.save(
-        inputs.save_dir + '/data.npy',
-        np.array(data),
-    )
+#    np.save(
+#        inputs.save_dir + '/data.npy',
+#        np.array(data),
+#    )
 
     flux_to_save = np.zeros(len(Muv.flatten()))
     for i,(xdi,ydi,zdi, tdi, li) in enumerate(zip(
