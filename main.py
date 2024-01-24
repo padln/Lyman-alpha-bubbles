@@ -8,7 +8,7 @@ from scipy.stats import gaussian_kde
 from astropy.cosmology import z_at_value
 from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
-
+import time
 import itertools
 from joblib import Parallel, delayed
 
@@ -89,6 +89,7 @@ def _get_likelihood(
         bins_po = np.append(bins, bins[-1] + spec_res)
 
     likelihood = 0.0
+    com_factor = np.zeros(len(xs))
     taus_tot = []
     flux_tot = []
     spectrum_tot = []
@@ -115,6 +116,8 @@ def _get_likelihood(
             - zg / (1 + redshift) * u.Mpc, redshift
         )
         reds_of_galaxies[index_gal] = red_s
+        com_factor[index_gal]= 1/ ( 4 * np.pi * Cosmo.luminosity_distance(
+                                    red_s).to(u.cm).value ** 2)
         # calculating fluxes if they are given
         if la_e is not None:
             flux_mock[index_gal] = li / (
@@ -179,23 +182,38 @@ def _get_likelihood(
             lae_now = np.array(
                 [p_EW(muvi, beti, )[1] for blah in range(len(taus_now))]
             )
-            flux_now = lae_now * np.array(taus_now).flatten() / (
-                            4 * np.pi * Cosmo.luminosity_distance(
-                        red_s).to(u.cm).value**2
-            )
+            flux_now = lae_now * np.array(taus_now).flatten() * com_factor[index_gal]
+            #t0 = time.time()
             #print(np.shape(lae_now[49] * j_s[0][49] *np.exp(-tau_now_i[49])* tau_CGM(muvi)), len(taus_now),flush=True)
-            spectrum_now = np.array([[
-                    np.trapz(x=wave_em.value[wave_em_dig == i + 1],
-                             y=(lae_now[ind_igor] * j_s[0][ind_igor] * np.exp(
-                                 -tau_now_i[ind_igor]
-                            ) * tau_CGM(muvi) / (
-                                            4 * np.pi * Cosmo.luminosity_distance(
-                                    red_s).to(u.cm).value ** 2) / integrate.trapz(
-                              j_s[0][ind_igor],
-                                wave_em.value)
-                                )[wave_em_dig == i + 1]) for i in range(len(bins))
-                ] for ind_igor in range(len(eit_l))])
-            spectrum_now = np.array(spectrum_now)
+            #spectrum_now = np.array([[
+            #        np.trapz(x=wave_em.value[wave_em_dig == i + 1],
+            #                 y=(lae_now[ind_igor] * j_s[0][ind_igor] * eit_l[ind_igor] * tau_CGM(muvi) * com_factor[index_gal] / integrate.trapz(
+            #                  j_s[0][ind_igor],
+            #                    wave_em.value)
+            #                    )[wave_em_dig == i + 1]) for i in range(len(bins))
+            #    ] for ind_igor in range(len(eit_l))])
+            #spectrum_now = np.array(spectrum_now)
+            #t1 = time.time()
+            #print(t1-t0, "why this taking so long man",np.shape(lae_now), np.shape(j_s[0]), np.shape(eit_l), np.shape(tau_CGM(muvi)), np.shape(com_factor[index_gal]), flush=True)
+            #print(np.shape(integrate.trapz(
+            #                  j_s[0],
+            #                    wave_em.value, axis=1)
+            #), flush=True)
+            #print(np.shape(lae_now[:, np.newaxis] * j_s[0] * eit_l * tau_CGM(muvi)[np.newaxis,:] * com_factor[index_gal]), flush=True)
+            #t2=time.time()
+            spectrum_now = np.array(
+                [np.trapz(x=wave_em.value[wave_em_dig == i_bin + 1],
+                             y=(lae_now[n*50:(n+1)*50, np.newaxis] * j_s[0] * eit_l * tau_CGM(muvi)[np.newaxis,:] * com_factor[index_gal] / integrate.trapz(
+                              j_s[0],
+                                wave_em.value, axis=1)[:,np.newaxis]
+                                )[:,wave_em_dig == i_bin + 1], axis=1)   for i_bin in range(len(bins))
+                ]
+            )
+            #t3 = time.time()
+            #print(t3-t2, spectrum_now_new.T, spectrum_now, flush=True)
+            #assert False
+            
+            spectrun_now = spectrum_now.T
             spectrum_now += np.random.normal(
                 0,
                 1e-19,
@@ -204,7 +222,8 @@ def _get_likelihood(
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
         spectrum_tot.append(spectrum_now)
-
+    #print("Calculated all the spectra", spectrum_tot, "Shape of spectra", np.shape(spectrum_tot))
+    #assert False
     taus_tot_b = []
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
@@ -238,10 +257,12 @@ def _get_likelihood(
             else:
                 if like_on_flux is not False:
                     for bi in range(len(bins)):
-                        if like_on_flux[ind_data,bi] < 1e-19:
-                            likelihood += np.log(spec_kde[bi].integrate_box(0, 1e-19))
+                        if like_on_flux[ind_data,bi] < 3e-19:
+                            print("integrating likelihood", np.log(spec_kde[bi].integrate_box(0, 3e-19)))
+                            likelihood += np.log(spec_kde[bi].integrate_box(0, 3e-19))
                         else:
                             likelihood += np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi]))
+                            print("evaluating likelihood", np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
                 else:
                     if flux_tau < flux_limit:
                         # _, la_limit_muv = p_EW(
@@ -758,7 +779,8 @@ if __name__ == '__main__':
         like_on_flux = flux_noise_mock
     else:
         like_on_flux = False
-
+    #print("Finishing setting up mocks", like_on_flux)
+    #assert False
     likelihoods = sample_bubbles_grid(
         tau_data=np.array(data),
         xs=xd,
