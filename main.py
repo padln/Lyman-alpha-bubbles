@@ -233,7 +233,9 @@ def _get_likelihood(
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
     #print(np.shape(np.array(spectrum_tot)))
     #spectrum_tot = np.concatenate(spectrum_tot, axis=0)
-    #print(np.shape(spectrum_tot), flush=True)
+    print(np.shape(np.array(spectrum_tot)), flush=True)
+    #assert False
+    #np.save('/home/inikolic/projects/Lyalpha_bubbles/code/taus_for_likel.npy', np.array(spectrum_tot))
     #assert False
     try:
         taus_tot_b = []
@@ -251,26 +253,35 @@ def _get_likelihood(
         ):
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
+            #print("Am I doing stuff correctly", np.shape(np.array(spec_line)), flush = True)
+            #assert False
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(len(bins))]
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(6,len(bins))]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
-
+            print(len(spec_kde), flush=True)
+            print(len(list(range(6,len(bins)))), flush=True)
+            like_on_flux = np.array(like_on_flux)
+            print(np.shape(like_on_flux), flush=True)
+            print(ind_data,"index_data", flush=True)
             if not use_EW:
                 if tau_data[ind_data] < 3:
                     likelihood += np.log(tau_kde.integrate_box(0, 3))
                 else:
                     likelihood += np.log(tau_kde.evaluate((tau_data[ind_data])))
-
             else:
                 if like_on_flux is not False:
-                    for bi in range(len(bins)):
-                        if like_on_flux[ind_data,bi] < 1e-19:
-                            print("integrating likelihood", np.log(spec_kde[bi].integrate_box(0, 1e-19)))
-                            likelihood += np.log(spec_kde[bi].integrate_box(0, 1e-19))
-                        else:
-                            likelihood += np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi]))
-                            print("evaluating likelihood", np.log(spec_kde[bi].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                    for bi in range(6,len(bins)-1):
+                        print("index bi", bi)
+                        try:
+                            if like_on_flux[ind_data,bi] < 1e-19:
+                                print("integrating likelihood", np.log(spec_kde[bi-6].integrate_box(-1e-18, 1e-19)))
+                                likelihood += np.log(spec_kde[bi-6].integrate_box(-1e-18, 1e-19))
+                            else:
+                                likelihood += np.log(spec_kde[bi-6].evaluate(like_on_flux[ind_data,bi]))
+                                print("evaluating likelihood", np.log(spec_kde[bi-6].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                        except IndexError:
+                            print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 else:
                     if flux_tau < flux_limit:
                         # _, la_limit_muv = p_EW(
@@ -387,8 +398,8 @@ def sample_bubbles_grid(
     z_grid = np.linspace(z_min, z_max, n_grid)
     #x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
     #y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
-    x_grid = np.linspace(-5.0,5.0,3)
-    y_grid = np.linspace(-5.0,5.0,3)
+    x_grid = np.linspace(-5.0,5.0,5)
+    y_grid = np.linspace(-5.0,5.0,5)
     r_grid = np.linspace(r_min,r_max,n_grid)
     if multiple_iter:
         like_grid_top = np.zeros(
@@ -796,7 +807,7 @@ if __name__ == '__main__':
         ys=yd,
         zs=zd,
         n_iter_bub=30,
-        n_grid=3,
+        n_grid=5,
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
