@@ -408,7 +408,7 @@ def sample_bubbles_grid(
 
         for ind_iter in range(multiple_iter):
             if like_on_flux is not False:
-                like_on_flux = like_on_flux[ind_iter]
+                like_on_flux_i = like_on_flux[ind_iter]
             like_calc = Parallel(
                 n_jobs=50
             )(
@@ -433,7 +433,7 @@ def sample_bubbles_grid(
                     xH_unc=xH_unc,
                     la_e=la_e[ind_iter],
                     flux_limit=flux_limit,
-                    like_on_flux=like_on_flux,
+                    like_on_flux=like_on_flux_i,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
