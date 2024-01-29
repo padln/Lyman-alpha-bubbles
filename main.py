@@ -108,7 +108,7 @@ def _get_likelihood(
         taus_now = []
         flux_now = []
         if like_on_flux is not False:
-            spectrum_now = np.zeros((n_iter_bub*50, 18))
+            spectrum_now = np.zeros((n_iter_bub*50, len(bins)))
         # red_s = z_at_value(
         #     Cosmo.comoving_distance,
         #     Cosmo.comoving_distance(redshift) + zg * u.Mpc,
