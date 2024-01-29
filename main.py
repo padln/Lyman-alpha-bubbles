@@ -83,6 +83,7 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
+        spec_res = 2 * spec_res # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
@@ -207,13 +208,13 @@ def _get_likelihood(
                              y=(lae_now[n*50:(n+1)*50, np.newaxis] * j_s[0] * eit_l * tau_CGM(muvi)[np.newaxis,:] * com_factor[index_gal] / integrate.trapz(
                               j_s[0],
                                 wave_em.value, axis=1)[:,np.newaxis]
-                                )[:,wave_em_dig == i_bin + 1], axis=1)   for i_bin in range(len(bins))
+                                )[:,wave_em_dig == i_bin + 1], axis=1) for i_bin in range(len(bins))
                 ]
             )
             #t3 = time.time()
             #print(t3-t2, spectrum_now_new.T, spectrum_now, flush=True)
             #assert False
-            
+
             #spectrun_now_i = spectrum_now_i.T
             spectrum_now_i += np.random.normal(
                 0,
@@ -231,12 +232,7 @@ def _get_likelihood(
     #assert False
     taus_tot_b = []
     #print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-    #print(np.shape(np.array(spectrum_tot)))
-    #spectrum_tot = np.concatenate(spectrum_tot, axis=0)
-    print(np.shape(np.array(spectrum_tot)), flush=True)
-    #assert False
-    #np.save('/home/inikolic/projects/Lyalpha_bubbles/code/taus_for_likel.npy', np.array(spectrum_tot))
-    #assert False
+
     try:
         taus_tot_b = []
         flux_tot_b = []
@@ -253,14 +249,12 @@ def _get_likelihood(
         ):
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
-            #print("Am I doing stuff correctly", np.shape(np.array(spec_line)), flush = True)
-            #assert False
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(6,len(bins)-4)]
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(3,len(bins)-2)]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
-            print(len(spec_kde), flush=True)
-            print(len(list(range(6,len(bins)))), flush=True)
+            #print(len(spec_kde), flush=True)
+            #print(len(list(range(6,len(bins)))), flush=True)
             #like_on_flux = np.array(like_on_flux)
             print(np.shape(like_on_flux), flush=True)
             print(ind_data,"index_data", flush=True)
@@ -271,15 +265,15 @@ def _get_likelihood(
                     likelihood += np.log(tau_kde.evaluate((tau_data[ind_data])))
             else:
                 if like_on_flux is not False:
-                    for bi in range(6,len(bins)-4):
+                    for bi in range(3,len(bins)-2):
                         print("index bi", bi)
                         try:
                             if like_on_flux[ind_data,bi] < 1e-19:
-                                print("integrating likelihood", np.log(spec_kde[bi-6].integrate_box(-1e-18, 1e-19)))
-                                likelihood += np.log(spec_kde[bi-6].integrate_box(-1e-18, 1e-19))
+                                print("integrating likelihood", np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19)))
+                                likelihood += np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19))
                             else:
-                                likelihood += np.log(spec_kde[bi-6].evaluate(like_on_flux[ind_data,bi]))
-                                print("evaluating likelihood", np.log(spec_kde[bi-6].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                                likelihood += np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi]))
+                                print("evaluating likelihood", np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
                         except IndexError:
                             print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                             raise IndexError
@@ -754,6 +748,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
+        spec_res = spec_res * 2 #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
@@ -826,18 +821,18 @@ if __name__ == '__main__':
         inputs.save_dir + '/likelihoods.npy',
         likelihoods
     )
-#    np.save(
-#        inputs.save_dir + '/x_gal_mock.npy',
-#        np.array(xd)
-#    )
-#    np.save(
-#        inputs.save_dir + '/y_gal_mock.npy',
-#        np.array(yd)
-#    )
-#    np.save(
-#        inputs.save_dir + '/z_gal_mock.npy',
-#        np.array(zd)
-#    )
+    np.save(
+        inputs.save_dir + '/x_gal_mock.npy',
+        np.array(xd)
+    )
+    np.save(
+        inputs.save_dir + '/y_gal_mock.npy',
+        np.array(yd)
+    )
+    np.save(
+        inputs.save_dir + '/z_gal_mock.npy',
+        np.array(zd)
+    )
     if inputs.multiple_iter:
         max_len_bubs = 0
         for xbi in x_b:
@@ -877,10 +872,10 @@ if __name__ == '__main__':
         inputs.save_dir + '/r_bubs_mock.npy',
         np.array(r_b_arr)
     )
-#    np.save(
-#        inputs.save_dir + '/data.npy',
-#        np.array(data),
-#    )
+    np.save(
+        inputs.save_dir + '/data.npy',
+        np.array(data),
+    )
 
     flux_to_save = np.zeros(len(Muv.flatten()))
     for i,(xdi,ydi,zdi, tdi, li) in enumerate(zip(
