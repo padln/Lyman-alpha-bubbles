@@ -118,7 +118,7 @@ def _get_likelihood(
         )
         reds_of_galaxies[index_gal] = red_s
         com_factor[index_gal]= 1/ ( 4 * np.pi * Cosmo.luminosity_distance(
-                                    red_s).to(u.cm).value ** 2)
+                                    redshift).to(u.cm).value ** 2)
         # calculating fluxes if they are given
         if la_e is not None:
             flux_mock[index_gal] = li / (
@@ -256,12 +256,12 @@ def _get_likelihood(
             #print("Am I doing stuff correctly", np.shape(np.array(spec_line)), flush = True)
             #assert False
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(6,len(bins))]
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(6,len(bins)-4)]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             print(len(spec_kde), flush=True)
             print(len(list(range(6,len(bins)))), flush=True)
-            like_on_flux = np.array(like_on_flux)
+            #like_on_flux = np.array(like_on_flux)
             print(np.shape(like_on_flux), flush=True)
             print(ind_data,"index_data", flush=True)
             if not use_EW:
@@ -271,7 +271,7 @@ def _get_likelihood(
                     likelihood += np.log(tau_kde.evaluate((tau_data[ind_data])))
             else:
                 if like_on_flux is not False:
-                    for bi in range(6,len(bins)-1):
+                    for bi in range(6,len(bins)-4):
                         print("index bi", bi)
                         try:
                             if like_on_flux[ind_data,bi] < 1e-19:
@@ -282,6 +282,7 @@ def _get_likelihood(
                                 print("evaluating likelihood", np.log(spec_kde[bi-6].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
                         except IndexError:
                             print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
+                            raise IndexError
                 else:
                     if flux_tau < flux_limit:
                         # _, la_limit_muv = p_EW(
@@ -398,9 +399,11 @@ def sample_bubbles_grid(
     z_grid = np.linspace(z_min, z_max, n_grid)
     #x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
     #y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
-    x_grid = np.linspace(-5.0,5.0,5)
-    y_grid = np.linspace(-5.0,5.0,5)
+    x_grid = np.linspace(-5.0,5.0,3)
+    y_grid = np.linspace(-5.0,5.0,3)
     r_grid = np.linspace(r_min,r_max,n_grid)
+    #print("multiple_iter", multiple_iter, flush=True)
+    #assert False
     if multiple_iter:
         like_grid_top = np.zeros(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid), multiple_iter)
@@ -806,7 +809,7 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=30,
+        n_iter_bub=50,
         n_grid=5,
         redshift=inputs.redshift,
         muv=Muv,
