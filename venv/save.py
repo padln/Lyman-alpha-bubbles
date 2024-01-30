@@ -15,7 +15,7 @@ class HdF5Saver:
     def create_file(self):
         self.fname = self.output_dir + str(
             self.x_gal) + str(self.x_first_bubble) + '.hdf5'
-        self.f = h5py.File(self.fname, 'a'):
+        self.f = h5py.File(self.fname, 'a')
 
         self.created=True
 
