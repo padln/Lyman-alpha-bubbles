@@ -232,7 +232,9 @@ def _get_likelihood(
                 [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
             )
             lae_now[n*50:(n+1)*50] = lae_now_i
-            flux_now_i = lae_now_i * np.array(taus_now).flatten()[n*50:(n+1):50] * com_factor[index_gal]
+            flux_now_i = lae_now_i * np.array(
+                taus_now
+            ).flatten()[n*50:(n+1)*50] * com_factor[index_gal]
             flux_now[n*50:(n+1)*50] = flux_now_i
 
             #t0 = time.time()
