@@ -279,10 +279,10 @@ def _get_likelihood(
             spectrum_now[n*50:(n+1)*50, :] = spectrum_now_i.T
 
         max_len = np.max([len(a) for a in x_bubs_now])
-        x_bubs_arr = np.zeros((len(x_bubs_now, max_len)))
-        y_bubs_arr = np.zeros((len(x_bubs_now, max_len)))
-        z_bubs_arr = np.zeros((len(x_bubs_now, max_len)))
-        r_bubs_arr = np.zeros((len(x_bubs_now, max_len)))
+        x_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+        y_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+        z_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+        r_bubs_arr = np.zeros((len(x_bubs_now), max_len))
         for i_bub,(xar,yar,zar,rar) in enumerate(
                 zip(x_bubs_now, y_bubs_now, z_bubs_now, r_bubs_now)
         ):
