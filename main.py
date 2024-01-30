@@ -306,7 +306,7 @@ def _get_likelihood(
         save_cl.save_datasets(dict_dat)
 
         names_used.append(save_cl.fname)
-        save_cl.close()
+        save_cl.close_file()
 
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
