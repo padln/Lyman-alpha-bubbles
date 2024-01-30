@@ -993,7 +993,7 @@ if __name__ == '__main__':
             np.array(like_on_flux)
         )
 
-    with open(inputs.save_dir + '/names_done.txt') as f:
+    with open(inputs.save_dir + '/names_done.txt', 'w') as f:
         for line in names_used:
             if len(line[0]) > 1:
                 for li in line:
