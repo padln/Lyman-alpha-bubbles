@@ -87,7 +87,7 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
-        spec_res = 2 * spec_res # to test the bias
+        spec_res = 3 * spec_res # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
@@ -335,7 +335,7 @@ def _get_likelihood(
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(3,len(bins)-2)]
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(1,len(bins))]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -350,15 +350,15 @@ def _get_likelihood(
                     likelihood[:ind_data] += np.log(tau_kde.evaluate((tau_data[ind_data])))
             else:
                 if like_on_flux is not False:
-                    for bi in range(3,len(bins)-2):
+                    for bi in range(1,len(bins)):
                         print("index bi", bi)
                         try:
                             if like_on_flux[ind_data,bi] < 1e-19:
-                                print("integrating likelihood", np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19)))
-                                likelihood[:ind_data] += np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19))
+                                print("integrating likelihood", np.log(spec_kde[bi-1].integrate_box(-1e-18, 1e-19)))
+                                likelihood[:ind_data] += np.log(spec_kde[bi-1].integrate_box(-1e-18, 1e-19))
                             else:
-                                likelihood[:ind_data] += np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi]))
-                                print("evaluating likelihood", np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                                likelihood[:ind_data] += np.log(spec_kde[bi-1].evaluate(like_on_flux[ind_data,bi]))
+                                print("evaluating likelihood", np.log(spec_kde[bi-1].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
                         except IndexError:
                             print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                             raise IndexError
@@ -838,7 +838,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
-        spec_res = spec_res * 2 #to test bias
+        spec_res = spec_res * 3 #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
