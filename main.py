@@ -95,7 +95,7 @@ def _get_likelihood(
 
     likelihood_spec = np.zeros((len(xs)))
     likelihood_int = np.zeros((len(xs)))
-    likelihood_tau = np.zeros((len(tau)))
+    likelihood_tau = np.zeros((len(xs)))
     #from now on likelihood is an array that stores cumulative likelihoods for
     #all galaxies up to a certain number
     com_factor = np.zeros(len(xs))
