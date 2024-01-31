@@ -1006,7 +1006,22 @@ if __name__ == '__main__':
         inputs.save_dir + '/data.npy',
         np.array(data),
     )
-
+    np.save(
+        inputs.save_dir + '/one_J.npy',
+        np.array(one_J[0]),
+    )
+    np.save(
+        inputs.save_dir + '/Muvs.npy',
+        np.array(Muv),
+    )
+    np.save(
+        inputs.save_dir + '/la_e.npy',
+        np.array(la_e),
+    )
+    np.save(
+        inputs.save_dir + '/td.npy',
+        np.array(td),
+    )
     flux_to_save = np.zeros(len(Muv.flatten()))
     for i,(xdi,ydi,zdi, tdi, li) in enumerate(zip(
             xd.flatten(), yd.flatten(),zd.flatten(),data.flatten(),la_e.flatten()
