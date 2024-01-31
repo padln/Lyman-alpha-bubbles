@@ -530,13 +530,13 @@ def sample_bubbles_grid(
             likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
 
             likelihood_grid_tau = likelihood_grid_tau.reshape(
-                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), np.shape(xs)[1])
             )
             likelihood_grid_int = likelihood_grid_int.reshape(
-                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), np.shape(xs)[1])
             )
             likelihood_grid_spec = likelihood_grid_spec.reshape(
-                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), np.shape(xs)[1])
             )
             like_grid_tau_top[:,:,:,:,:, ind_iter] = likelihood_grid_tau
             like_grid_int_top[:,:,:,:,:, ind_iter] = likelihood_grid_int
