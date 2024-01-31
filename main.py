@@ -87,13 +87,15 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
-        spec_res = 3 * spec_res # to test the bias
+        spec_res = 2 * spec_res # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
         bins_po = np.append(bins, bins[-1] + spec_res)
 
-    likelihood = np.zeros((len(xs)))
+    likelihood_spec = np.zeros((len(xs)))
+    likelihood_int = np.zeros((len(xs)))
+    likelihood_tau = np.zeros((len(tau)))
     #from now on likelihood is an array that stores cumulative likelihoods for
     #all galaxies up to a certain number
     com_factor = np.zeros(len(xs))
@@ -335,7 +337,7 @@ def _get_likelihood(
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(1,len(bins))]
+                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(3,len(bins)-2)]
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -343,44 +345,33 @@ def _get_likelihood(
             #like_on_flux = np.array(like_on_flux)
             print(np.shape(like_on_flux), flush=True)
             print(ind_data,"index_data", flush=True)
-            if not use_EW:
-                if tau_data[ind_data] < 3:
-                    likelihood[:ind_data] += np.log(tau_kde.integrate_box(0, 3))
-                else:
-                    likelihood[:ind_data] += np.log(tau_kde.evaluate((tau_data[ind_data])))
+            if flux_tau < 2e-19:
+                pass
+                #likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
             else:
-                if like_on_flux is not False:
-                    for bi in range(1,len(bins)):
-                        print("index bi", bi)
-                        try:
-                            if like_on_flux[ind_data,bi] < 1e-19:
-                                print("integrating likelihood", np.log(spec_kde[bi-1].integrate_box(-1e-18, 1e-19)))
-                                likelihood[:ind_data] += np.log(spec_kde[bi-1].integrate_box(-1e-18, 1e-19))
-                            else:
-                                likelihood[:ind_data] += np.log(spec_kde[bi-1].evaluate(like_on_flux[ind_data,bi]))
-                                print("evaluating likelihood", np.log(spec_kde[bi-1].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
-                        except IndexError:
-                            print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
-                            raise IndexError
-                else:
-                    if flux_tau < flux_limit:
-                        # _, la_limit_muv = p_EW(
-                        #     muv[ind_data],
-                        #     beta_data[ind_data],
-                        #     mean=True,
-                        #     return_lum=True,
-                        # )
-                        # flux_limit_muv = la_limit_muv / (
-                        #         4 * np.pi * Cosmo.luminosity_distance(
-                        #     red_s).to(u.cm).value**2
-                        # ) #TODO implement redshift dependence
-                        # tau_limit = flux_limit/flux_limit_muv
-                        print("This galaxy failed the tau test, it's flux is", flux_tau)
-                        likelihood[:ind_data] += np.log(flux_kde.integrate_box(0, flux_limit))
-                        print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
-                    else:
-                        print("all good", flux_tau)
-                        likelihood[:ind_data] += np.log(flux_kde.evaluate(flux_tau))
+                likelihood_tau[:ind_data] += np.log(tau_kde.evaluate((tau_data[ind_data])))
+
+            if like_on_flux is not False:
+                for bi in range(3,len(bins)-2):
+                    #print("index bi", bi)
+                    try:
+                        if like_on_flux[ind_data,bi] < 1e-19:
+                            print("integrating likelihood", np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19)))
+                            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19))
+                        else:
+                            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi]))
+                            print("evaluating likelihood", np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                    except IndexError:
+                        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
+                        raise IndexError
+
+            if flux_tau < flux_limit:
+                print("This galaxy failed the tau test, it's flux is", flux_tau)
+                likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0, flux_limit))
+                print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
+            else:
+                print("all good", flux_tau)
+                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(flux_tau))
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -391,15 +382,22 @@ def _get_likelihood(
         #     xb, yb, zb, rb  , flush=True
         # )
     except (LinAlgError, ValueError, TypeError):
-        likelihood[:ind_data] += -np.inf
-        print("OOps there was valu error, let's see why:", flush=True)
+        likelihood_tau[:ind_data] += -np.inf
+        likelihood_spec[:ind_data] += -np.inf
+        likelihood_int[:ind_data] += -np.inf
+
+        print("OOps there was value error, let's see why:", flush=True)
         print(tau_data, flush=True)
         print(taus_tot_b, flush=True)
         raise TypeError
-    if hasattr(likelihood[0], '__len__'):
-        return ndex, np.array([np.product(li) for li in likelihood]), names_used
+    if hasattr(likelihood_tau[0], '__len__'):
+        return ndex, (
+            np.array([np.product(li) for li in likelihood_tau]),
+            np.array([np.product(li) for li in likelihood_int]),
+            np.array([np.product(li) for li in likelihood_spec])
+        ), names_used
     else:
-        return ndex, likelihood, names_used
+        return ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
 
 
 def sample_bubbles_grid(
@@ -484,7 +482,13 @@ def sample_bubbles_grid(
     #print("multiple_iter", multiple_iter, flush=True)
     #assert False
     if multiple_iter:
-        like_grid_top = np.zeros(
+        like_grid_tau_top = np.zeros(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
+        )
+        like_grid_int_top = np.zeros(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
+        )
+        like_grid_spec_top = np.zeros(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
         )
         names_grid_top = []
@@ -521,15 +525,27 @@ def sample_bubbles_grid(
                 )
             )
             like_calc.sort(key=lambda x: x[0])
-            likelihood_grid = np.array([l[1] for l in like_calc])
-            likelihood_grid = likelihood_grid.reshape(
+            likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
+            likelihood_grid_int = np.array([l[1][1] for l in like_calc])
+            likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+
+            likelihood_grid_tau = likelihood_grid_tau.reshape(
                 (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
             )
-            like_grid_top[:,:,:,:,:, ind_iter] = likelihood_grid
+            likelihood_grid_int = likelihood_grid_int.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+            )
+            likelihood_grid_spec = likelihood_grid_spec.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+            )
+            like_grid_tau_top[:,:,:,:,:, ind_iter] = likelihood_grid_tau
+            like_grid_int_top[:,:,:,:,:, ind_iter] = likelihood_grid_int
+            like_grid_spec_top[:,:,:,:,:, ind_iter] = likelihood_grid_spec
+
 
             names_grid_top.append([l[2] for l in like_calc])
 
-        likelihood_grid = like_grid_top
+        likelihood_grid = (like_grid_tau_top, like_grid_int_top, like_grid_spec_top)
         names_grid = names_grid_top
 
     else:
@@ -563,10 +579,20 @@ def sample_bubbles_grid(
             )
         )
         like_calc.sort(key=lambda x: x[0])
-        likelihood_grid = np.array([l[1] for l in like_calc])
-        likelihood_grid= likelihood_grid.reshape(
+        likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
+        likelihood_grid_tau= likelihood_grid_tau.reshape(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
         )
+        likelihood_grid_int = np.array([l[1][1] for l in like_calc])
+        likelihood_grid_int = likelihood_grid_int.reshape(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+        )
+        likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+        likelihood_grid_spec = likelihood_grid_spec.reshape(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+        )
+        likelihood_grid = (likelihood_grid_tau, likelihood_grid_int, likelihood_grid_spec)
+
         names_grid = [l[2] for l in like_calc]
 
     return likelihood_grid, names_grid
@@ -838,7 +864,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
-        spec_res = spec_res * 3 #to test bias
+        spec_res = spec_res * 2 #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
@@ -907,10 +933,24 @@ if __name__ == '__main__':
         flux_limit=inputs.flux_limit,
         like_on_flux=like_on_flux,
     )
-    np.save(
-        inputs.save_dir + '/likelihoods.npy',
-        likelihoods
-    )
+    if isinstance(likelihoods, tuple):
+        np.save(
+            inputs.save_dir + '/likelihoods_tau.npy',
+            likelihoods[0]
+        )
+        np.save(
+            inputs.save_dir + '/likelihoods_int.npy',
+            likelihoods[1]
+        )
+        np.save(
+            inputs.save_dir + '/likelihoods_spec.npy',
+            likelihoods[2]
+        )
+    else:
+        np.save(
+            inputs.save_dir + '/likelihoods.npy',
+            likelihoods
+        )
     np.save(
         inputs.save_dir + '/x_gal_mock.npy',
         np.array(xd)
