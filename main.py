@@ -483,13 +483,13 @@ def sample_bubbles_grid(
     #assert False
     if multiple_iter:
         like_grid_tau_top = np.zeros(
-            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),np.shape(xs)[1], multiple_iter)
         )
         like_grid_int_top = np.zeros(
-            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),np.shape(xs)[1], multiple_iter)
         )
         like_grid_spec_top = np.zeros(
-            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),len(xs), multiple_iter)
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),np.shape(xs)[1], multiple_iter)
         )
         names_grid_top = []
         for ind_iter in range(multiple_iter):
