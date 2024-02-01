@@ -881,7 +881,7 @@ if __name__ == '__main__':
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
         bins_po = np.append(bins, bins[-1] + spec_res)
-        if flux_spectrum_mock is None:
+        if inputs.mock_direc is None or flux_spectrum_mock is None:
             if inputs.multiple_iter:
                 flux_noise_mock = np.zeros((inputs.multiple_iter,n_gal, len(bins)))
             else:
