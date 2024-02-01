@@ -857,6 +857,18 @@ if __name__ == '__main__':
                 + inputs.mock_direc
                 + '/la_e.npy'
             )[:n_gal]
+        if os.path.isfile(
+            '/home/inikolic/projects/Lyalpha_bubbles/code/'
+            + inputs.mock_direc
+            + '/flux_spectrum.npy'
+        ):
+            flux_spectrum_mock = np.load(
+                '/home/inikolic/projects/Lyalpha_bubbles/code/'
+                + inputs.mock_direc
+                + '/flux_spectrum.npy'
+            )
+        else:
+            flux_spectrum_mock = None
     #print(tau_data_I, np.shape(tau_data_I))
     #print(np.array(data), np.shape(np.array(data)))
     #assert False
@@ -869,44 +881,48 @@ if __name__ == '__main__':
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
         bins_po = np.append(bins, bins[-1] + spec_res)
-        if inputs.multiple_iter:
-            flux_noise_mock = np.zeros((inputs.multiple_iter,n_gal, len(bins)))
-        else:
-            flux_noise_mock = np.zeros((n_gal, len(bins)))
-        if not inputs.multiple_iter:
-            if not inputs.mock_direc:
-                one_J = one_J[0]
-            for index_gal in range(n_gal):
-                flux_noise_mock[index_gal,:] = [
-                    np.trapz(x=wave_em.value[wave_em_dig == i + 1],
-                             y=(la_e[index_gal] * one_J[index_gal] * np.exp(
-                                 -td[index_gal]
-                            ) * tau_CGM(Muv[index_gal]) / (
-                                            4 * np.pi * Cosmo.luminosity_distance(
-                                    7.5).to(u.cm).value ** 2) / integrate.trapz(
-                              one_J[index_gal],
-                                wave_em.value)
-                                )[wave_em_dig == i + 1]) for i in range(len(bins))
-                ]
-        else:
-            for index_iter in range(inputs.multiple_iter):
+        if flux_spectrum_mock is None:
+            if inputs.multiple_iter:
+                flux_noise_mock = np.zeros((inputs.multiple_iter,n_gal, len(bins)))
+            else:
+                flux_noise_mock = np.zeros((n_gal, len(bins)))
+            if not inputs.multiple_iter:
+                if not inputs.mock_direc:
+                    one_J = one_J[0]
+
                 for index_gal in range(n_gal):
-                    flux_noise_mock[index_iter,index_gal,:] = [
+                    flux_noise_mock[index_gal,:] = [
                         np.trapz(x=wave_em.value[wave_em_dig == i + 1],
-                                 y=(la_e[index_iter,index_gal] * one_J_arr[index_iter,index_gal,:] * np.exp(
-                                     -td[index_iter,index_gal,:]
-                                ) * tau_CGM(Muv[index_iter, index_gal]) / (
+                                 y=(la_e[index_gal] * one_J[index_gal] * np.exp(
+                                     -td[index_gal]
+                                ) * tau_CGM(Muv[index_gal]) / (
                                                 4 * np.pi * Cosmo.luminosity_distance(
                                         7.5).to(u.cm).value ** 2) / integrate.trapz(
-                                one_J_arr[index_iter,index_gal,:],
+                                  one_J[index_gal],
                                     wave_em.value)
                                     )[wave_em_dig == i + 1]) for i in range(len(bins))
                     ]
-        flux_noise_mock = flux_noise_mock + np.random.normal(
-            0,
-            2e-20,
-            np.shape(flux_noise_mock)
-        )
+            else:
+                for index_iter in range(inputs.multiple_iter):
+                    for index_gal in range(n_gal):
+                        flux_noise_mock[index_iter,index_gal,:] = [
+                            np.trapz(x=wave_em.value[wave_em_dig == i + 1],
+                                     y=(la_e[index_iter,index_gal] * one_J_arr[index_iter,index_gal,:] * np.exp(
+                                         -td[index_iter,index_gal,:]
+                                    ) * tau_CGM(Muv[index_iter, index_gal]) / (
+                                                    4 * np.pi * Cosmo.luminosity_distance(
+                                            7.5).to(u.cm).value ** 2) / integrate.trapz(
+                                    one_J_arr[index_iter,index_gal,:],
+                                        wave_em.value)
+                                        )[wave_em_dig == i + 1]) for i in range(len(bins))
+                        ]
+            flux_noise_mock = flux_noise_mock + np.random.normal(
+                0,
+                2e-20,
+                np.shape(flux_noise_mock)
+            )
+        else:
+            flux_noise_mock = flux_spectrum_mock
     #print(np.shape(xd), flush=True)
     #assert False
     if inputs.like_on_flux:
@@ -1008,7 +1024,7 @@ if __name__ == '__main__':
     )
     np.save(
         inputs.save_dir + '/one_J.npy',
-        np.array(one_J[0]),
+        np.array(one_J),
     )
     np.save(
         inputs.save_dir + '/Muvs.npy',
