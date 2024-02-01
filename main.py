@@ -337,7 +337,8 @@ def _get_likelihood(
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
             if like_on_flux is not False:
-                spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
+            #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
+                 spec_kde = gaussian_kde(spec_line[:,2:len(bins)])
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -352,18 +353,19 @@ def _get_likelihood(
                 likelihood_tau[:ind_data] += np.log(tau_kde.evaluate((tau_data[ind_data])))
 
             if like_on_flux is not False:
-                for bi in range(2,len(bins)):
+                #for bi in range(2,len(bins)):
                     #print("index bi", bi)
-                    try:
-                        if like_on_flux[ind_data,bi] < 1e-19:
-                            print("integrating likelihood", np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19)))
-                            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19))
-                        else:
-                            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi]))
-                            print("evaluating likelihood", np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
-                    except IndexError:
-                        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
-                        raise IndexError
+                #    try:
+                #        if like_on_flux[ind_data,bi] < 1e-19:
+                #            print("integrating likelihood", np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19)))
+                #            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].integrate_box(-1e-18, 1e-19))
+                #        else:
+                #            likelihood_spec[:ind_data] += np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi]))
+                #            print("evaluating likelihood", np.log(spec_kde[bi-3].evaluate(like_on_flux[ind_data,bi])), "this is flux", like_on_flux[ind_data,bi])
+                #    except IndexError:
+                #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
+                #        raise IndexError
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate(like_on_flux[ind_data]))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
