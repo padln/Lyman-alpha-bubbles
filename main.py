@@ -87,7 +87,7 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
-        spec_res = 2 * spec_res # to test the bias
+        spec_res = spec_res # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
@@ -339,7 +339,7 @@ def _get_likelihood(
             print(np.shape(spec_line[:,2:len(bins)]))
             if like_on_flux is not False:
             #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
-                 spec_kde = gaussian_kde((spec_line[:,2:len(bins)]).T)
+                 spec_kde = gaussian_kde((spec_line[:,4:len(bins)]).T)
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -366,7 +366,7 @@ def _get_likelihood(
                 #    except IndexError:
                 #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 #        raise IndexError
-                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][2:len(bins)]).reshape(len(bins)-2,1)))
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][4:len(bins)]).reshape(len(bins)-4,1)))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
@@ -879,7 +879,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
-        spec_res = spec_res * 2 #to test bias
+        spec_res = spec_res #* 2 #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
