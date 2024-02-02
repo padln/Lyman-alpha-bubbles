@@ -366,7 +366,7 @@ def _get_likelihood(
                 #    except IndexError:
                 #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 #        raise IndexError
-                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate(like_on_flux[ind_data]))
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data]).reshape(len(bins)-2,1)))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
