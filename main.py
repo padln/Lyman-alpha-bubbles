@@ -193,11 +193,22 @@ def _get_likelihood(
             r_bubs_now.append(r_bubs)
 
             if n == 0:
-                save_cl = HdF5Saver(
-                    x_gal=xg,
-                    x_first_bubble = x_outs[0],
-                    output_dir = cache_dir,
-                )
+                try:
+                    save_cl = HdF5Saver(
+                        x_gal=xg,
+                        x_first_bubble = x_outs[0],
+                        output_dir = cache_dir,
+                    )
+                except IndexError:
+                    save_cl = HdF5Saver(
+                        x_gal=xg,
+                        x_first_bubble=x_outs,
+                        output_dir=cache_dir,
+                    )
+                    print(
+                        "Beware, something weird happened with outside bubble",
+                        x_outs, y_outs, z_outs
+                    )
                 save_cl.save_attrs(dict_gal)
 
             tau_now_i = calculate_taus_i(
