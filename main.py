@@ -966,7 +966,7 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=inputs.n_iter_bu,
+        n_iter_bub=inputs.n_iter_bub,
         n_grid=5,
         redshift=inputs.redshift,
         muv=Muv,
