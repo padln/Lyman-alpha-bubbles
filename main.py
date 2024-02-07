@@ -20,7 +20,7 @@ from venv.save import HdF5Saver
 from venv.helpers import z_at_proper_distance
 
 
-wave_em = np.linspace(1213, 1221., 100) * u.Angstrom
+wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
 
 
@@ -44,7 +44,9 @@ def _get_likelihood(
         la_e=None,
         flux_limit=1e-18,
         like_on_flux=False,
-        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/'
+        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        resolution_worsening=1,
+        n_inside_tau=50,
 ):
     """
 
@@ -87,12 +89,17 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
-        spec_res = spec_res *2 # to test the bias
+        spec_res = spec_res * resolution_worsening # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
         bins_po = np.append(bins, bins[-1] + spec_res)
 
+    for bin_ind,bin_el in enumerate(bins):
+        if bin_el / (1+redshift) > wave_Lya.value:
+            bin_min = bin_ind
+            break
+    print("This is the minimum bin element", bin_ind, bin_el)
     likelihood_spec = np.zeros((len(xs)))
     likelihood_int = np.zeros((len(xs)))
     likelihood_tau = np.zeros((len(xs)))
@@ -131,6 +138,8 @@ def _get_likelihood(
             'y_bubble_position': yb,
             'z_bubble_position': zb,
             'R_main_bubble': rb,
+            'n_iter_bub': n_iter_bub,
+            'n_inside_tau': n_inside_tau,
         }
 
         taus_now = []
@@ -141,12 +150,12 @@ def _get_likelihood(
         r_bubs_now = []
         xHs_now = []
         j_s_now = []
-        lae_now = np.zeros((n_iter_bub * 10))
-        flux_now = np.zeros((n_iter_bub* 10))
+        lae_now = np.zeros((n_iter_bub * n_inside_tau))
+        flux_now = np.zeros((n_iter_bub* n_inside_tau))
         if like_on_flux is not False:
-            spectrum_now = np.zeros((n_iter_bub*10, len(bins)))
+            spectrum_now = np.zeros((n_iter_bub*n_inside_tau, len(bins)))
 
-        tau_now_full = np.zeros((n_iter_bub*10, len(wave_em)))
+        tau_now_full = np.zeros((n_iter_bub*n_inside_tau, len(wave_em)))
 
         red_s = z_at_proper_distance(
             - zg / (1 + redshift) * u.Mpc, redshift
@@ -176,7 +185,7 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(muv=muvi, n_iter=10, include_muv_unc=include_muv_unc)
+            j_s = get_js(muv=muvi, n_iter=n_inside_tau, include_muv_unc=include_muv_unc)
             if xH_unc:
                 x_H = get_xH(redshift)  # using the central redshift.
             else:
@@ -218,10 +227,10 @@ def _get_likelihood(
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=10,
+                n_iter=n_inside_tau,
                 dist=dist,
             )
-            tau_now_full[n*10:(n+1)*10, :] = tau_now_i
+            tau_now_full[n*n_inside_tau:(n+1)*n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
             tau_cgm_gal = tau_CGM(muvi)
             res = np.trapz(
@@ -246,11 +255,11 @@ def _get_likelihood(
             lae_now_i = np.array(
                 [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
             )
-            lae_now[n*10:(n+1)*10] = lae_now_i
+            lae_now[n*n_inside_tau:(n+1)*n_inside_tau] = lae_now_i
             flux_now_i = lae_now_i * np.array(
                 taus_now
-            ).flatten()[n*10:(n+1)*10] * com_factor[index_gal]
-            flux_now[n*10:(n+1)*10] = flux_now_i
+            ).flatten()[n*n_inside_tau:(n+1)*n_inside_tau] * com_factor[index_gal]
+            flux_now[n*n_inside_tau:(n+1)*n_inside_tau] = flux_now_i
 
             #t0 = time.time()
             #print(np.shape(lae_now[49] * j_s[0][49] *np.exp(-tau_now_i[49])* tau_CGM(muvi)), len(taus_now),flush=True)
@@ -281,7 +290,7 @@ def _get_likelihood(
             #t3 = time.time()
             #print(t3-t2, spectrum_now_new.T, spectrum_now, flush=True)
             #assert False
-            j_s_now.extend(j_s[0][:10])
+            j_s_now.extend(j_s[0][:n_inside_tau])
             #spectrun_now_i = spectrum_now_i.T
             spectrum_now_i += np.random.normal(
                 0,
@@ -291,7 +300,7 @@ def _get_likelihood(
             #let's investigate properties of this calculation
     #        print(spectrum_now, np.mean(spectrum_now, axis=0), np.mean(spectrum_now,axis=1), np.shape(spectrum_now), np.max(spectrum_now), flush =True)
     #        assert False
-            spectrum_now[n*10:(n+1)*10, :] = spectrum_now_i.T
+            spectrum_now[n*n_inside_tau:(n+1)*n_inside_tau, :] = spectrum_now_i.T
 
         max_len = np.max([len(a) for a in x_bubs_now])
         x_bubs_arr = np.zeros((len(x_bubs_now), max_len))
@@ -347,10 +356,10 @@ def _get_likelihood(
         ):
             tau_kde = gaussian_kde((np.array(tau_line)))
             flux_kde = gaussian_kde((np.array(flux_line)))
-            print(np.shape(spec_line[:,2:len(bins)]))
+            print(np.shape(spec_line[:,bin_min:len(bins)]))
             if like_on_flux is not False:
             #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
-                 spec_kde = gaussian_kde((spec_line[:,2:len(bins)]).T)
+                 spec_kde = gaussian_kde((spec_line[:,bin_min:len(bins)]).T)
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -377,7 +386,7 @@ def _get_likelihood(
                 #    except IndexError:
                 #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 #        raise IndexError
-                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][2:len(bins)]).reshape(len(bins)-2,1)))
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][bin_min:len(bins)]).reshape(len(bins)-bin_min,1)))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
@@ -431,6 +440,8 @@ def sample_bubbles_grid(
         multiple_iter=False,
         flux_limit=1e-18,
         like_on_flux=False,
+        resolution_worsening=1,
+        n_inside_tau=50,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -534,6 +545,8 @@ def sample_bubbles_grid(
                     la_e=la_e[ind_iter],
                     flux_limit=flux_limit,
                     like_on_flux=like_on_flux_i,
+                    resolution_worsening=resolution_worsening,
+                    n_inside_tau=n_inside_tau,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -643,6 +656,8 @@ if __name__ == '__main__':
 
     parser.add_argument("--like_on_flux", type=bool, default=False)
 
+    parser.add_argument("--resolution_worsening", type=float, default=1)
+    parser.add_argument("--n_inside_tau", type=float, default=50)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -890,7 +905,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
-        spec_res = spec_res * 2 #to test bias
+        spec_res = spec_res * inputs.resolution_worsening  #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
@@ -962,6 +977,8 @@ if __name__ == '__main__':
         multiple_iter=inputs.multiple_iter,
         flux_limit=inputs.flux_limit,
         like_on_flux=like_on_flux,
+        resolution_worsening = inputs.resolution_worsening,
+        n_inside_tau = inputs.n_inside_tau,
     )
     if isinstance(likelihoods, tuple):
         np.save(

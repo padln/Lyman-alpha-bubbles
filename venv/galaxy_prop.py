@@ -23,7 +23,7 @@ from venv.data.EndSta import get_ENDSTA_gals
 
 from venv.chmf import chmf as chmf_func
 
-wave_em = np.linspace(1213, 1221., 100) * u.Angstrom
+wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 dir_all = '/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/'
 
 def delta_v_func(
@@ -73,7 +73,7 @@ def get_js(
     """
     n_wav = 100
 
-    wave_em = np.linspace(1213, 1221., n_wav) * u.Angstrom
+    wave_em = np.linspace(1214, 1225., n_wav) * u.Angstrom
     wv_off = wave_to_dv(wave_em)
     #figure out how many iterations
 

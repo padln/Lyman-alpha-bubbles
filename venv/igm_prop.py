@@ -13,7 +13,7 @@ from astropy import constants as const
 
 from venv.helpers import optical_depth, I, z_at_proper_distance
 
-wave_em = np.linspace(1213, 1221., 100) * u.Angstrom
+wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
 freq_Lya = (const.c / wave_Lya).to(u.Hz)
 r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
@@ -563,7 +563,7 @@ def calculate_taus_i(
         x_random = np.random.uniform(-10, 10, size=n_iter)
         y_random = np.random.uniform(-10, 10, size=n_iter)
     taus = np.zeros((n_iter, len(wave_em)))
-    z = wave_em.value / 1216 * (1 + z_source) - 1
+    z = wave_em.value / 1215.67 * (1 + z_source) - 1
     one_over_onepz = 1/(1+z)
     one_over_onesource = 1/(1+z_source)
 
