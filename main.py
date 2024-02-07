@@ -230,6 +230,7 @@ def _get_likelihood(
                 n_iter=n_inside_tau,
                 dist=dist,
             )
+            tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n*n_inside_tau:(n+1)*n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
             tau_cgm_gal = tau_CGM(muvi)

@@ -237,6 +237,7 @@ def get_mock_data(
             y_pos = ys[i],
             dist = dist
         )
+        tau = np.nan_to_num(tau, np.inf)
         tau_data[i, :] = tau
     #print(x_b,y_b,z_b,r_bubs)
     #assert 1==0
