@@ -87,7 +87,7 @@ def _get_likelihood(
 
     if like_on_flux is not False:
         spec_res = wave_Lya.value * (1 + redshift) / 2700
-        spec_res = spec_res # to test the bias
+        spec_res = spec_res *2 # to test the bias
         bins = np.arange(wave_em.value[0] * (1 + redshift),
                          wave_em.value[-1] * (1 + redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
@@ -141,12 +141,12 @@ def _get_likelihood(
         r_bubs_now = []
         xHs_now = []
         j_s_now = []
-        lae_now = np.zeros((n_iter_bub * 50))
-        flux_now = np.zeros((n_iter_bub* 50))
+        lae_now = np.zeros((n_iter_bub * 10))
+        flux_now = np.zeros((n_iter_bub* 10))
         if like_on_flux is not False:
-            spectrum_now = np.zeros((n_iter_bub*50, len(bins)))
+            spectrum_now = np.zeros((n_iter_bub*10, len(bins)))
 
-        tau_now_full = np.zeros((n_iter_bub*50, len(wave_em)))
+        tau_now_full = np.zeros((n_iter_bub*10, len(wave_em)))
 
         red_s = z_at_proper_distance(
             - zg / (1 + redshift) * u.Mpc, redshift
@@ -176,7 +176,7 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(muv=muvi, n_iter=50, include_muv_unc=include_muv_unc)
+            j_s = get_js(muv=muvi, n_iter=10, include_muv_unc=include_muv_unc)
             if xH_unc:
                 x_H = get_xH(redshift)  # using the central redshift.
             else:
@@ -207,10 +207,10 @@ def _get_likelihood(
                 r_bubs,
                 red_s,
                 z_end_bub,
-                n_iter=50,
+                n_iter=10,
                 dist=dist,
             )
-            tau_now_full[n*50:(n+1)*50, :] = tau_now_i
+            tau_now_full[n*10:(n+1)*10, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
             tau_cgm_gal = tau_CGM(muvi)
             res = np.trapz(
@@ -235,11 +235,11 @@ def _get_likelihood(
             lae_now_i = np.array(
                 [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
             )
-            lae_now[n*50:(n+1)*50] = lae_now_i
+            lae_now[n*10:(n+1)*10] = lae_now_i
             flux_now_i = lae_now_i * np.array(
                 taus_now
-            ).flatten()[n*50:(n+1)*50] * com_factor[index_gal]
-            flux_now[n*50:(n+1)*50] = flux_now_i
+            ).flatten()[n*10:(n+1)*10] * com_factor[index_gal]
+            flux_now[n*10:(n+1)*10] = flux_now_i
 
             #t0 = time.time()
             #print(np.shape(lae_now[49] * j_s[0][49] *np.exp(-tau_now_i[49])* tau_CGM(muvi)), len(taus_now),flush=True)
@@ -270,7 +270,7 @@ def _get_likelihood(
             #t3 = time.time()
             #print(t3-t2, spectrum_now_new.T, spectrum_now, flush=True)
             #assert False
-            j_s_now.extend(j_s[0][:50])
+            j_s_now.extend(j_s[0][:10])
             #spectrun_now_i = spectrum_now_i.T
             spectrum_now_i += np.random.normal(
                 0,
@@ -280,7 +280,7 @@ def _get_likelihood(
             #let's investigate properties of this calculation
     #        print(spectrum_now, np.mean(spectrum_now, axis=0), np.mean(spectrum_now,axis=1), np.shape(spectrum_now), np.max(spectrum_now), flush =True)
     #        assert False
-            spectrum_now[n*50:(n+1)*50, :] = spectrum_now_i.T
+            spectrum_now[n*10:(n+1)*10, :] = spectrum_now_i.T
 
         max_len = np.max([len(a) for a in x_bubs_now])
         x_bubs_arr = np.zeros((len(x_bubs_now), max_len))
@@ -339,7 +339,7 @@ def _get_likelihood(
             print(np.shape(spec_line[:,2:len(bins)]))
             if like_on_flux is not False:
             #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
-                 spec_kde = gaussian_kde((spec_line[:,4:len(bins)]).T)
+                 spec_kde = gaussian_kde((spec_line[:,2:len(bins)]).T)
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -366,7 +366,7 @@ def _get_likelihood(
                 #    except IndexError:
                 #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 #        raise IndexError
-                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][4:len(bins)]).reshape(len(bins)-4,1)))
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][2:len(bins)]).reshape(len(bins)-2,1)))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
@@ -879,7 +879,7 @@ if __name__ == '__main__':
     if inputs.like_on_flux:
         #calculate mock flux
         spec_res = wave_Lya.value * (1 + inputs.redshift) / 2700
-        spec_res = spec_res #* 2 #to test bias
+        spec_res = spec_res * 2 #to test bias
         bins = np.arange(wave_em.value[0] * (1 + inputs.redshift),
                          wave_em.value[-1] * (1 + inputs.redshift), spec_res)
         wave_em_dig = np.digitize(wave_em.value * (1 + inputs.redshift), bins)
@@ -939,7 +939,7 @@ if __name__ == '__main__':
         xs=xd,
         ys=yd,
         zs=zd,
-        n_iter_bub=50,
+        n_iter_bub=500,
         n_grid=5,
         redshift=inputs.redshift,
         muv=Muv,
