@@ -97,7 +97,7 @@ def _get_likelihood(
 
     for bin_ind,bin_el in enumerate(bins):
         if bin_el / (1+redshift) > wave_Lya.value:
-            bin_min = bin_ind
+            bin_min = bin_ind - 1
             break
     print("This is the minimum bin element", bin_ind, bin_el)
     likelihood_spec = np.zeros((len(xs)))
@@ -602,6 +602,8 @@ def sample_bubbles_grid(
                 la_e=la_e,
                 flux_limit=flux_limit,
                 like_on_flux=like_on_flux,
+                resolution_worsening=resolution_worsening,
+                n_inside_tau=n_inside_tau,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
