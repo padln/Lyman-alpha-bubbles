@@ -660,8 +660,8 @@ if __name__ == '__main__':
     parser.add_argument("--like_on_flux", type=bool, default=False)
 
     parser.add_argument("--resolution_worsening", type=float, default=1)
-    parser.add_argument("--n_inside_tau", type=float, default=50)
-    parser.add_argument("--n_iter_bub", type=float, default=50)
+    parser.add_argument("--n_inside_tau", type=int, default=50)
+    parser.add_argument("--n_iter_bub", type=int, default=50)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
