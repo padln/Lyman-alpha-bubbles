@@ -360,7 +360,9 @@ def _get_likelihood(
             print(np.shape(spec_line[:,bin_min:len(bins)]))
             if like_on_flux is not False:
             #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
-                 spec_kde = gaussian_kde((spec_line[:,bin_min:len(bins)]).T)
+            #News
+                 data_to_get = np.log10(5e-19 + (spec_line[:,bin_min:len(bins)]).T)
+                 spec_kde = gaussian_kde(data_to_get)
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
@@ -387,7 +389,7 @@ def _get_likelihood(
                 #    except IndexError:
                 #        print("Some problems", like_on_flux, np.shape(like_on_flux), ind_data, bi)
                 #        raise IndexError
-                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate((like_on_flux[ind_data][bin_min:len(bins)]).reshape(len(bins)-bin_min,1)))
+                likelihood_spec[:ind_data] += np.log(spec_kde.evaluate(np.log10((5e-19 + like_on_flux[ind_data][bin_min:len(bins)])).reshape(len(bins)-bin_min,1)))
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
