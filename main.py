@@ -787,6 +787,7 @@ if __name__ == '__main__':
                 ENDSTA_data=inputs.obs_pos,
                 diff_pos_prob=inputs.diff_pos_prob,
             )
+            print("Here are the input parameters", inputs)
             tau_data_I = []
             one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
             for i in range(len(td)):
