@@ -361,8 +361,8 @@ def _get_likelihood(
             if like_on_flux is not False:
             #    spec_kde = [gaussian_kde((np.array(spec_line)[:,i_b])) for i_b in range(2,len(bins))]
             #News
-                 data_to_get = np.log10(np.abs(spec_line[:,bin_min:len(bins)]).T, bw_method=0.2)
-                 spec_kde = gaussian_kde(data_to_get)
+                 data_to_get = np.log10(np.abs(spec_line[:,bin_min:len(bins)]).T)
+                 spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
             if la_e is not None:
                 flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
