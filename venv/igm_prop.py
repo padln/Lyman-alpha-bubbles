@@ -172,8 +172,8 @@ def get_bubbles(
     bubble_rs = []
     v_tot = 0.0
     r_min = np.log10(1.0)
-    r_max = 60.0
-    log_r_max = np.log10(60.0)
+    r_max = 40.0
+    log_r_max = np.log10(40.0)
     if use_tl_result:
         # r_hist, p_log_r_norm = get_tl_data(
         #     xhi=xh
@@ -184,7 +184,7 @@ def get_bubbles(
                 rs,
                 r_hist=None,
                 p_log_r_norm=None,  # better way to do this tomorrow
-                redshift_fit=True,
+                redshift_fit=False,
                 xH=xh,
             ) / rs,
             rs
