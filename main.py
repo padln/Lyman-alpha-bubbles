@@ -801,6 +801,9 @@ if __name__ == '__main__':
                         ),
                         wave_em.value)
                 )
+            print("Let me stop you right there")
+            print("tau data", tau_data_I, np.min(tau_data_I), np.max(tau_data_I))
+            assert False
         if inputs.use_EW:
             ew_factor, la_e = p_EW(Muv.flatten(), beta.flatten(), return_lum=True)
             #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
