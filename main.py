@@ -194,7 +194,7 @@ def _get_likelihood(
             xHs_now.append(x_H)
             x_outs, y_outs, z_outs, r_bubs = get_bubbles(
                 x_H,
-                300
+                200
             )
             x_bubs_now.append(x_outs)
             y_bubs_now.append(y_outs)
