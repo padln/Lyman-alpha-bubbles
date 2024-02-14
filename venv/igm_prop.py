@@ -213,9 +213,9 @@ def get_bubbles(
         random_x = np.random.uniform(-r_max, r_max)
         random_y = np.random.uniform(-r_max, r_max)
         random_z = np.random.uniform(0, z_v)
-        if bubble_now**2 > random_x**2 + random_y**2:
-            if mock and random_z - (bubble_now**2 - random_x**2-random_y**2) < 5:
-                continue
+        if mock and (bubble_now+10.0)**2 > random_x**2 + random_y**2 + random_z**2:
+                continue #for the mock we don't want small bubbles to intersect
+                        # the big one.
 
         v = 4. * np.pi / 3. * bubble_now ** 3
         v_ded = 0.0
