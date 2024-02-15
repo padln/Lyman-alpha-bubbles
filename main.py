@@ -180,7 +180,7 @@ def _get_likelihood(
             #     Cosmo.comoving_distance(red_s) - dist * u.Mpc,
             #     ztol=0.00005
             # )
-            z_end_bub = z_at_proper_distance( dist / (1+ redshift) * u.Mpc, redshift)
+            z_end_bub = z_at_proper_distance( dist / (1+ redshift) * u.Mpc, red_s)
         else:
             z_end_bub = red_s
             dist = 0
