@@ -189,7 +189,11 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(muv=muvi, n_iter=n_inside_tau, include_muv_unc=include_muv_unc)
+            j_s = get_js(
+                muv=muvi,
+                n_iter=n_inside_tau,
+                include_muv_unc=include_muv_unc
+            )
             if xH_unc:
                 x_H = get_xH(redshift)  # using the central redshift.
             else:
@@ -241,10 +245,9 @@ def _get_likelihood(
             res = np.trapz(
                 eit_l * tau_cgm_gal * j_s[0] / integrate.trapz(
                     j_s[0],
-                    wave_em.value, axis=1),
+                    wave_em.value, axis=1)[:, np.newaixs],
                 wave_em.value
             )
-            #EW_data = calculate_EW_factor(muvi, beti) * np.array(tau_data_I)
 
             if np.all(np.array(res) < 10000):
                 if use_EW:
