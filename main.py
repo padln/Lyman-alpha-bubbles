@@ -370,7 +370,7 @@ def _get_likelihood(
                             np.log10(
                                 (1e18*(
                                         5e-19 + like_on_flux[ind_data][bin_i-1,:bin_i])
-                                 ).reshape(len(bin_i), 1)
+                                 ).reshape(bin_i, 1)
                             )
                         )
                     )
