@@ -241,11 +241,11 @@ def _get_likelihood(
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n*n_inside_tau:(n+1)*n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
-            tau_cgm_gal = tau_CGM(muvi)
+            tau_cgm_gal_in = tau_CGM(muvi)
             res = np.trapz(
-                eit_l * tau_cgm_gal * j_s[0] / integrate.trapz(
+                eit_l * tau_cgm_gal_in * j_s[0] / integrate.trapz(
                     j_s[0],
-                    wave_em.value, axis=1)[:, np.newaixs],
+                    wave_em.value, axis=1)[:, np.newaxis],
                 wave_em.value
             )
 
@@ -280,7 +280,6 @@ def _get_likelihood(
                                     )[:,wav_dig_i == i_bin + 1], axis=1) for i_bin in range(bin_i)
                     ]
                 )
-            #spectrun_now_i = spectrum_now_i.T
                 spectrum_now_i += np.random.normal(
                     0,
                     2e-20,
