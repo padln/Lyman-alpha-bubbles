@@ -365,7 +365,7 @@ def _get_likelihood(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, :bin_i]).T
                     )
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
-                    likelihood_spec[:ind_data, bin_i] += np.log(
+                    likelihood_spec[:ind_data, bin_i-1] += np.log(
                         spec_kde.evaluate(
                             np.log10(
                                 (1e18*(
