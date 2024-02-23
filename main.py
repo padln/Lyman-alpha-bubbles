@@ -363,7 +363,7 @@ def _get_likelihood(
                     tau_kde.evaluate((tau_data[ind_data]))
                 )
             if like_on_flux is not False:
-                if flux_tau < flux_limit:
+                if flux_int[data] < flux_limit:
                     print("Blah")
                 else:
                     for bin_i in range(2,bins_tot):
@@ -381,7 +381,7 @@ def _get_likelihood(
                             )
                         )
 
-            if flux_tau < flux_limit:
+            if flux_int[ind_data] < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
 
                 #likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.1,np.log10(1e19*(3e-19 + flux_limit))))
