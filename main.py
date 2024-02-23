@@ -42,6 +42,7 @@ def _get_likelihood(
         use_EW=False,
         xH_unc=False,
         la_e=None,
+        flux_int=None,
         flux_limit=1e-18,
         like_on_flux=False,
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
@@ -267,6 +268,7 @@ def _get_likelihood(
             flux_now_i = lae_now_i * np.array(
                 taus_now
             ).flatten()[n*n_inside_tau:(n+1)*n_inside_tau] * com_factor[index_gal]
+            flux_now_i += np.random.normal(0,5e-20,np.shape(flux_now_i))
             flux_now[n*n_inside_tau:(n+1)*n_inside_tau] = flux_now_i
 
 
@@ -343,16 +345,17 @@ def _get_likelihood(
                 zip(np.array(flux_tot_b),np.array(taus_tot_b),np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)))
-            flux_kde = gaussian_kde((np.array(flux_line)))
 
-            if la_e is not None:
-                flux_tau = flux_mock[ind_data] * tau_data[ind_data]
+            flux_kde = gaussian_kde(np.log10(1e19*(3e-19 + (np.array(flux_line)))))
+
+            # if la_e is not None:
+            #     flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
             #print(len(list(range(6,len(bins)))), flush=True)
             #like_on_flux = np.array(like_on_flux)
             print(np.shape(like_on_flux), flush=True)
             print(ind_data,"index_data", flush=True)
-            if flux_tau < flux_limit:
+            if flux_int[ind_data] < flux_limit:
                 pass
                 #likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
             else:
@@ -360,28 +363,32 @@ def _get_likelihood(
                     tau_kde.evaluate((tau_data[ind_data]))
                 )
             if like_on_flux is not False:
-                for bin_i in range(2,bins_tot):
-                    data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, :bin_i]).T
-                    )
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
-                    likelihood_spec[:ind_data, bin_i-1] += np.log(
-                        spec_kde.evaluate(
-                            np.log10(
-                                (1e18*(
-                                        5e-19 + like_on_flux[ind_data][bin_i-1,:bin_i])
-                                 ).reshape(bin_i, 1)
+                if flux_tau < flux_limit:
+                    print("Blah")
+                else:
+                    for bin_i in range(2,bins_tot):
+                        data_to_get = np.log10(
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, :bin_i]).T
+                        )
+                        spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+                        likelihood_spec[:ind_data, bin_i-1] += np.log(
+                            spec_kde.evaluate(
+                                np.log10(
+                                    (1e18*(
+                                            5e-19 + like_on_flux[ind_data][bin_i-1,:bin_i])
+                                    ).reshape(bin_i, 1)
+                                )
                             )
                         )
-                    )
 
             if flux_tau < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_tau)
-                likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0, flux_limit))
+
+                #likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.1,np.log10(1e19*(3e-19 + flux_limit))))
                 print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
             else:
                 print("all good", flux_tau)
-                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(flux_tau))
+                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(0.1,np.log10(1e19*(3e-19 + flux_tau))))
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -401,11 +408,12 @@ def _get_likelihood(
         print(taus_tot_b, flush=True)
         raise TypeError
     if hasattr(likelihood_tau[0], '__len__'):
-        return ndex, (
-            np.array([np.product(li) for li in likelihood_tau]),
-            np.array([np.product(li) for li in likelihood_int]),
-            np.array([np.product(li) for li in likelihood_spec])
-        ), names_used
+        ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
+        # return ndex, (
+        #     np.array([np.product(li) for li in likelihood_tau]),
+        #     np.array([np.product(li) for li in likelihood_int]),
+        #     np.array([np.product(li) for li in likelihood_spec])
+        # ), names_used
     else:
         return ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
 
@@ -424,6 +432,7 @@ def sample_bubbles_grid(
         use_EW=False,
         xH_unc=False,
         la_e=None,
+        flux_int=None,
         multiple_iter=False,
         flux_limit=1e-18,
         like_on_flux=False,
@@ -533,6 +542,7 @@ def sample_bubbles_grid(
                     use_EW=use_EW,
                     xH_unc=xH_unc,
                     la_e=la_e[ind_iter],
+                    flux_int=flux_int[ind_iter],
                     flux_limit=flux_limit,
                     like_on_flux=like_on_flux_i,
                     resolution_worsening=resolution_worsening,
@@ -596,6 +606,7 @@ def sample_bubbles_grid(
                 use_EW=use_EW,
                 xH_unc=xH_unc,
                 la_e=la_e,
+                flux_int=flux_int,
                 flux_limit=flux_limit,
                 like_on_flux=like_on_flux,
                 resolution_worsening=resolution_worsening,
@@ -993,6 +1004,15 @@ if __name__ == '__main__':
         like_on_flux = flux_noise_mock
     else:
         like_on_flux = False
+
+    #from now flux is calculated here in the integrated version, and it contains noise
+    flux_mock = la_e / (
+            4 * np.pi * Cosmo.luminosity_distance(
+        7.5).to(u.cm).value ** 2
+    )
+    flux_tau = flux_mock * tau_data_I
+    flux_tau += np.random.normal(0,5e-20,np.shape(flux_tau))
+
     #print("Finishing setting up mocks", like_on_flux)
     #assert False
     likelihoods, names_used = sample_bubbles_grid(
@@ -1009,6 +1029,7 @@ if __name__ == '__main__':
         beta_data=beta,
         xH_unc=inputs.xH_unc,
         la_e=la_e,
+        flux_int=flux_int,
         multiple_iter=inputs.multiple_iter,
         flux_limit=inputs.flux_limit,
         like_on_flux=like_on_flux,
