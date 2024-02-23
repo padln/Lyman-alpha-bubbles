@@ -1029,7 +1029,7 @@ if __name__ == '__main__':
         beta_data=beta,
         xH_unc=inputs.xH_unc,
         la_e=la_e,
-        flux_int=flux_int,
+        flux_int=flux_tau,
         multiple_iter=inputs.multiple_iter,
         flux_limit=inputs.flux_limit,
         like_on_flux=like_on_flux,
