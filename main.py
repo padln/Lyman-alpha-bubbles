@@ -711,6 +711,7 @@ if __name__ == '__main__':
     parser.add_argument("--high_prob_emit", type=bool, default=False)
     parser.add_argument("--cache", type=bool, default=True)
     parser.add_argument("--fwhm_true", type=bool, default=False)
+    parser.add_argument("--n_grid", type=int, default=5)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1061,7 +1062,7 @@ if __name__ == '__main__':
         ys=yd,
         zs=zd,
         n_iter_bub=inputs.n_iter_bub,
-        n_grid=5,
+        n_grid=inputs.n_grid,
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
