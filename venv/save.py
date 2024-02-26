@@ -10,6 +10,8 @@ class HdF5Saver:
         self.x_first_bubble = x_first_bubble
         self.output_dir = output_dir
         self.create = False
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
         self.create_file()
 
     def create_file(self):

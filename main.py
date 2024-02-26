@@ -8,7 +8,7 @@ from scipy.stats import gaussian_kde
 from astropy.cosmology import z_at_value
 from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
-import time
+import time, datetime
 import itertools
 from joblib import Parallel, delayed
 
@@ -50,6 +50,7 @@ def _get_likelihood(
         n_inside_tau=50,
         bins_tot = 20,
         high_prob_emit=False,
+        cache=True,
 ):
     """
 
@@ -89,7 +90,10 @@ def _get_likelihood(
 
     Note: to be used only in the sampler
     """
-
+    if cache:
+        dir_name = 'dir_' + str(
+            datetime.datetime.now().date()
+        ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
     if like_on_flux is not False:
         bins_arr = [
             np.linspace(
@@ -119,7 +123,7 @@ def _get_likelihood(
     if la_e is not None:
         flux_mock = np.zeros(len(xs))
 
-    # For these parameters let's iterate over galaxies
+    # For these parameters, let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
     reds_of_galaxies = np.zeros(len(xs))
@@ -132,21 +136,22 @@ def _get_likelihood(
 
         #defining a dictionary that's going to contain all information about
         #this run for the caching process
-        dict_gal = {
-            'redshift': redshift,
-            'x_galaxy_position': xg,
-            'y_galaxy_position': yg,
-            'z_galaxy_position': zg,
-            'Muv': muvi,
-            'beta': beti,
-            'Lyman_alpha_lum_galaxy': li,
-            'x_bubble_position': xb,
-            'y_bubble_position': yb,
-            'z_bubble_position': zb,
-            'R_main_bubble': rb,
-            'n_iter_bub': n_iter_bub,
-            'n_inside_tau': n_inside_tau,
-        }
+        if cache:
+            dict_gal = {
+                'redshift': redshift,
+                'x_galaxy_position': xg,
+                'y_galaxy_position': yg,
+                'z_galaxy_position': zg,
+                'Muv': muvi,
+                'beta': beti,
+                'Lyman_alpha_lum_galaxy': li,
+                'x_bubble_position': xb,
+                'y_bubble_position': yb,
+                'z_bubble_position': zb,
+                'R_main_bubble': rb,
+                'n_iter_bub': n_iter_bub,
+                'n_inside_tau': n_inside_tau,
+            }
 
         taus_now = []
         flux_now = []
@@ -211,12 +216,12 @@ def _get_likelihood(
             z_bubs_now.append(z_outs)
             r_bubs_now.append(r_bubs)
 
-            if n == 0:
+            if n == 0 and cache:
                 try:
                     save_cl = HdF5Saver(
                         x_gal=xg,
                         x_first_bubble = x_outs[0],
-                        output_dir = cache_dir,
+                        output_dir = cache_dir + '/' + dir_name,
                     )
                 except IndexError:
                     save_cl = HdF5Saver(
@@ -293,35 +298,35 @@ def _get_likelihood(
     #        assert False
                 spectrum_now[n*n_inside_tau:(n+1)*n_inside_tau, bin_i-1, :bin_i] = spectrum_now_i.T
 
-        max_len = np.max([len(a) for a in x_bubs_now])
-        x_bubs_arr = np.zeros((len(x_bubs_now), max_len))
-        y_bubs_arr = np.zeros((len(x_bubs_now), max_len))
-        z_bubs_arr = np.zeros((len(x_bubs_now), max_len))
-        r_bubs_arr = np.zeros((len(x_bubs_now), max_len))
-        for i_bub,(xar,yar,zar,rar) in enumerate(
-                zip(x_bubs_now, y_bubs_now, z_bubs_now, r_bubs_now)
-        ):
-            x_bubs_arr[i_bub, :len(xar)] = xar
-            y_bubs_arr[i_bub, :len(xar)] = yar
-            z_bubs_arr[i_bub, :len(xar)] = zar
-            r_bubs_arr[i_bub, :len(xar)] = rar
+        if cache:
+            max_len = np.max([len(a) for a in x_bubs_now])
+            x_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+            y_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+            z_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+            r_bubs_arr = np.zeros((len(x_bubs_now), max_len))
+            for i_bub,(xar,yar,zar,rar) in enumerate(
+                    zip(x_bubs_now, y_bubs_now, z_bubs_now, r_bubs_now)
+            ):
+                x_bubs_arr[i_bub, :len(xar)] = xar
+                y_bubs_arr[i_bub, :len(xar)] = yar
+                z_bubs_arr[i_bub, :len(xar)] = zar
+                r_bubs_arr[i_bub, :len(xar)] = rar
+            dict_dat = {
+                'one_Js': np.array(j_s_now),
+                'xHs': np.array(xHs_now),
+                'x_bubs_arr': x_bubs_arr,
+                'y_bubs_arr': y_bubs_arr,
+                'z_bubs_arr': z_bubs_arr,
+                'r_bubs_arr': r_bubs_arr,
+                'tau_full': tau_now_full,
+                'flux_integ': flux_now,
+                'Lyman_alpha_iter': lae_now,
+                'mock_spectra': spectrum_now,
+            }
+            save_cl.save_datasets(dict_dat)
 
-        dict_dat = {
-            'one_Js': np.array(j_s_now),
-            'xHs': np.array(xHs_now),
-            'x_bubs_arr': x_bubs_arr,
-            'y_bubs_arr': y_bubs_arr,
-            'z_bubs_arr': z_bubs_arr,
-            'r_bubs_arr': r_bubs_arr,
-            'tau_full': tau_now_full,
-            'flux_integ': flux_now,
-            'Lyman_alpha_iter': lae_now,
-            'mock_spectra': spectrum_now,
-        }
-        save_cl.save_datasets(dict_dat)
-
-        names_used.append(save_cl.fname)
-        save_cl.close_file()
+            names_used.append(save_cl.fname)
+            save_cl.close_file()
 
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
@@ -410,6 +415,10 @@ def _get_likelihood(
         print(tau_data, flush=True)
         print(taus_tot_b, flush=True)
         raise TypeError
+
+    if not cache:
+        names_used = None
+
     if hasattr(likelihood_tau[0], '__len__'):
         ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
         # return ndex, (
@@ -443,6 +452,7 @@ def sample_bubbles_grid(
         n_inside_tau=50,
         bins_tot=20,
         high_prob_emit=False,
+        cache=True,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -553,6 +563,7 @@ def sample_bubbles_grid(
                     n_inside_tau=n_inside_tau,
                     bins_tot=bins_tot,
                     high_prob_emit=high_prob_emit,
+                    cache=True,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -618,6 +629,7 @@ def sample_bubbles_grid(
                 n_inside_tau=n_inside_tau,
                 bins_tot=bins_tot,
                 high_prob_emit=high_prob_emit,
+                cache=True,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -689,6 +701,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", type=bool, default=False)
+    parser.add_argument("--cache", type=bool, default=True)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1048,6 +1061,7 @@ if __name__ == '__main__':
         resolution_worsening = inputs.resolution_worsening,
         n_inside_tau = inputs.n_inside_tau,
         high_prob_emit=inputs.high_prob_emit,
+        cache=inputs.cache,
     )
     if isinstance(likelihoods, tuple):
         np.save(
@@ -1163,11 +1177,11 @@ if __name__ == '__main__':
             inputs.save_dir + '/flux_spectrum.npy',
             np.array(like_on_flux)
         )
-
-    with open(inputs.save_dir + '/names_done.txt', 'w') as f:
-        for line in names_used:
-            if len(line[0]) > 1:
-                for li in line:
-                    f.write(f"{li}\n")
-            else:
-                f.write(f"{line}\n")
+    if inputs.cache:
+        with open(inputs.save_dir + '/names_done.txt', 'w') as f:
+            for line in names_used:
+                if len(line[0]) > 1:
+                    for li in line:
+                        f.write(f"{li}\n")
+                else:
+                    f.write(f"{line}\n")
