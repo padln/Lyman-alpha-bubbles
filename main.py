@@ -40,7 +40,7 @@ def _get_likelihood(
         include_muv_unc=False,
         beta_data=None,
         use_ew=False,
-        xH_unc=False,
+        xh_unc=False,
         la_e=None,
         flux_int=None,
         flux_limit=1e-18,
@@ -196,7 +196,7 @@ def _get_likelihood(
                 n_iter=n_inside_tau,
                 include_muv_unc=include_muv_unc
             )
-            if xH_unc:
+            if xh_unc:
                 x_H = get_xH(redshift)  # using the central redshift.
             else:
                 x_H=0.65
@@ -389,7 +389,9 @@ def _get_likelihood(
                 print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
             else:
                 print("all good", flux_tau)
-                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(0.1,np.log10(1e19*(3e-19 + flux_tau))))
+                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+                    np.log10(1e19*(3e-19 + flux_tau)))
+                )
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -431,7 +433,7 @@ def sample_bubbles_grid(
         include_muv_unc=False,
         beta_data=None,
         use_ew=False,
-        xH_unc=False,
+        xh_unc=False,
         la_e=None,
         flux_int=None,
         multiple_iter=False,
@@ -468,7 +470,7 @@ def sample_bubbles_grid(
         beta data.
     :param use_ew: boolean
         whether to use EW or transmissions directly.
-    :param xH_unc: boolean
+    :param xh_unc: boolean
         whether to use uncertainty in the underlying neutral fraction in the
         likelihood analysis
     :param la_e: ~np.array or None
@@ -542,7 +544,7 @@ def sample_bubbles_grid(
                     include_muv_unc=include_muv_unc,
                     beta_data=beta_data[ind_iter],
                     use_ew=use_ew,
-                    xH_unc=xH_unc,
+                    xh_unc=xh_unc,
                     la_e=la_e[ind_iter],
                     flux_int=flux_int[ind_iter],
                     flux_limit=flux_limit,
@@ -607,7 +609,7 @@ def sample_bubbles_grid(
                 include_muv_unc=include_muv_unc,
                 beta_data=beta_data,
                 use_ew=use_ew,
-                xH_unc=xH_unc,
+                xh_unc=xh_unc,
                 la_e=la_e,
                 flux_int=flux_int,
                 flux_limit=flux_limit,
@@ -1037,7 +1039,7 @@ if __name__ == '__main__':
         include_muv_unc=inputs.mag_unc,
         use_ew=inputs.use_EW,
         beta_data=beta,
-        xH_unc=inputs.xH_unc,
+        xh_unc=inputs.xH_unc,
         la_e=la_e,
         flux_int=flux_tau,
         multiple_iter=inputs.multiple_iter,
