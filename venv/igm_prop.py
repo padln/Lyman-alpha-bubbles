@@ -560,8 +560,8 @@ def calculate_taus_i(
         x_random = [x_pos]
         y_random = [y_pos]
     else:
-        x_random = np.random.uniform(-10, 10, size=n_iter)
-        y_random = np.random.uniform(-10, 10, size=n_iter)
+        x_random = np.random.uniform(-40, 40, size=n_iter)
+        y_random = np.random.uniform(-40, 40, size=n_iter)
     taus = np.zeros((n_iter, len(wave_em)))
     z = wave_em.value / 1215.67 * (1 + z_source) - 1
     one_over_onepz = 1/(1+z)
