@@ -11,7 +11,10 @@ class HdF5Saver:
         self.output_dir = output_dir
         self.create = False
         if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
+            try:
+                os.mkdir(output_dir)
+            except FileExistsError:
+                pass
         self.create_file()
 
     def create_file(self):
