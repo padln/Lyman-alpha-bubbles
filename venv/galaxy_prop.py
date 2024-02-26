@@ -391,13 +391,16 @@ def get_muv(
     return UV_list
 
 
-def p_EW(Muv, beta=-2, mean=False, return_lum=True):
+def p_EW(Muv, beta=-2, mean=False, return_lum=True, high_prob_emit=False):
     """
     Function shall give sample from the distribution
     """
 
     def A(m):
-        return 0.65 + 0.1 * np.tanh(3 * (m + 20.75))
+        if high_prob_emit:
+            return 0.95 + 0.05 * np.tanh(3 * (m+20.75))
+        else:
+            return 0.65 + 0.1 * np.tanh(3 * (m + 20.75))
 
     def W(m):
         return 31 + 12 * np.tanh(4 * (m + 20.25))

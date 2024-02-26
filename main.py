@@ -12,7 +12,7 @@ import time
 import itertools
 from joblib import Parallel, delayed
 
-from venv.galaxy_prop import get_js, get_mock_data, calculate_EW_factor, p_EW
+from venv.galaxy_prop import get_js, get_mock_data, p_EW
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
@@ -39,7 +39,7 @@ def _get_likelihood(
         muv=None,
         include_muv_unc=False,
         beta_data=None,
-        use_EW=False,
+        use_ew=False,
         xH_unc=False,
         la_e=None,
         flux_int=None,
@@ -49,6 +49,7 @@ def _get_likelihood(
         resolution_worsening=1,
         n_inside_tau=50,
         bins_tot = 20,
+        high_prob_emit=False,
 ):
     """
 
@@ -77,7 +78,7 @@ def _get_likelihood(
     :param beta_data: numpy.array or None.
         UV-slopes for each of the mock galaxies. If None, then a default choice
         of -2.0 is used.
-    :param use_EW: boolean
+    :param use_ew: boolean
         Whether likelihood calculation is done on flux and other flux-related
         quantities, unlike the False option when the likelihood is calculated
         on transmission directly.
@@ -251,7 +252,7 @@ def _get_likelihood(
             )
 
             if np.all(np.array(res) < 10000):
-                if use_EW:
+                if use_ew:
                     taus_now.extend(
                         res.tolist()
                     )
@@ -262,7 +263,7 @@ def _get_likelihood(
 
 
             lae_now_i = np.array(
-                [p_EW(muvi, beti, )[1] for blah in range(len(eit_l))]
+                [p_EW(muvi, beti, high_prob_emit=high_prob_emit)[1] for blah in range(len(eit_l))]
             )
             lae_now[n*n_inside_tau:(n+1)*n_inside_tau] = lae_now_i
             flux_now_i = lae_now_i * np.array(
@@ -429,7 +430,7 @@ def sample_bubbles_grid(
         muv=None,
         include_muv_unc=False,
         beta_data=None,
-        use_EW=False,
+        use_ew=False,
         xH_unc=False,
         la_e=None,
         flux_int=None,
@@ -439,6 +440,7 @@ def sample_bubbles_grid(
         resolution_worsening=1,
         n_inside_tau=50,
         bins_tot=20,
+        high_prob_emit=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -464,7 +466,7 @@ def sample_bubbles_grid(
         whether to include muv uncertainty.
     :param beta_data: float,
         beta data.
-    :param use_EW: boolean
+    :param use_ew: boolean
         whether to use EW or transmissions directly.
     :param xH_unc: boolean
         whether to use uncertainty in the underlying neutral fraction in the
@@ -539,7 +541,7 @@ def sample_bubbles_grid(
                     muv=muv[ind_iter],
                     include_muv_unc=include_muv_unc,
                     beta_data=beta_data[ind_iter],
-                    use_EW=use_EW,
+                    use_ew=use_ew,
                     xH_unc=xH_unc,
                     la_e=la_e[ind_iter],
                     flux_int=flux_int[ind_iter],
@@ -548,6 +550,7 @@ def sample_bubbles_grid(
                     resolution_worsening=resolution_worsening,
                     n_inside_tau=n_inside_tau,
                     bins_tot=bins_tot,
+                    high_prob_emit=high_prob_emit,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -603,7 +606,7 @@ def sample_bubbles_grid(
                 muv=muv,
                 include_muv_unc=include_muv_unc,
                 beta_data=beta_data,
-                use_EW=use_EW,
+                use_ew=use_ew,
                 xH_unc=xH_unc,
                 la_e=la_e,
                 flux_int=flux_int,
@@ -611,7 +614,8 @@ def sample_bubbles_grid(
                 like_on_flux=like_on_flux,
                 resolution_worsening=resolution_worsening,
                 n_inside_tau=n_inside_tau,
-                bins_tot=bins_tot
+                bins_tot=bins_tot,
+                high_prob_emit=high_prob_emit,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -682,6 +686,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_inside_tau", type=int, default=50)
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
+    parser.add_argument("--high_prob_emit", type=bool, default=False)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -820,7 +825,12 @@ if __name__ == '__main__':
                 )
 
         if inputs.use_EW:
-            ew_factor, la_e = p_EW(Muv.flatten(), beta.flatten(), return_lum=True)
+            ew_factor, la_e = p_EW(
+                Muv.flatten(),
+                beta.flatten(),
+                return_lum=True,
+                high_prob_emit=inputs.high_prob_emit,
+            )
             #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
             ew_factor=ew_factor.reshape((np.shape(Muv)))
             la_e=la_e.reshape((np.shape(Muv)))
@@ -1025,7 +1035,7 @@ if __name__ == '__main__':
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
-        use_EW=inputs.use_EW,
+        use_ew=inputs.use_EW,
         beta_data=beta,
         xH_unc=inputs.xH_unc,
         la_e=la_e,
@@ -1035,6 +1045,7 @@ if __name__ == '__main__':
         like_on_flux=like_on_flux,
         resolution_worsening = inputs.resolution_worsening,
         n_inside_tau = inputs.n_inside_tau,
+        high_prob_emit=inputs.high_prob_emit,
     )
     if isinstance(likelihoods, tuple):
         np.save(
