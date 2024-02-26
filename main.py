@@ -352,9 +352,12 @@ def _get_likelihood(
         for ind_data, (flux_line,tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b),np.array(taus_tot_b),np.array(spectrum_tot_b))
         ):
-            tau_kde = gaussian_kde((np.array(tau_line)))
+            tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
 
-            flux_kde = gaussian_kde(np.log10(1e19*(3e-19 + (np.array(flux_line)))))
+            flux_kde = gaussian_kde(
+                np.log10(1e19*(3e-19 + (np.array(flux_line)))),
+                bw_method=0.15
+            )
 
             # if la_e is not None:
             #     flux_tau = flux_mock[ind_data] * tau_data[ind_data]
