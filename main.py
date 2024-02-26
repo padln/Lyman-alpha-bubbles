@@ -388,14 +388,14 @@ def _get_likelihood(
                         )
 
             if flux_int[ind_data] < flux_limit:
-                print("This galaxy failed the tau test, it's flux is", flux_tau)
+                print("This galaxy failed the tau test, it's flux is", flux_int[ind_data])
 
                 #likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.1,np.log10(1e19*(3e-19 + flux_limit))))
                 print("It's integrate likelihood is", flux_kde.integrate_box(0, flux_limit))
             else:
-                print("all good", flux_tau)
+                print("all good", flux_int[ind_data])
                 likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
-                    np.log10(1e19*(3e-19 + flux_tau)))
+                    np.log10(1e19*(3e-19 + flux_int[ind_data])))
                 )
         # print(
         #     np.array(taus_tot),
