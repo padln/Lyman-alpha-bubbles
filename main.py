@@ -363,7 +363,7 @@ def _get_likelihood(
                     tau_kde.evaluate((tau_data[ind_data]))
                 )
             if like_on_flux is not False:
-                if flux_int[data] < flux_limit:
+                if flux_int[ind_data] < flux_limit:
                     print("Blah")
                 else:
                     for bin_i in range(2,bins_tot):
