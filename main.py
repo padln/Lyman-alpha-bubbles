@@ -388,7 +388,7 @@ def _get_likelihood(
                                 )
                             )
                         )
-
+            print("This is flux_int", flux_int)
             if flux_int[ind_data] < flux_limit:
                 print("This galaxy failed the tau test, it's flux is", flux_int[ind_data])
 
