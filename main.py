@@ -51,6 +51,7 @@ def _get_likelihood(
         bins_tot = 20,
         high_prob_emit=False,
         cache=True,
+        fwhm_true=False,
 ):
     """
 
@@ -199,7 +200,8 @@ def _get_likelihood(
             j_s = get_js(
                 muv=muvi,
                 n_iter=n_inside_tau,
-                include_muv_unc=include_muv_unc
+                include_muv_unc=include_muv_unc,
+                fwhm_true=fwhm_true,
             )
             if xh_unc:
                 x_H = get_xH(redshift)  # using the central redshift.
@@ -453,6 +455,7 @@ def sample_bubbles_grid(
         bins_tot=20,
         high_prob_emit=False,
         cache=True,
+        fwhm_true=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -563,7 +566,8 @@ def sample_bubbles_grid(
                     n_inside_tau=n_inside_tau,
                     bins_tot=bins_tot,
                     high_prob_emit=high_prob_emit,
-                    cache=True,
+                    cache=cache,
+                    fwhm_true=fwhm_true,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -629,7 +633,8 @@ def sample_bubbles_grid(
                 n_inside_tau=n_inside_tau,
                 bins_tot=bins_tot,
                 high_prob_emit=high_prob_emit,
-                cache=True,
+                cache=cache,
+                fwhm_true=fwhm_true,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -702,6 +707,7 @@ if __name__ == '__main__':
     parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", type=bool, default=False)
     parser.add_argument("--cache", type=bool, default=True)
+    parser.add_argument("--fwhm_true", type=bool, default=False)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -802,6 +808,7 @@ if __name__ == '__main__':
                     z=inputs.redshift,
                     muv=Muv[index_iter],
                     n_iter=n_gal,
+                    fwhm_true=inputs.fwhm_true,
                 )
                 one_J_arr[index_iter,:,:] = np.array(one_J[0][:n_gal])
 
@@ -826,7 +833,12 @@ if __name__ == '__main__':
                 diff_pos_prob=inputs.diff_pos_prob,
             )
             tau_data_I = []
-            one_J = get_js(z=inputs.redshift, muv=Muv, n_iter=len(Muv))
+            one_J = get_js(
+                z=inputs.redshift,
+                muv=Muv,
+                n_iter=len(Muv),
+                fwhm_true=inputs.fwhm_true
+            )
             for i in range(len(td)):
                 eit = np.exp(-td[i])
                 tau_cgm_gal = tau_CGM(Muv[i])
@@ -1062,6 +1074,7 @@ if __name__ == '__main__':
         n_inside_tau = inputs.n_inside_tau,
         high_prob_emit=inputs.high_prob_emit,
         cache=inputs.cache,
+        fwhm_true=inputs.fwhm_true,
     )
     if isinstance(likelihoods, tuple):
         np.save(

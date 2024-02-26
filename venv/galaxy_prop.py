@@ -53,6 +53,7 @@ def get_js(
         z=7,
         n_iter=1,
         include_muv_unc=False,
+        fwhm_true=False,
 ):
     """
     Function returns Lyman-alpha shape profiles
@@ -99,7 +100,11 @@ def get_js(
             delta_vs[i] = 10**normal(delta_v_mean[i], 0.24)
         else:
             delta_vs[i] = 10**normal(delta_v_mean, 0.24)
-        j_s[i, :] = gaussian(wv_off.value, delta_vs[i], delta_vs[i])
+        if fwhm_true:
+            sigma=delta_vs[i] / 2 / np.sqrt(2 * np.log(2))
+        else:
+            sigma=delta_vs[i]
+        j_s[i, :] = gaussian(wv_off.value, delta_vs[i], sigma)
 
     if  hasattr(muv, '__len__'):
         j_s.reshape((*tot_it_shape, n_wav))
