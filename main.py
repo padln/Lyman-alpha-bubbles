@@ -53,6 +53,7 @@ def _get_likelihood(
         cache=True,
         fwhm_true=False,
         EW_fixed=False,
+        like_on_tau_full=False
 ):
     """
 
@@ -372,13 +373,24 @@ def _get_likelihood(
             #like_on_flux = np.array(like_on_flux)
             print(np.shape(like_on_flux), flush=True)
             print(ind_data,"index_data", flush=True)
-            if flux_int[ind_data] < flux_limit:
-                pass
-                #likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
+            if like_on_tau_full:
+                if tau_data[ind_data]<0.01:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.integrate_box(0.0,0.01)
+                    )
+                else:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.evaluate((tau_data[ind_data]))
+                    )
+
             else:
-                likelihood_tau[:ind_data] += np.log(
-                    tau_kde.evaluate((tau_data[ind_data]))
-                )
+                if flux_int[ind_data] < flux_limit:
+                    pass
+                    #likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
+                else:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.evaluate((tau_data[ind_data]))
+                    )
             if like_on_flux is not False:
                 if flux_int[ind_data] < flux_limit:
                     print("Blah")
@@ -466,6 +478,7 @@ def sample_bubbles_grid(
         cache=True,
         fwhm_true=False,
         EW_fixed=False,
+        like_on_tau_full=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -579,6 +592,7 @@ def sample_bubbles_grid(
                     cache=cache,
                     fwhm_true=fwhm_true,
                     EW_fixed=EW_fixed,
+                    like_on_tau_full=like_on_tau_full,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -647,6 +661,7 @@ def sample_bubbles_grid(
                 cache=cache,
                 fwhm_true=fwhm_true,
                 EW_fixed=EW_fixed,
+                like_on_tau_full=like_on_tau_full,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -723,7 +738,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_grid", type=int, default=5)
 
     parser.add_argument("--EW_fixed", type=bool, default=False)
-
+    parser.add_argument("--like_on_tau_full", type=bool, default=False)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1093,6 +1108,7 @@ if __name__ == '__main__':
         cache=inputs.cache,
         fwhm_true=inputs.fwhm_true,
         EW_fixed=inputs.EW_fixed,
+        like_on_tau_full=inputs.like_on_tau_full,
     )
     if isinstance(likelihoods, tuple):
         np.save(
