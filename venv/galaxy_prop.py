@@ -418,7 +418,12 @@ def p_EW(
         return 31 + 12 * np.tanh(4 * (m + 20.25))
 
     if EW_fixed:
-        return W(Muv)
+        C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (
+                1500 / 1216) ** (-(beta[0]) - 2)
+        L_UV_mean = 10 ** (-0.4 * (Muv - 51.6))
+        lum_alpha = W(Muv) * C_const.value * L_UV_mean
+
+        return W(Muv), lum_alpha
 
     Ws = np.linspace(0, 500, 1000)
 
