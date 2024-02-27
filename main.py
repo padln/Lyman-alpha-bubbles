@@ -41,7 +41,7 @@ def _get_likelihood(
         beta_data=None,
         use_ew=False,
         xh_unc=False,
-        la_e=None,
+        la_e_in=None,
         flux_int=None,
         flux_limit=1e-18,
         like_on_flux=False,
@@ -52,6 +52,7 @@ def _get_likelihood(
         high_prob_emit=False,
         cache=True,
         fwhm_true=False,
+        EW_fixed=False,
 ):
     """
 
@@ -121,7 +122,7 @@ def _get_likelihood(
     flux_tot = []
     j_s_tot = []
     spectrum_tot = []
-    if la_e is not None:
+    if la_e_in is not None:
         flux_mock = np.zeros(len(xs))
 
     # For these parameters, let's iterate over galaxies
@@ -132,7 +133,7 @@ def _get_likelihood(
 
     names_used = []
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
-            zip(xs, ys, zs, muv, beta_data, la_e)
+            zip(xs, ys, zs, muv, beta_data, la_e_in)
     ):
 
         #defining a dictionary that's going to contain all information about
@@ -176,7 +177,7 @@ def _get_likelihood(
         com_factor[index_gal]= 1/ ( 4 * np.pi * Cosmo.luminosity_distance(
                                     redshift).to(u.cm).value ** 2)
         # calculating fluxes if they are given
-        if la_e is not None:
+        if la_e_in is not None:
             flux_mock[index_gal] = li / (
                     4 * np.pi * Cosmo.luminosity_distance(
                 red_s).to(u.cm).value**2
@@ -270,7 +271,12 @@ def _get_likelihood(
 
 
             lae_now_i = np.array(
-                [p_EW(muvi, beti, high_prob_emit=high_prob_emit)[1] for blah in range(len(eit_l))]
+                [p_EW(
+                    muvi,
+                    beti,
+                    high_prob_emit=high_prob_emit,
+                    EW_fixed=EW_fixed,
+                )[1] for blah in range(len(eit_l))]
             )
             lae_now[n*n_inside_tau:(n+1)*n_inside_tau] = lae_now_i
             flux_now_i = lae_now_i * np.array(
@@ -359,7 +365,7 @@ def _get_likelihood(
                 bw_method=0.15
             )
 
-            # if la_e is not None:
+            # if la_e_in is not None:
             #     flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             #print(len(spec_kde), flush=True)
             #print(len(list(range(6,len(bins)))), flush=True)
@@ -459,6 +465,7 @@ def sample_bubbles_grid(
         high_prob_emit=False,
         cache=True,
         fwhm_true=False,
+        EW_fixed=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -571,6 +578,7 @@ def sample_bubbles_grid(
                     high_prob_emit=high_prob_emit,
                     cache=cache,
                     fwhm_true=fwhm_true,
+                    EW_fixed=EW_fixed,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -638,6 +646,7 @@ def sample_bubbles_grid(
                 high_prob_emit=high_prob_emit,
                 cache=cache,
                 fwhm_true=fwhm_true,
+                EW_fixed=EW_fixed,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -712,6 +721,9 @@ if __name__ == '__main__':
     parser.add_argument("--cache", type=bool, default=True)
     parser.add_argument("--fwhm_true", type=bool, default=False)
     parser.add_argument("--n_grid", type=int, default=5)
+
+    parser.add_argument("--EW_fixed", type=bool, default=False)
+
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -861,11 +873,12 @@ if __name__ == '__main__':
                 beta.flatten(),
                 return_lum=True,
                 high_prob_emit=inputs.high_prob_emit,
+                EW_fixed=inputs.EW_fixed,
             )
-            #print("This is la_e now", la_e, "this is shape of Muv", np.shape(Muv))
+            #print("This is la_e_in now", la_e_in, "this is shape of Muv", np.shape(Muv))
             ew_factor=ew_factor.reshape((np.shape(Muv)))
             la_e=la_e.reshape((np.shape(Muv)))
-            #print("and this is it now: ", la_e, "\n with a shape", np.shape(la_e))
+            #print("and this is it now: ", la_e_in, "\n with a shape", np.shape(la_e_in))
             data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)
@@ -945,12 +958,12 @@ if __name__ == '__main__':
         if os.path.isfile(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
             + inputs.mock_direc
-            + '/la_e.npy'
+            + '/la_e_in.npy'
         ):
             la_e = np.load(
                 '/home/inikolic/projects/Lyalpha_bubbles/code/'
                 + inputs.mock_direc
-                + '/la_e.npy'
+                + '/la_e_in.npy'
             )[:n_gal]
         if os.path.isfile(
             '/home/inikolic/projects/Lyalpha_bubbles/code/'
@@ -1079,6 +1092,7 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         cache=inputs.cache,
         fwhm_true=inputs.fwhm_true,
+        EW_fixed=inputs.EW_fixed,
     )
     if isinstance(likelihoods, tuple):
         np.save(
@@ -1162,7 +1176,7 @@ if __name__ == '__main__':
         np.array(Muv),
     )
     np.save(
-        inputs.save_dir + '/la_e.npy',
+        inputs.save_dir + '/la_e_in.npy',
         np.array(la_e),
     )
     np.save(

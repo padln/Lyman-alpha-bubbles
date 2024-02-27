@@ -159,7 +159,7 @@ def get_mock_data(
             z-coordinates of the mock galaxies. This is the LoS direction,
             negative values represent galaxies closer to us w.r.t. the center
             of the bubble.
-        x_b: numpy.array; 
+        x_b: numpy.array;
             x-positions of the outside bubbles.
         y_b: numpy.array;
             y-positions of the outside bubbles.
@@ -232,7 +232,7 @@ def get_mock_data(
             z_end_bub = red_s
         tau = calculate_taus_i(
             x_b,
-            y_b, 
+            y_b,
             z_b,
             r_bubs,
             red_s,
@@ -396,7 +396,14 @@ def get_muv(
     return UV_list
 
 
-def p_EW(Muv, beta=-2, mean=False, return_lum=True, high_prob_emit=False):
+def p_EW(
+        Muv,
+        beta=-2,
+        mean=False,
+        return_lum=True,
+        high_prob_emit=False,
+        EW_fixed=False
+):
     """
     Function shall give sample from the distribution
     """
@@ -409,6 +416,9 @@ def p_EW(Muv, beta=-2, mean=False, return_lum=True, high_prob_emit=False):
 
     def W(m):
         return 31 + 12 * np.tanh(4 * (m + 20.25))
+
+    if EW_fixed:
+        return W(Muv)
 
     Ws = np.linspace(0, 500, 1000)
 
