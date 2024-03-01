@@ -53,7 +53,8 @@ def _get_likelihood(
         cache=True,
         fwhm_true=False,
         EW_fixed=False,
-        like_on_tau_full=False
+        like_on_tau_full=False,
+        noise_on_the_spectrum=2e-20,
 ):
     """
 
@@ -299,7 +300,7 @@ def _get_likelihood(
                 )
                 spectrum_now_i += np.random.normal(
                     0,
-                    2e-20,
+                    noise_on_the_spectrum,
                     np.shape(spectrum_now_i)
                 )
             #let's investigate properties of this calculation
@@ -476,6 +477,7 @@ def sample_bubbles_grid(
         fwhm_true=False,
         EW_fixed=False,
         like_on_tau_full=False,
+        noise_on_the_spectrum=2e-20,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -598,6 +600,7 @@ def sample_bubbles_grid(
                     fwhm_true=fwhm_true,
                     EW_fixed=EW_fixed,
                     like_on_tau_full=like_on_tau_full,
+                    noise_on_the_spectrum=noise_on_the_spectrum,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -667,6 +670,7 @@ def sample_bubbles_grid(
                 fwhm_true=fwhm_true,
                 EW_fixed=EW_fixed,
                 like_on_tau_full=like_on_tau_full,
+                noise_on_the_spectrum=noise_on_the_spectrum,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -744,6 +748,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--EW_fixed", type=bool, default=False)
     parser.add_argument("--like_on_tau_full", type=bool, default=False)
+    parser.add_argument("--noise_on_the_spectrum", type=float, default=2e-20)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1067,7 +1072,7 @@ if __name__ == '__main__':
                             ]
             flux_noise_mock = flux_noise_mock + np.random.normal(
                 0,
-                2e-20,
+                inputs.noise_on_the_spectrum,
                 np.shape(flux_noise_mock)
             )
         else:
@@ -1114,6 +1119,7 @@ if __name__ == '__main__':
         fwhm_true=inputs.fwhm_true,
         EW_fixed=inputs.EW_fixed,
         like_on_tau_full=inputs.like_on_tau_full,
+        noise_on_the_spectrum=inputs.noise_on_the_spectrum,
     )
     if isinstance(likelihoods, tuple):
         np.save(
