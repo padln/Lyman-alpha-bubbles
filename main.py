@@ -550,7 +550,15 @@ def sample_bubbles_grid(
             (len(x_grid), len(y_grid), len(z_grid), len(r_grid),np.shape(xs)[1], multiple_iter)
         )
         like_grid_spec_top = np.zeros(
-            (len(x_grid), len(y_grid), len(z_grid), len(r_grid),np.shape(xs)[1], multiple_iter)
+            (
+                len(x_grid),
+                len(y_grid),
+                len(z_grid),
+                len(r_grid),
+                np.shape(xs)[1],
+                bins_tot-1,
+                multiple_iter
+            )
         )
         names_grid_top = []
         for ind_iter in range(multiple_iter):
@@ -617,7 +625,7 @@ def sample_bubbles_grid(
             )
             like_grid_tau_top[:,:,:,:,:, ind_iter] = likelihood_grid_tau
             like_grid_int_top[:,:,:,:,:, ind_iter] = likelihood_grid_int
-            like_grid_spec_top[:,:,:,:,:,:, ind_iter] = likelihood_grid_spec
+            like_grid_spec_top[:,:,:,:,:,:,ind_iter] = likelihood_grid_spec
 
             names_grid_top.append([l[2] for l in like_calc])
 
