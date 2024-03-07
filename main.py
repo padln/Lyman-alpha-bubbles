@@ -1194,10 +1194,16 @@ if __name__ == '__main__':
         inputs.save_dir + '/data.npy',
         np.array(data),
     )
-    np.save(
-        inputs.save_dir + '/one_J.npy',
-        np.array(one_J),
-    )
+    if inputs.multiple_iter:
+        np.save(
+            inputs.save_dir + '/one_J.npy',
+            np.array(one_J_arr),
+        )
+    else:
+        np.save(
+            inputs.save_dir + '/one_J.npy',
+            np.array(one_J),
+        )
     np.save(
         inputs.save_dir + '/Muvs.npy',
         np.array(Muv),
