@@ -1183,6 +1183,8 @@ if __name__ == '__main__':
                         inputs.bins_tot - 1)
                 )
                 one_J = one_J[0]
+                print(np.shape(la_e[:, np.newaxis] * one_J[:n_gal,:]), np.shape(td), np.shape(tau_CGM(
+                    Muv)))
                 continuum = (
                         la_e[:, np.newaxis] * one_J[:n_gal,:] * np.exp(-td) * tau_CGM(
                     Muv) / (
