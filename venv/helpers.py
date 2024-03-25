@@ -471,7 +471,7 @@ def perturb_flux(
     )
     wave_em_dig_rebin = np.digitize(bins, bins_rebin)
     full_res_shape = np.shape(full_res)
-    full_res_resh = full_res.reshape((np.product(full_res_shape[-1]), -1))
+    full_res_resh = full_res.reshape((np.product(full_res_shape[:-1]), -1))
     if gaussian_filter:
         flux_0 = np.array(
             [scipy.ndimage.gaussian_filter(np.array(full_res_resh[i]), 1) for i in
@@ -479,8 +479,7 @@ def perturb_flux(
         )
     else:
         flux_0 = full_res_resh
-
     flux_rebin = [np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
                   range(len(bins_rebin))]
 
-    return flux_rebin.reshape((*list(full_res_shape[-1]), n_bins))
+    return flux_rebin.reshape((*list(full_res_shape[:-1]), n_bins))
