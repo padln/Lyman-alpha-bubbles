@@ -441,7 +441,7 @@ def full_res_flux(
             )
             for i in range(len(bins))
         ]
-    return flux_full_res.reshape((shap[:-1],-1))
+    return flux_full_res.reshape((*list(shap[:-1]),-1))
 
 def perturb_flux(
         full_res,
@@ -481,4 +481,4 @@ def perturb_flux(
     flux_rebin = [np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
                   range(len(bins_rebin))]
 
-    return flux_rebin.reshape((full_res_shape[-1], n_bins))
+    return flux_rebin.reshape((*list(full_res_shape[-1]), n_bins))
