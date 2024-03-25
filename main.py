@@ -1184,7 +1184,7 @@ if __name__ == '__main__':
                 )
                 one_J = one_J[0]
                 continuum = (
-                        la_e[:, np.newaxis] * one_J * np.exp(-td) * tau_CGM(
+                        la_e[:, np.newaxis] * one_J[:n_gal,:] * np.exp(-td) * tau_CGM(
                     Muv) / (
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
