@@ -411,7 +411,7 @@ def hmf_integral_gtm(M, dndm, mass_density=False):
 
 def full_res_flux(
         continuum,
-        redshift
+        redshift=7.5
 ):
     """
     :param continuum:
@@ -446,7 +446,8 @@ def full_res_flux(
 def perturb_flux(
         full_res,
         n_bins,
-        gaussian_filter=True
+        gaussian_filter=True,
+        redshift=7.5,
 ):
     """
 
