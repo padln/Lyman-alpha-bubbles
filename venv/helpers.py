@@ -433,7 +433,7 @@ def full_res_flux(
     for ind in range(np.product(shap[:-1])):
         flux_full_res[ind] = [
             np.trapz(
-                x=wave_em.value[wav_em_dig == i + 1],
+                x=wave_em.value[wave_em_dig == i + 1],
                 y=(
                     continuum.reshape(
                         np.product(shap[:-1]),100
