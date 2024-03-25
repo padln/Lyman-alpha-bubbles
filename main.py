@@ -1191,7 +1191,7 @@ if __name__ == '__main__':
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
                         ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J,
+                    one_J[:n_gal,:],
                     wave_em.value,
                     axis=-1,
                 )[:,  np.newaxis]
