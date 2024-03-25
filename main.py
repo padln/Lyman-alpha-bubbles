@@ -794,7 +794,7 @@ if __name__ == '__main__':
     parser.add_argument("--EW_fixed", type=bool, default=False)
     parser.add_argument("--like_on_tau_full", type=bool, default=False)
     parser.add_argument("--noise_on_the_spectrum", type=float, default=2e-20)
-    parser.add_argument("--consistent_noise", type=float, default=False)
+    parser.add_argument("--consistent_noise", type=bool, default=False)
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
