@@ -408,3 +408,77 @@ def hmf_integral_gtm(M, dndm, mass_density=False):
         )
 
     return ngtm# + int_upper
+
+def full_res_flux(
+        continuum,
+        redshift
+):
+    """
+    :param continuum:
+        continuum flux for this run (it could contain multiple galaxies):
+        shape of it will be ((dimensions of gal), 100)
+    :return: flux_full_res:
+        spectrum at the full resolution corresponding to R~2700 (NirSpec)
+    """
+
+    spec_res = wave_Lya.value * (1 + redshift) / 2700
+    bins = np.arange(wave_em.value[0] * (1 + redshift),
+                     wave_em.value[-1] * (1 + redshift), spec_res)
+    wave_em_dig = np.digitize(wave_em.value * (1 + redshift), bins)
+    bins_po = np.append(bins, bins[-1] + spec_res)
+
+    #first let's check the shape
+    shap = np.shape(continuum)
+    flux_full_res = np.zeros((np.product(shap[:-1]), len(bins)))
+    for ind in range(np.product(shap[:-1])):
+        flux_full_res[ind] = [
+            np.trapz(
+                x=wave_em.value[wav_em_dig == i + 1],
+                y=(
+                    continuum.reshape(
+                        np.product(shap[:-1]),100
+                    )[ind][wave_em_dig == i + 1])
+            )
+            for i in range(bins)
+        ]
+    return flux_full_res.reshape(shap)
+
+def perturb_flux(
+        full_res,
+        n_bins,
+        gaussian_filter=True
+):
+    """
+
+    :param flux_full_res:
+        flux at full resolution.
+    :param n_bins:
+        number of bins to perturb the flux
+    :return:
+        flux_at_n
+    """
+
+    spec_res = wave_Lya.value * (1 + redshift) / 2700
+    bins = np.arange(wave_em.value[0] * (1 + redshift),
+                     wave_em.value[-1] * (1 + redshift), spec_res)
+
+    bins_rebin = np.linspace(
+        wave_em.value[0] * (1 + 7.5),
+        wave_em.value[-1] * (1 + 7.5),
+        n_bins + 1
+    )
+    wave_em_dig_rebin = np.digitize(bins, bins_rebin)
+    full_res_shape = np.shape(full_res)
+    full_res_resh = full_res.reshape((np.product(full_res_shape[-1]), -1))
+    if gaussian_filter:
+        flux_0 = np.array(
+            [scipy.ndimage.gaussian_filter(np.array(full_res_resh[i]), 1) for i in
+             range(len(full_res_resh))]
+        )
+    else:
+        flux_0 = full_res_resh
+
+    flux_rebin = [np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
+                  range(len(bins_rebin))]
+
+    return flux_rebin.reshape((full_res_shape[-1], n_bins))
