@@ -482,4 +482,4 @@ def perturb_flux(
     flux_rebin = np.array([np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
                   range(len(bins_rebin))])
 
-    return flux_rebin.reshape((*list(full_res_shape[:-1]), n_bins))
+    return flux_rebin.reshape((*list(full_res_shape[:-1]), n_bins+1))
