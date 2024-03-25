@@ -439,7 +439,7 @@ def full_res_flux(
                         np.product(shap[:-1]),100
                     )[ind][wave_em_dig == i + 1])
             )
-            for i in range(bins)
+            for i in range(len(bins))
         ]
     return flux_full_res.reshape(shap)
 
