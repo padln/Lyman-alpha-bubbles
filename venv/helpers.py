@@ -441,7 +441,7 @@ def full_res_flux(
             )
             for i in range(len(bins))
         ]
-    return flux_full_res.reshape(shap)
+    return flux_full_res.reshape((shap[:-1],-1))
 
 def perturb_flux(
         full_res,
