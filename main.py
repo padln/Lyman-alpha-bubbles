@@ -325,7 +325,7 @@ def _get_likelihood(
                     np.shape(full_flux_res_i)
                 )
                 for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                        range(2, inputs.bins_tot), wave_em_dig_arr
                 ):
                     spectrum_now[n * n_inside_tau:(n + 1) * n_inside_tau, bin_i - 1,
                     :bin_i] = perturb_flux(
@@ -1221,7 +1221,7 @@ if __name__ == '__main__':
                     np.shape(full_flux_res)
                 )
                 for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                        range(2, inputs.bins_tot), wave_em_dig_arr
                 ):
                     flux_noise_mock[:,  bin_i - 1, :bin_i] = perturb_flux(
                         full_flux_res, bin_i
