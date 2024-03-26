@@ -482,8 +482,8 @@ def _get_likelihood(
         likelihood_int[:ind_data] += -np.inf
 
         print("OOps there was value error, let's see why:", flush=True)
-        print(tau_data, flush=True)
-        print(taus_tot_b, flush=True)
+        #print(tau_data, flush=True)
+        #print(taus_tot_b, flush=True)
         raise TypeError
 
     if not cache:
