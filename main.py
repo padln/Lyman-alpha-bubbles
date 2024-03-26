@@ -429,7 +429,7 @@ def _get_likelihood(
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
                         )
-
+                    print(data_to_get)
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
                     if bin_i<4:
