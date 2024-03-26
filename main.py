@@ -331,6 +331,8 @@ def _get_likelihood(
                     :bin_i] = perturb_flux(
                         full_flux_res, bin_i
                     )
+                    print(spectrum_now)
+                    assert False
 
         if cache:
             max_len = np.max([len(a) for a in x_bubs_now])
