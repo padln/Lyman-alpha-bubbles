@@ -331,8 +331,7 @@ def _get_likelihood(
                     :bin_i] = perturb_flux(
                         full_flux_res, bin_i
                     )
-                    print(spectrum_now)
-                    assert False
+
 
         if cache:
             max_len = np.max([len(a) for a in x_bubs_now])
@@ -424,6 +423,8 @@ def _get_likelihood(
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:3]).T
                     )
+                    print(spec_line, like_on_flux)
+                    assert False
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
                     likelihood_spec[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
