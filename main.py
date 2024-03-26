@@ -329,7 +329,7 @@ def _get_likelihood(
                 ):
                     spectrum_now[n * n_inside_tau:(n + 1) * n_inside_tau, bin_i - 1,
                     :bin_i] = perturb_flux(
-                        full_flux_res, bin_i
+                        full_flux_res_i, bin_i
                     )
 
 
