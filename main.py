@@ -1226,7 +1226,6 @@ if __name__ == '__main__':
                     full_flux_res[4],
                     full_flux_res[5],
                 )
-                assert False
                 full_flux_res += np.random.normal(
                     0,
                     inputs.noise_on_the_spectrum,
@@ -1247,6 +1246,7 @@ if __name__ == '__main__':
                     flux_noise_mock[4],
                     flux_noise_mock[5],
                 )
+                assert False
 
 
     # print(np.shape(xd), flush=True)
