@@ -1232,7 +1232,7 @@ if __name__ == '__main__':
                     full_flux_res[2],
                     full_flux_res[3],
                     full_flux_res[4],
-                    full_flux_red[5],
+                    full_flux_res[5],
                 )
                 assert False
                 full_flux_res += np.random.normal(
