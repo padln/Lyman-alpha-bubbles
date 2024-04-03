@@ -1214,15 +1214,7 @@ if __name__ == '__main__':
                     axis=-1,
                 )[:,  np.newaxis]
                 )
-                print(la_e, one_J, np.exp(-td), tau_CGM(
-                    Muv) / (
-                                4 * np.pi * Cosmo.luminosity_distance(
-                            7.5
-                        ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J[:n_gal,:],
-                    wave_em.value,
-                    axis=-1,
-                ), continuum)
+
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
                 print(
@@ -1246,7 +1238,15 @@ if __name__ == '__main__':
                     flux_noise_mock[:,  bin_i - 1, :bin_i] = perturb_flux(
                         full_flux_res, bin_i
                     )
-
+                print(
+                    "mocks now",
+                    flux_noise_mock[0],
+                    flux_noise_mock[1],
+                    flux_noise_mock[2],
+                    flux_noise_mock[3],
+                    flux_noise_mock[4],
+                    flux_noise_mock[5],
+                )
 
 
     # print(np.shape(xd), flush=True)
