@@ -1223,9 +1223,10 @@ if __name__ == '__main__':
                     wave_em.value,
                     axis=-1,
                 ), continuum)
-                assert False
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
+                print(full_flux_res)
+                assert False
                 full_flux_res += np.random.normal(
                     0,
                     inputs.noise_on_the_spectrum,
