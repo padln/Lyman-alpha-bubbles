@@ -479,8 +479,6 @@ def perturb_flux(
         )
     else:
         flux_0 = full_res_resh
-    print("inside recalculating flux", n_bins, flux_0)
     flux_rebin = np.array([np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
                   range(n_bins)])
-    print("inside recalculating flux, rebined", n_bins, flux_rebin.T)
     return flux_rebin.T.reshape((*list(full_res_shape[:-1]), n_bins))

@@ -429,7 +429,7 @@ def _get_likelihood(
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
                         )
-                    print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
+                    #print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
                     if bin_i<4:
@@ -1217,15 +1217,7 @@ if __name__ == '__main__':
 
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
-                print(
-                    "some full fluxes",
-                    full_flux_res[0],
-                    full_flux_res[1],
-                    full_flux_res[2],
-                    full_flux_res[3],
-                    full_flux_res[4],
-                    full_flux_res[5],
-                )
+
                 full_flux_res += np.random.normal(
                     0,
                     inputs.noise_on_the_spectrum,
@@ -1237,16 +1229,7 @@ if __name__ == '__main__':
                     flux_noise_mock[:,  bin_i - 1, :bin_i] = perturb_flux(
                         full_flux_res, bin_i
                     )
-                print(
-                    "mocks now",
-                    flux_noise_mock[0],
-                    flux_noise_mock[1],
-                    flux_noise_mock[2],
-                    flux_noise_mock[3],
-                    flux_noise_mock[4],
-                    flux_noise_mock[5],
-                )
-                assert False
+
 
 
     # print(np.shape(xd), flush=True)
