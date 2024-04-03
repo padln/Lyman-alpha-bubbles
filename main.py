@@ -1214,6 +1214,17 @@ if __name__ == '__main__':
                     axis=-1,
                 )[:,  np.newaxis]
                 )
+                print(la_e, one_J, np.exp(-td), tau_CGM(
+                    Muv) / (
+                                4 * np.pi * Cosmo.luminosity_distance(
+                            7.5
+                        ).to(u.cm).value ** 2) / integrate.trapz(
+                    one_J[:n_gal,:],
+                    wave_em.value,
+                    axis=-1,
+                ), continuum)
+                assert False
+
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
                 full_flux_res += np.random.normal(
                     0,
