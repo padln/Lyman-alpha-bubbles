@@ -1225,7 +1225,15 @@ if __name__ == '__main__':
                 ), continuum)
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
-                print(full_flux_res)
+                print(
+                    "some full fluxes",
+                    full_flux_res[0],
+                    full_flux_res[1],
+                    full_flux_res[2],
+                    full_flux_res[3],
+                    full_flux_res[4],
+                    full_flux_red[5],
+                )
                 assert False
                 full_flux_res += np.random.normal(
                     0,
