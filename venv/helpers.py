@@ -447,7 +447,7 @@ def full_res_flux(
 def perturb_flux(
         full_res,
         n_bins,
-        gaussian_filter=True,
+        gaussian_filter=False,
         redshift=7.5,
 ):
     """
