@@ -54,7 +54,7 @@ def get_content(
     cont_now = OutsideContainer()
 
     if beta is None:
-        beta = np.array([-2.0] * np.shape(Muvs))
+        beta = np.array([-2.0] * len(Muvs))
 
     for index_gal, muv_i in enumerate(Muvs):
         j_s_gal_i = np.zeros((n_iter_bub * n_inside_tau, 100))
