@@ -18,6 +18,7 @@ from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 from venv.save import HdF5Saver
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
+from venv.speed_up import get_content
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -55,6 +56,8 @@ def _get_likelihood(
         like_on_tau_full=False,
         noise_on_the_spectrum=2e-20,
         consistent_noise=True,
+        cont_filled=None,
+        ind_iter=None
 ):
     """
 
@@ -121,7 +124,6 @@ def _get_likelihood(
     com_factor = np.zeros(len(xs))
     taus_tot = []
     flux_tot = []
-    j_s_tot = []
     spectrum_tot = []
     if la_e_in is not None:
         flux_mock = np.zeros(len(xs))
@@ -136,7 +138,10 @@ def _get_likelihood(
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
     ):
-
+        if index_iter is not None:
+            index_gal_eff = index_gal + index_iter * len(xs)
+        else:
+            index_gal_eff = index_gal
         # defining a dictionary that's going to contain all information about
         # this run for the caching process
         if cache:
@@ -200,51 +205,53 @@ def _get_likelihood(
             z_end_bub = red_s
             dist = 0
         for n in range(n_iter_bub):
-            j_s = get_js(
-                muv=muvi,
-                n_iter=n_inside_tau,
-                include_muv_unc=include_muv_unc,
-                fwhm_true=fwhm_true,
-            )
-            if xh_unc:
-                x_H = get_xH(redshift)  # using the central redshift.
-            else:
-                x_H = 0.65
+            # j_s = get_js(
+            #     muv=muvi,
+            #     n_iter=n_inside_tau,
+            #     include_muv_unc=include_muv_unc,
+            #     fwhm_true=fwhm_true,
+            # )
+            # if xh_unc:
+            #     x_H = get_xH(redshift)  # using the central redshift.
+            # else:
+            #     x_H = 0.65
 
-            xHs_now.append(x_H)
-            x_outs, y_outs, z_outs, r_bubs = get_bubbles(
-                x_H,
-                200
-            )
-            x_bubs_now.append(x_outs)
-            y_bubs_now.append(y_outs)
-            z_bubs_now.append(z_outs)
-            r_bubs_now.append(r_bubs)
+            # xHs_now.append(x_H)
+            # x_outs, y_outs, z_outs, r_bubs = get_bubbles(
+            #     x_H,
+            #     200
+            # )
+            # x_bubs_now.append(x_outs)
+            # y_bubs_now.append(y_outs)
+            # z_bubs_now.append(z_outs)
+            # r_bubs_now.append(r_bubs)
 
             if n == 0 and cache:
                 try:
                     save_cl = HdF5Saver(
                         x_gal=xg,
-                        x_first_bubble=x_outs[0],
+                        x_first_bubble=cont_filled.x_bub_out_full[index_gal_eff][n][0],
                         output_dir=cache_dir + '/' + dir_name,
                     )
                 except IndexError:
                     save_cl = HdF5Saver(
                         x_gal=xg,
-                        x_first_bubble=x_outs,
+                        x_first_bubble=cont_filled.x_bub_out_full[index_gal_eff][n],
                         output_dir=cache_dir,
                     )
                     print(
                         "Beware, something weird happened with outside bubble",
-                        x_outs, y_outs, z_outs
+                        cont_filled.x_bub_out_full[index_gal_eff],
+                        cont_filled.y_bub_out_full[index_gal_eff],
+                        cont_filled.z_bub_out_full[index_gal_eff]
                     )
                 save_cl.save_attrs(dict_gal)
 
             tau_now_i = calculate_taus_i(
-                x_outs,
-                y_outs,
-                z_outs,
-                r_bubs,
+                cont_filled.x_bub_out_full[index_gal_eff][n],
+                cont_filled.y_bub_out_full[index_gal_eff][n],
+                cont_filled.z_bub_out_full[index_gal_eff][n],
+                cont_filled.r_bub_out_full[index_gal_eff][n],
                 red_s,
                 z_end_bub,
                 n_iter=n_inside_tau,
@@ -255,8 +262,12 @@ def _get_likelihood(
             eit_l = np.exp(-np.array(tau_now_i))
             tau_cgm_gal_in = tau_CGM(muvi)
             res = np.trapz(
-                eit_l * tau_cgm_gal_in * j_s[0] / integrate.trapz(
-                    j_s[0],
+                eit_l * tau_cgm_gal_in * cont_filled.j_s_full[index_gal_eff][
+                                         n * n_inside_tau: (n+1) * n_inside_tau
+                                         ] / integrate.trapz(
+                    cont_filled.j_s_full[index_gal_eff][
+                    n * n_inside_tau: (n + 1) * n_inside_tau
+                    ],
                     wave_em.value, axis=1)[:, np.newaxis],
                 wave_em.value
             )
@@ -271,31 +282,43 @@ def _get_likelihood(
             else:
                 print("smth wrong", res, flush=True)
 
-            lae_now_i = np.array(
-                [p_EW(
-                    muvi,
-                    beti,
-                    high_prob_emit=high_prob_emit,
-                    EW_fixed=EW_fixed,
-                )[1] for blah in range(len(eit_l))]
-            )
-            lae_now[n * n_inside_tau:(n + 1) * n_inside_tau] = lae_now_i
-            flux_now_i = lae_now_i * np.array(
+            # lae_now_i = np.array(
+            #     [p_EW(
+            #         muvi,
+            #         beti,
+            #         high_prob_emit=high_prob_emit,
+            #         EW_fixed=EW_fixed,
+            #     )[1] for blah in range(len(eit_l))]
+            # )
+            lae_now[
+                n * n_inside_tau:(n + 1) * n_inside_tau
+            ] = cont_filled.la_flux_out_full[index_gal_eff][n * n_inside_tau:(n + 1) * n_inside_tau]
+            flux_now_i = cont_filled.la_flux_out_full[index_gal_eff][
+                         n * n_inside_tau:(n + 1) * n_inside_tau
+                         ] * np.array(
                 taus_now
             ).flatten()[n * n_inside_tau:(n + 1) * n_inside_tau] * com_factor[
-                             index_gal]
+                             index_gal_eff]
             flux_now_i += np.random.normal(0, 5e-20, np.shape(flux_now_i))
             flux_now[n * n_inside_tau:(n + 1) * n_inside_tau] = flux_now_i
 
-            j_s_now.extend(j_s[0][:n_inside_tau])
+            j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
+                                         n * n_inside_tau: (n+1) * n_inside_tau
+                                         ])
             if not consistent_noise:
                 for bin_i, wav_dig_i in zip(range(2, bins_tot), wave_em_dig_arr):
                     spectrum_now_i = np.array(
                         [np.trapz(x=wave_em.value[wav_dig_i == i_bin + 1],
-                                  y=(lae_now_i[:, np.newaxis] * j_s[
-                                      0] * eit_l * tau_CGM(muvi)[np.newaxis, :] *
-                                     com_factor[index_gal] / integrate.trapz(
-                                              j_s[0],
+                                  y=(cont_filled.la_flux_out_full[index_gal_eff][
+                                     n * n_inside_tau:(n + 1) * n_inside_tau
+                                     ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
+                                         n * n_inside_tau: (n+1) * n_inside_tau
+                                         ] * eit_l * tau_CGM(muvi)[np.newaxis, :] *
+                                     com_factor[index_gal_eff] / integrate.trapz(
+                                              cont_filled.j_s_full[index_gal_eff][
+                                              n * n_inside_tau: (
+                                                                            n + 1) * n_inside_tau
+                                              ],
                                               wave_em.value, axis=1)[:, np.newaxis]
                                     )[:, wav_dig_i == i_bin + 1], axis=1) for i_bin
                         in range(bin_i)
@@ -313,9 +336,17 @@ def _get_likelihood(
                     :bin_i] = spectrum_now_i.T
             else:
                 continuum_i = (
-                        lae_now_i[:, np.newaxis] * j_s[0] * eit_l * tau_CGM(
-                    muvi)[np.newaxis,:] * com_factor[index_gal] / integrate.trapz(
-                                              j_s[0],
+                        cont_filled.la_flux_out_full[index_gal_eff][
+                        n * n_inside_tau:(n + 1) * n_inside_tau
+                        ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
+                                              n * n_inside_tau: (
+                                                                            n + 1) * n_inside_tau
+                                              ] * eit_l * tau_CGM(
+                    muvi)[np.newaxis,:] * com_factor[index_gal_eff] / integrate.trapz(
+                    cont_filled.j_s_full[index_gal_eff][
+                    n * n_inside_tau: (
+                                              n + 1) * n_inside_tau
+                    ],
                                               wave_em.value, axis=1)[:, np.newaxis]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
@@ -529,6 +560,7 @@ def sample_bubbles_grid(
         like_on_tau_full=False,
         noise_on_the_spectrum=2e-20,
         consistent_noise=True,
+        cont_filled=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -659,6 +691,8 @@ def sample_bubbles_grid(
                     like_on_tau_full=like_on_tau_full,
                     noise_on_the_spectrum=noise_on_the_spectrum,
                     consistent_noise=consistent_noise,
+                    cont_filled=cont_filled,
+                    ind_iter=ind_iter,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -734,6 +768,7 @@ def sample_bubbles_grid(
                 like_on_tau_full=like_on_tau_full,
                 noise_on_the_spectrum=noise_on_the_spectrum,
                 consistent_noise=consistent_noise,
+                cont_filled=cont_filled,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -1247,6 +1282,22 @@ if __name__ == '__main__':
     flux_tau = flux_mock * tau_data_I
     flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
+    #Next part sets up mocks that are going to be necessary for the likelihood
+    #calculation. This is the new idea on how to speed up the calculation,
+    #calculating whatever can be calculated beforehand
+
+    cont_filled = get_content(
+        np.flatten(Muv),
+        n_iter_bub=inputs.n_iter_bub,
+        n_inside_tau=inputs.n_inside_tau,
+        include_muv_unc=inputs.mag_unc,
+        fwhm_true=inputs.fwhm_true,
+        redshift=inputs.redshift,
+        xh_unc=inputs.xH_unc,
+        high_prob_emit=inputs.high_prob_emit,
+        EW_fixed=inputs.EW_fixed,
+    )
+
     # print("Finishing setting up mocks", like_on_flux)
     # assert False
     likelihoods, names_used = sample_bubbles_grid(
@@ -1276,6 +1327,7 @@ if __name__ == '__main__':
         like_on_tau_full=inputs.like_on_tau_full,
         noise_on_the_spectrum=inputs.noise_on_the_spectrum,
         consistent_noise=inputs.consistent_noise,
+        cont_filled=cont_filled,
     )
     if isinstance(likelihoods, tuple):
         np.save(
