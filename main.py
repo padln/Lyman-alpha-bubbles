@@ -1287,7 +1287,7 @@ if __name__ == '__main__':
     #calculating whatever can be calculated beforehand
 
     cont_filled = get_content(
-        np.flatten(Muv),
+        Muv.flatten(),
         n_iter_bub=inputs.n_iter_bub,
         n_inside_tau=inputs.n_inside_tau,
         include_muv_unc=inputs.mag_unc,
