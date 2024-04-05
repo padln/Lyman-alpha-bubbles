@@ -367,17 +367,17 @@ def _get_likelihood(
 
 
         if cache:
-            max_len = np.max([len(a) for a in cont_filled.x_bub_out_full[index_gal_eff][n]])
-            x_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff][n]), max_len))
-            y_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff][n]), max_len))
-            z_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff][n]), max_len))
-            r_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff][n]), max_len))
+            max_len = np.max([len(a) for a in cont_filled.x_bub_out_full[index_gal_eff]])
+            x_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
+            y_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
+            z_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
+            r_bubs_arr = np.zeros((len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
             for i_bub, (xar, yar, zar, rar) in enumerate(
                     zip(
-                        cont_filled.x_bub_out_full[index_gal_eff][n],
-                        cont_filled.y_bub_out_full[index_gal_eff][n],
-                        cont_filled.z_bub_out_full[index_gal_eff][n],
-                        cont_filled.r_bub_out_full[index_gal_eff][n])
+                        cont_filled.x_bub_out_full[index_gal_eff],
+                        cont_filled.y_bub_out_full[index_gal_eff],
+                        cont_filled.z_bub_out_full[index_gal_eff],
+                        cont_filled.r_bub_out_full[index_gal_eff])
             ):
                 x_bubs_arr[i_bub, :len(xar)] = xar
                 y_bubs_arr[i_bub, :len(xar)] = yar
