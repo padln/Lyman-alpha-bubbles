@@ -57,7 +57,7 @@ def _get_likelihood(
         noise_on_the_spectrum=2e-20,
         consistent_noise=True,
         cont_filled=None,
-        ind_iter=None
+        index_iter=None
 ):
     """
 
@@ -692,7 +692,7 @@ def sample_bubbles_grid(
                     noise_on_the_spectrum=noise_on_the_spectrum,
                     consistent_noise=consistent_noise,
                     cont_filled=cont_filled,
-                    ind_iter=ind_iter,
+                    index_iter=ind_iter,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
