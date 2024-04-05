@@ -110,5 +110,8 @@ def get_content(
             z_out_gal_i,
             r_out_gal_i,
         )
+        cont_now.add_la_flux(
+            la_flux_gal_i
+        )
     return cont_now
 
