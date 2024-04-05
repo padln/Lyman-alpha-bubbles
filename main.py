@@ -227,6 +227,8 @@ def _get_likelihood(
             # r_bubs_now.append(r_bubs)
 
             if n == 0 and cache:
+                print("This is what I'm trying to save:", cont_filled.x_bub_out_full[index_gal_eff][n][0], flush=True)
+                print("This are all of the bubbles,", cont_filled.x_bub_out_full[index_gal_eff][n], flush=True)
                 try:
                     save_cl = HdF5Saver(
                         x_gal=xg,
@@ -237,7 +239,7 @@ def _get_likelihood(
                     save_cl = HdF5Saver(
                         x_gal=xg,
                         x_first_bubble=cont_filled.x_bub_out_full[index_gal_eff][n],
-                        output_dir=cache_dir,
+                        output_dir=cache_dir + '/' + dir_name,
                     )
                     print(
                         "Beware, something weird happened with outside bubble",
