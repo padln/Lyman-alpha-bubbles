@@ -145,7 +145,7 @@ def _get_likelihood(
 
     names_used = []
 
-    keep_conp = np.zeros((len(xs), n_inside_tau * n_iter_b))
+    keep_conp = np.zeros((len(xs), n_inside_tau * n_iter_bub))
 
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
