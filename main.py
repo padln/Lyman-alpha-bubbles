@@ -818,17 +818,17 @@ if __name__ == '__main__':
     parser.add_argument("--r_bub", type=float, default=15.0)
     parser.add_argument("--max_dist", type=float, default=15.0)
     parser.add_argument("--n_gal", type=int, default=20)
-    parser.add_argument("--obs_pos", type=bool, default=False)
-    parser.add_argument("--use_EW", type=bool, default=False)
-    parser.add_argument("--diff_mags", type=bool, default=True)
+    parser.add_argument("--obs_pos", action="store_true")
+    parser.add_argument("--use_EW", action="store_true")
+    parser.add_argument("--diff_mags", action="store_false")
     parser.add_argument(
         "--use_Endsley_Stark_mags",
         type=bool, default=False
     )
-    parser.add_argument("--mag_unc", type=bool, default=True)
-    parser.add_argument("--xH_unc", type=bool, default=False)
+    parser.add_argument("--mag_unc", action="store_true")
+    parser.add_argument("--xH_unc", action="store_true")
     parser.add_argument("--muv_cut", type=float, default=-19.0)
-    parser.add_argument("--diff_pos_prob", type=bool, default=True)
+    parser.add_argument("--diff_pos_prob", action="store_false")
     parser.add_argument("--multiple_iter", type=int, default=None)
     parser.add_argument(
         "--save_dir",
@@ -836,24 +836,24 @@ if __name__ == '__main__':
         default='/home/inikolic/projects/Lyalpha_bubbles/code/'
     )
     parser.add_argument("--flux_limit", type=float, default=1e-18)
-    parser.add_argument("--uvlf_consistently", type=bool, default=False)
+    parser.add_argument("--uvlf_consistently", action="store_true")
     parser.add_argument("--fluct_level", type=float, default=None)
 
-    parser.add_argument("--like_on_flux", type=bool, default=False)
+    parser.add_argument("--like_on_flux", action="store_true")
 
     parser.add_argument("--resolution_worsening", type=float, default=1)
     parser.add_argument("--n_inside_tau", type=int, default=50)
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
-    parser.add_argument("--high_prob_emit", type=bool, default=False)
+    parser.add_argument("--high_prob_emit", action="store_true")
     parser.add_argument("--cache", action="store_false")
-    parser.add_argument("--fwhm_true", type=bool, default=False)
+    parser.add_argument("--fwhm_true", action="store_true")
     parser.add_argument("--n_grid", type=int, default=5)
 
-    parser.add_argument("--EW_fixed", type=bool, default=False)
-    parser.add_argument("--like_on_tau_full", type=bool, default=False)
+    parser.add_argument("--EW_fixed", action="store_true")
+    parser.add_argument("--like_on_tau_full", action="store_true")
     parser.add_argument("--noise_on_the_spectrum", type=float, default=2e-20)
-    parser.add_argument("--consistent_noise", type=bool, default=False)
+    parser.add_argument("--consistent_noise", action="store_true")
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
