@@ -893,7 +893,7 @@ if __name__ == '__main__':
     parser.add_argument("--uvlf_consistently", action="store_true")
     parser.add_argument("--fluct_level", type=float, default=None)
 
-    parser.add_argument("--like_on_flux", action="store_true")
+    parser.add_argument("--like_on_flux", action="store_false")
 
     parser.add_argument("--resolution_worsening", type=float, default=1)
     parser.add_argument("--n_inside_tau", type=int, default=50)
