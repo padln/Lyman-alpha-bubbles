@@ -856,6 +856,7 @@ if __name__ == '__main__':
     parser.add_argument("--consistent_noise", type=bool, default=False)
     inputs = parser.parse_args()
     print(inputs.cache, "am i caching already?", flush=True)
+    assert False
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
             raise ValueError("set you density value")
