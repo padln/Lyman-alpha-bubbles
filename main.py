@@ -846,7 +846,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", type=bool, default=False)
-    parser.add_argument("--cache", type=bool, default=True)
+    parser.add_argument("--cache", action=argparse.BooleanOptionalAction)
     parser.add_argument("--fwhm_true", type=bool, default=False)
     parser.add_argument("--n_grid", type=int, default=5)
 
