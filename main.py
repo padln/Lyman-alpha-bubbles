@@ -250,6 +250,10 @@ def _get_likelihood(
                         x_first_bubble=
                         cont_filled.x_bub_out_full[index_gal_eff][n][0],
                         output_dir=cache_dir + '/' + dir_name,
+                        x_main=xb,
+                        y_main=yb,
+                        z_main=zb,
+                        r_main=rb,
                     )
                 except IndexError:
                     save_cl = HdF5Saver(
