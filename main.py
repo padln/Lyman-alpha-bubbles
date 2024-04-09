@@ -479,7 +479,8 @@ def _get_likelihood(
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-
+            print(np.array(flux_line))
+            assert False
             flux_kde = gaussian_kde(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
                 bw_method=0.15
