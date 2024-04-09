@@ -145,7 +145,7 @@ def _get_likelihood(
 
     names_used = []
 
-    keep_conp = np.zeros((len(xs), n_inside_tau * n_iter_bub))
+    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
 
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
@@ -333,9 +333,10 @@ def _get_likelihood(
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
-                            if np.random.binomial(1, 1 - reject_conp):
-                                keep_conp[
-                                    index_gal, n * n_inside_tau + index_tau_for] = 1
+                            keep_conp[
+                                index_gal, n * n_inside_tau + index_tau_for] = 0
+
+
 
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
@@ -479,8 +480,7 @@ def _get_likelihood(
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-            print(np.array(flux_line))
-            assert False
+
             flux_kde = gaussian_kde(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
                 bw_method=0.15
