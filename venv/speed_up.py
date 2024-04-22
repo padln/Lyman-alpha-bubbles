@@ -4,7 +4,9 @@ from venv.igm_prop import get_xH, get_bubbles
 from astropy import units as u
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
-
+wave_Lya = 1215.67 * u.Angstrom
+freq_Lya = (const.c / wave_Lya).to(u.Hz)
+r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
 class OutsideContainer:
     def __init__(self):
         self.j_s_full = []
