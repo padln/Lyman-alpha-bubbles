@@ -402,10 +402,10 @@ def calculate_taus_post(
     tau_pref = tau_gp * r_alpha / np.pi
     taus = np.zeros((n_iter, len(wave_em)))
     for index_iter in range(n_iter):
-        z_up_i = first_bubble_encounter_coord_z_up[i]
-        z_lo_i = first_bubble_encounter_coord_z_lo[i]
-        red_up_i = first_bubble_encounter_redshift_up[i]
-        red_lo_i = first_bubble_encounter_redshift_lo[i]
+        z_up_i = first_bubble_encounter_coord_z_up[index_iter]
+        z_lo_i = first_bubble_encounter_coord_z_lo[index_iter]
+        red_up_i = first_bubble_encounter_redshift_up[index_iter]
+        red_lo_i = first_bubble_encounter_redshift_lo[index_iter]
 
         if first_bubble_encounter_coord_z_up[i] == np.inf:
 
@@ -444,7 +444,7 @@ def calculate_taus_post(
                         I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                 )
         try:
-            taus[i, :] = tau_i
+            taus[index_iter, :] = tau_i
         except IndexError:
             if n_iter == 1:
                 taus = tau_i
