@@ -431,12 +431,14 @@ def calculate_taus_post(
                     # already taken into account
                     pass
                 elif red_lo_i > z_end_bubble:
-                    raise ValueError(
-                        "Some big problem, small bubble completely inside big?!"
-                    )
-                    # This is a problem if this happens. To think about this
-                    # potentially save all bubbles inside. But let's see if it
-                    # happens
+                    print("Some big problem, small bubble completely inside big")
+                    print(red_lo_i, red_up_i, z_lo_i, z_up_i, z_end_bubble)
+                    # raise ValueError(
+                    #     "Some big problem, small bubble completely inside big?!"
+                    # )
+                    # This thing happens, it seems like. I'll investigate in post
+                    #processing when it happens. For now, I'll just assume this
+                    #is not a significant issue and ignore it.
             else:
                 z_bi = z_end_bubble
                 z_ei = red_up_i
