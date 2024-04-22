@@ -482,3 +482,10 @@ def perturb_flux(
     flux_rebin = np.array([np.sum(flux_0[:, wave_em_dig_rebin == j + 1], axis=1) for j in
                   range(n_bins)])
     return flux_rebin.T.reshape((*list(full_res_shape[:-1]), n_bins))
+
+def comoving_distance_from_source_Mpc(z_2, z_1):
+    """
+    COMOVING distance between z_1 and z_2. z_1 > z_2
+    """
+    R_com = (z_1 - z_2)*(const.c / Planck15.H(z=z_1)).to(u.Mpc)
+    return R_com.value

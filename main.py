@@ -18,7 +18,7 @@ from venv.igm_prop import get_bubbles
 from venv.igm_prop import calculate_taus_i, get_xH
 from venv.save import HdF5Saver
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
-from venv.speed_up import get_content
+from venv.speed_up import get_content, calculate_taus_post
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -269,17 +269,46 @@ def _get_likelihood(
                         cont_filled.z_bub_out_full[index_gal_eff]
                     )
                 save_cl.save_attrs(dict_gal)
+            #
+            # tau_now_i = calculate_taus_i(
+            #     cont_filled.x_bub_out_full[index_gal_eff][n],
+            #     cont_filled.y_bub_out_full[index_gal_eff][n],
+            #     cont_filled.z_bub_out_full[index_gal_eff][n],
+            #     cont_filled.r_bub_out_full[index_gal_eff][n],
+            #     red_s,
+            #     z_end_bub,
+            #     n_iter=n_inside_tau,
+            #     dist=dist,
+            # )
 
-            tau_now_i = calculate_taus_i(
-                cont_filled.x_bub_out_full[index_gal_eff][n],
-                cont_filled.y_bub_out_full[index_gal_eff][n],
-                cont_filled.z_bub_out_full[index_gal_eff][n],
-                cont_filled.r_bub_out_full[index_gal_eff][n],
+            tau_now_i = cont_filled.tau_prec_full[
+                            index_gal_eff
+                        ][
+                        n * n_inside_tau: (n + 1) * n_inside_tau,:
+                        ]
+            fi_bu_en_ru_i = cont_filled.first_bubble_encounter_redshift_up_full[
+                n * n_inside_tau: (n + 1) * n_inside_tau
+            ]
+            fi_bu_en_rl_i = cont_filled.first_bubble_encounter_redshift_lo_full[
+                n * n_inside_tau: (n + 1) * n_inside_tau
+            ]
+            fi_bu_en_czu_i = cont_filled.first_bubble_encounter_coord_z_up_full[
+                n * n_inside_tau: (n + 1) * n_inside_tau
+            ]
+            fi_bu_en_czl_i = cont_filled.first_bubble_encounter_coord_z_lo_full[
+                n * n_inside_tau: (n + 1) * n_inside_tau
+            ]
+
+            tau_now_i += calculate_taus_post(
                 red_s,
                 z_end_bub,
-                n_iter=n_inside_tau,
-                dist=dist,
+                fi_bu_en_czu_i,
+                fi_bu_en_ru_i,
+                fi_bu_en_czl_i,
+                fi_bu_en_rl_i,
+                n_iter = n_inside_tau,
             )
+
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
@@ -1038,6 +1067,13 @@ if __name__ == '__main__':
                 ENDSTA_data=inputs.obs_pos,
                 diff_pos_prob=inputs.diff_pos_prob,
             )
+            redshifts_of_mocks = np.zeros((n_gal))
+            for i in range(n_gal):
+                red_s = z_at_proper_distance(
+                    - zd[i] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
+                )
+                redshifts_of_mocks[i] = red_s
+
             tau_data_I = []
             one_J = get_js(
                 z=inputs.redshift,
@@ -1354,6 +1390,7 @@ if __name__ == '__main__':
 
     cont_filled = get_content(
         Muv.flatten(),
+        redshifts_of_mocks,
         n_iter_bub=inputs.n_iter_bub,
         n_inside_tau=inputs.n_inside_tau,
         include_muv_unc=inputs.mag_unc,
@@ -1363,6 +1400,8 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
     )
+    #Next part will set up taus precomputed
+
 
     # print("Finishing setting up mocks", like_on_flux)
     # assert False

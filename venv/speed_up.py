@@ -12,6 +12,11 @@ class OutsideContainer:
         self.z_bub_out_full = []
         self.r_bub_out_full = []
         self.la_flux_out_full = []
+        self.tau_prec_full =  []
+        self.first_bubble_encounter_redshift_up_full = []
+        self.first_bubble_encounter_redshift_lo_full = []
+        self.first_bubble_encounter_coord_z_lo_full = []
+        self.first_bubble_encounter_coord_z_up_full = []
 
     def add_j_s(self, j_s_now):
         self.j_s_full.append(j_s_now)
@@ -28,9 +33,32 @@ class OutsideContainer:
     def add_la_flux(self, l_flux_now):
         self.la_flux_out_full.append(l_flux_now)
 
+    def add_tau_prec(
+            self,
+            tau_prec_now,
+            first_bubble_encounter_redshift_up_now,
+            first_bubble_encounter_redshift_lo_now,
+            first_bubble_encounter_coord_z_up_now,
+            first_bubble_encounter_coord_z_lo_now,
+    ):
+        self.tau_prec_full.append(tau_prec_now)
+        self.first_bubble_encounter_redshift_up_full.append(
+            first_bubble_encounter_redshift_up_now
+        )
+        self.first_bubble_encounter_redshift_lo_full.append(
+            first_bubble_encounter_redshift_lo_now
+        )
+        self.first_bubble_encounter_coord_z_up_full.append(
+            first_bubble_encounter_coord_z_up_now
+        )
+        self.first_bubble_encounter_coord_z_lo_full.append(
+            first_bubble_encounter_coord_z_lo_now
+        )
+
 
 def get_content(
         Muvs,
+        redshifts_of_mocks,
         beta=None,
         n_iter_bub=20,
         n_inside_tau=1000,
@@ -64,6 +92,12 @@ def get_content(
         z_out_gal_i = []
         r_out_gal_i = []
         la_flux_gal_i = np.zeros((n_iter_bub * n_inside_tau))
+        tau_prec_i = np.zeros((n_iter_bub * n_inside_tau, 100))
+        fi_bu_en_ru_i = np.zeros((n_iter_bub * n_inside_tau))
+        fi_bu_en_czu_i = np.zeros((n_iter_bub * n_inside_tau))
+        fi_bu_en_rl_i = np.zeros((n_iter_bub * n_inside_tau))
+        fi_bu_en_czl_i = np.zeros((n_iter_bub * n_inside_tau))
+
         for bubble_iter in range(n_iter_bub):
             j_s = get_js(
                 muv=muv_i,
@@ -99,8 +133,36 @@ def get_content(
             )
 
             la_flux_gal_i[
-            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = lae_now_i
+            (tau_now_i,
+             fi_bu_en_czu,
+             fi_bu_en_ru,
+             fi_bu_en_czl,
+             fi_bu_en_rl
+             ) = calculate_taus_prep(
+                x_small = x_outs,
+                y_small = y_outs,
+                z_small = z_outs,
+                r_bubbles = r_bubs,
+                z_source = redshifts_of_mocks[index_gal],
+                n_iter = n_inside_tau,
+            )
+            tau_prec_i[
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau,:
+            ] = tau_now_i
+            fi_bu_en_ru_i[
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            ] = fi_bu_en_ru
+            fi_bu_en_rl_i[
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            ] = fi_bu_en_rl
+            fi_bu_en_czu_i[
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            ] = fi_bu_en_czu
+            fi_bu_en_czl_i[
+                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            ] = fi_bu_en_czl
 
         cont_now.add_j_s(j_s_gal_i)
         cont_now.add_xhs(x_h_gal_i)
@@ -113,5 +175,247 @@ def get_content(
         cont_now.add_la_flux(
             la_flux_gal_i
         )
+        cont_now.add_tau_prec(
+            tau_prec_i,
+            fi_bu_en_ru_i,
+            fi_bu_en_rl_i,
+            fi_bu_en_czu_i,
+            fi_bu_en_czl_i
+        )
     return cont_now
 
+
+def calculate_taus_prep(
+        x_small,
+        y_small,
+        z_small,
+        r_bubbles,
+        z_source,
+        n_iter=500,
+        dist=10,
+        prior_end=15,
+):
+    """
+        New way of calculating taus, it's still in the concept. The idea is to
+        pre-calculate all tau-s beforehand. Since distribution of taus outside
+        doesn't have to correspond to actual situation, i.e. line-of-sights are
+        selected randomly. The only information that is going to be used is the
+        distance from the bubble. So for z-coordinates that are away from the
+        maximum distance of the main bubble I have in my prior.
+        For now, it's set to 15cMpc. Note: I'm not using it, we'll see whether
+        it's important
+    """
+    x_small = np.array(x_small)
+    y_small = np.array(y_small)
+    z_small = np.array(z_small)
+    r_bubbles = np.array(r_bubbles).flatten()
+
+    x_random = np.random.uniform(-40, 40, size=n_iter)
+    y_random = np.random.uniform(-40, 40, size=n_iter)
+
+    taus = np.zeros((n_iter, len(wave_em)))
+    first_bubble_encounter_redshift_up = np.zeros((n_iter))
+    first_bubble_encounter_coord_z_up = np.zeros((n_iter))
+    first_bubble_encounter_redshift_lo = np.zeros((n_iter))
+    first_bubble_encounter_coord_z_lo = np.zeros((n_iter))
+
+
+    z = wave_em.value / 1215.67 * (1 + z_source) - 1
+    one_over_onepz = 1 / (1 + z)
+    one_over_onesource = 1 / (1 + z_source)
+
+    tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
+    tau_pref = tau_gp * r_alpha / np.pi
+
+    for i, (xr, yr) in enumerate(zip(x_random, y_random)):
+        dist_arr = np.sqrt(
+            r_bubbles ** 2 - ((xr - x_small) ** 2 + (yr - y_small) ** 2)
+        )
+
+        # t0  =time.time()
+        z_edge_up_arr = z_small - dist_arr
+
+        z_edge_lo_arr = z_small + dist_arr
+
+        red_edge_up_arr = z_at_proper_distance(
+            (z_edge_up_arr + 10) * one_over_onesource * u.Mpc, 7.5
+            # needs to be fixed
+        )
+        red_edge_lo_arr = z_at_proper_distance(
+            (z_edge_lo_arr + 10) * one_over_onesource * u.Mpc, 7.5
+        )
+        z_edge_up = z_edge_up_arr[~ np.isnan(z_edge_up_arr)]
+        z_edge_lo = z_edge_lo_arr[~ np.isnan(z_edge_lo_arr)]
+        red_edge_up = red_edge_up_arr[~ np.isnan(red_edge_up_arr)]
+        red_edge_lo = red_edge_lo_arr[~ np.isnan(red_edge_lo_arr)]
+
+        # || up is the shorter version of the code that was there once searching
+        # where small bubbles intersect each sighltine
+
+        if len(z_edge_up) == 0:
+            # galaxy doesn't intersect any of the bubbles:
+
+            first_bubble_encounter_coord_z_up[i] = np.inf
+            first_bubble_encounter_coord_z_lo[i] = np.inf
+            # remember to later check for this
+            # to be checked
+            continue
+        indices_up = z_edge_up.argsort()
+
+        z_edge_up_sorted = z_edge_up[np.flip(indices_up)]
+        z_edge_lo_sorted = z_edge_lo[np.flip(indices_up)]
+        red_edge_up_sorted = red_edge_up[np.flip(indices_up)]
+        red_edge_lo_sorted = red_edge_lo[np.flip(indices_up)]
+
+        indices_to_del_lo = []
+        indices_to_del_up = []
+        for i_fi in range(len(z_edge_up) - 1):
+            if len(z_edge_up_sorted) != 1:
+                if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
+                    # got an overlapping bubble
+                    indices_to_del_lo.append(i_fi)
+                    indices_to_del_up.append(i_fi + 1)
+        z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
+        z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
+        red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
+        red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
+        tau_i = np.zeros(len(wave_em))
+
+        # up to this point, redshifts are calculated for ionized bubbles.
+        # An idea is to calculate taus for all outside bubbles, and remember the
+        # first encounter with an ionized bubble
+        first_bubble_encounter_redshift_up[i] = red_edge_up_sorted[0]
+        first_bubble_encounter_coord_z_up[i] = z_edge_up_sorted[0]
+        first_bubble_encounter_redshift_lo[i] = red_edge_lo_sorted[0]
+        first_bubble_encounter_coord_z_lo[i] = z_edge_lo_sorted[0]
+
+        for index, (z_up_i, z_lo_i, red_up_i, red_lo_i) in enumerate(
+                zip(z_edge_up_sorted, z_edge_lo_sorted, red_edge_up_sorted,
+                    red_edge_lo_sorted)):
+            if index == 0:
+                pass
+                # The thing is, I'm only gonna consider taus from neutral regions
+                # after the first bubble
+
+                # I'm quite confident this is wrong in the main code. However
+                # it doesn't change anything since I put on purpose bubbles far
+                # from 0.
+
+            elif index != len(z_edge_up_sorted) - 1:
+                z_bi = red_edge_lo_sorted[index - 1]
+                z_ei = red_up_i
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
+                )
+            if index == len(z_edge_up_sorted) - 1 and len(
+                    z_edge_up_sorted) != 1:
+                z_bi = red_edge_lo_sorted[index - 1]
+                z_ei = red_up_i
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
+                )
+                z_bi = red_lo_i
+                z_ei = 5.3
+
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
+                )
+            elif index == len(z_edge_up_sorted) - 1 and len(
+                    z_edge_up_sorted) == 1:
+                z_bi = red_lo_i
+                z_ei = 5.3
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i += tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz
+                                     )
+                )
+        try:
+            taus[i, :] = tau_i
+        except IndexError:
+            if n_iter == 1:
+                taus = tau_i
+            else:
+                raise IndexError("Something else")
+    taus = taus.flatten()
+    taus[taus < 0.0] = np.inf
+
+    return (
+        taus.reshape((n_iter, len(wave_em))),
+        first_bubble_encounter_coord_z_up,
+        first_bubble_encounter_redshift_up,
+        first_bubble_encounter_coord_z_lo,
+        first_bubble_encounter_redshift_lo,
+    )
+
+
+# Note: for now I'll add
+def calculate_taus_post(
+        z_source,
+        z_end_bubble,
+        first_bubble_encounter_coord_z_up,
+        first_bubble_encounter_redshift_up,
+        first_bubble_encounter_coord_z_lo,
+        first_bubble_encounter_redshift_lo,
+        n_iter=500,
+):
+    z = wave_em.value / 1215.67 * (1 + z_source) - 1
+    one_over_onepz = 1 / (1 + z)
+
+    tau_gp = 7.16 * 1e5 * ((1 + z_source) / 10) ** 1.5
+    tau_pref = tau_gp * r_alpha / np.pi
+    taus = np.zeros((n_iter, len(wave_em)))
+    for index_iter in range(n_iter):
+        z_up_i = first_bubble_encounter_coord_z_up[i]
+        z_lo_i = first_bubble_encounter_coord_z_lo[i]
+        red_up_i = first_bubble_encounter_redshift_up[i]
+        red_lo_i = first_bubble_encounter_redshift_lo[i]
+
+        if first_bubble_encounter_coord_z_up[i] == np.inf:
+
+            dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble)
+            taus[i, :] = tau_wv(
+                wave_em,
+                dist=dist,
+                zs=z_source,
+                z_end=5.3,
+                nf=0.8
+            )
+            # no intersections for this iter, already calculated
+
+        else:
+            if z_up_i < 0 and z_lo_i < 0:
+                print("wrong bubble, it's above the galaxy.")
+                raise ValueError
+            if z_up_i < 0 < z_lo_i:
+                # I think I need to work a bit more on the case where the small
+                # ionized bubble intersects the main bubble.
+                if red_up_i > z_end_bubble and red_lo_i < z_end_bubble:
+                    # already taken into account
+                    pass
+                elif red_lo_i > z_end_bubble:
+                    raise ValueError(
+                        "Some big problem, small bubble completely inside big?!"
+                    )
+                    # This is a problem if this happens. To think about this
+                    # potentially save all bubbles inside. But let's see if it
+                    # happens
+            else:
+                z_bi = z_end_bubble
+                z_ei = red_up_i
+                zb_ar = (1 + z_bi) * one_over_onepz
+                tau_i = tau_pref * zb_ar ** 1.5 * (
+                        I(zb_ar) - I((1 + z_ei) * one_over_onepz)
+                )
+        try:
+            taus[i, :] = tau_i
+        except IndexError:
+            if n_iter == 1:
+                taus = tau_i
+            else:
+                raise IndexError("Something else")
+    taus = taus.flatten()
+    taus[taus < 0.0] = np.inf
+    return taus
