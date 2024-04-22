@@ -200,13 +200,10 @@ def _get_likelihood(
         else:
             red_s = reds_of_galaxies_in[index_gal]
         com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
-            redshift).to(u.cm).value ** 2)
+            red_s).to(u.cm).value ** 2)
         # calculating fluxes if they are given -> To be removed
         if la_e_in is not None:
-            flux_mock[index_gal] = li / (
-                    4 * np.pi * Cosmo.luminosity_distance(
-                red_s).to(u.cm).value ** 2
-            )
+            flux_mock[index_gal] = li * com_factor[index_gal]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
