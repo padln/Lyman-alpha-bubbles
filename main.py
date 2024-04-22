@@ -293,15 +293,23 @@ def _get_likelihood(
                         n * n_inside_tau: (n + 1) * n_inside_tau,:
                         ]
             fi_bu_en_ru_i = cont_filled.first_bubble_encounter_redshift_up_full[
+                index_gal_eff
+            ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
             ]
             fi_bu_en_rl_i = cont_filled.first_bubble_encounter_redshift_lo_full[
+                index_gal_eff
+            ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
             ]
             fi_bu_en_czu_i = cont_filled.first_bubble_encounter_coord_z_up_full[
+                index_gal_eff
+            ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
             ]
             fi_bu_en_czl_i = cont_filled.first_bubble_encounter_coord_z_lo_full[
+                index_gal_eff
+            ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
             ]
 
