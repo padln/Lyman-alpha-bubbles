@@ -407,10 +407,10 @@ def calculate_taus_post(
         red_up_i = first_bubble_encounter_redshift_up[index_iter]
         red_lo_i = first_bubble_encounter_redshift_lo[index_iter]
 
-        if first_bubble_encounter_coord_z_up[i] == np.inf:
+        if first_bubble_encounter_coord_z_up[index_iter] == np.inf:
 
             dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble)
-            taus[i, :] = tau_wv(
+            taus[index_iter, :] = tau_wv(
                 wave_em,
                 dist=dist,
                 zs=z_source,
