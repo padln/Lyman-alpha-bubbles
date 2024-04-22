@@ -197,6 +197,8 @@ def _get_likelihood(
                 - zg / (1 + redshift) * u.Mpc, redshift
             )
             reds_of_galaxies_in[index_gal] = red_s
+        else:
+            red_s = reds_of_galaxies_in[index_gal]
         com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
             redshift).to(u.cm).value ** 2)
         # calculating fluxes if they are given -> To be removed
