@@ -452,4 +452,4 @@ def calculate_taus_post(
                 raise IndexError("Something else")
     taus = taus.flatten()
     taus[taus < 0.0] = np.inf
-    return taus.reshape((n_iter, len(wave_em))
+    return taus.reshape((n_iter, len(wave_em)))
