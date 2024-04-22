@@ -1400,8 +1400,6 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
     )
-    #Next part will set up taus precomputed
-
 
     # print("Finishing setting up mocks", like_on_flux)
     # assert False
