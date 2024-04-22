@@ -3,7 +3,7 @@ from venv.galaxy_prop import get_js, p_EW
 from venv.igm_prop import get_xH, get_bubbles
 from astropy import units as u
 from astropy import constants as const
-from venv.helpers import z_at_proper_distance
+from venv.helpers import z_at_proper_distance, I
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
