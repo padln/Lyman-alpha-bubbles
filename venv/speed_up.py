@@ -4,11 +4,14 @@ from venv.igm_prop import get_xH, get_bubbles
 from astropy import units as u
 from astropy import constants as const
 from venv.helpers import z_at_proper_distance, I
+from joblib import Parallel, delayed
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
 freq_Lya = (const.c / wave_Lya).to(u.Hz)
 r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
+
+
 class OutsideContainer:
     def __init__(self):
         self.j_s_full = []
@@ -18,7 +21,7 @@ class OutsideContainer:
         self.z_bub_out_full = []
         self.r_bub_out_full = []
         self.la_flux_out_full = []
-        self.tau_prec_full =  []
+        self.tau_prec_full = []
         self.first_bubble_encounter_redshift_up_full = []
         self.first_bubble_encounter_redshift_lo_full = []
         self.first_bubble_encounter_coord_z_lo_full = []
@@ -72,8 +75,8 @@ def get_content(
         fwhm_true=True,
         redshift=7.5,
         xh_unc=False,
-        high_prob_emit = False,
-        EW_fixed = False,
+        high_prob_emit=False,
+        EW_fixed=False,
 ):
     """
         Function fills up the container which has all of the forward model parts
@@ -90,7 +93,7 @@ def get_content(
     if beta is None:
         beta = np.array([-2.0] * len(Muvs))
 
-    for index_gal, muv_i in enumerate(Muvs):
+    def _get_content_par(muv_i, beti, redi):
         j_s_gal_i = np.zeros((n_iter_bub * n_inside_tau, 100))
         x_h_gal_i = np.zeros(n_iter_bub)
         x_out_gal_i = []
@@ -128,18 +131,17 @@ def get_content(
             y_out_gal_i.append(y_outs)
             z_out_gal_i.append(z_outs)
             r_out_gal_i.append(r_bubs)
-
             lae_now_i = np.array(
                 [p_EW(
                     muv_i,
-                    beta[index_gal],
+                    beti,
                     high_prob_emit=high_prob_emit,
                     EW_fixed=EW_fixed,
                 )[1] for blah in range(n_inside_tau)]
             )
 
             la_flux_gal_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = lae_now_i
             (tau_now_i,
              fi_bu_en_czu,
@@ -147,47 +149,74 @@ def get_content(
              fi_bu_en_czl,
              fi_bu_en_rl
              ) = calculate_taus_prep(
-                x_small = x_outs,
-                y_small = y_outs,
-                z_small = z_outs,
-                r_bubbles = r_bubs,
-                z_source = redshifts_of_mocks[index_gal],
-                n_iter = n_inside_tau,
+                x_small=x_outs,
+                y_small=y_outs,
+                z_small=z_outs,
+                r_bubbles=r_bubs,
+                z_source=redi,
+                n_iter=n_inside_tau,
             )
             tau_prec_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau,:
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau, :
             ] = tau_now_i
             fi_bu_en_ru_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = fi_bu_en_ru
             fi_bu_en_rl_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = fi_bu_en_rl
             fi_bu_en_czu_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = fi_bu_en_czu
             fi_bu_en_czl_i[
-                bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
+            bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
             ] = fi_bu_en_czl
 
-        cont_now.add_j_s(j_s_gal_i)
-        cont_now.add_xhs(x_h_gal_i)
-        cont_now.add_out_bubble(
+        return (
+            j_s_gal_i,
+            x_h_gal_i,
             x_out_gal_i,
             y_out_gal_i,
             z_out_gal_i,
             r_out_gal_i,
-        )
-        cont_now.add_la_flux(
-            la_flux_gal_i
-        )
-        cont_now.add_tau_prec(
+            la_flux_gal_i,
             tau_prec_i,
             fi_bu_en_ru_i,
             fi_bu_en_rl_i,
             fi_bu_en_czu_i,
             fi_bu_en_czl_i
         )
+
+    outputs = Parallel(
+        n_jobs=30
+    )(delayed(
+        _get_content_par
+    )(
+        muv_i,
+        beti,
+        redi
+    ) for (muv_i, beti, redi) in zip(Muvs, beta, redshifts_of_mocks))
+
+    for index_gal in range(len(Muvs)):
+        cont_now.add_j_s(outputs[index_gal][0])
+        cont_now.add_xhs(outputs[index_gal][1])
+        cont_now.add_out_bubble(
+            outputs[index_gal][2],
+            outputs[index_gal][3],
+            outputs[index_gal][4],
+            outputs[index_gal][5],
+        )
+        cont_now.add_la_flux(
+            outputs[index_gal][6]
+        )
+        cont_now.add_tau_prec(
+            outputs[index_gal][7],
+            outputs[index_gal][8],
+            outputs[index_gal][9],
+            outputs[index_gal][10],
+            outputs[index_gal][11]
+        )
+
     return cont_now
 
 
@@ -224,7 +253,6 @@ def calculate_taus_prep(
     first_bubble_encounter_coord_z_up = np.zeros((n_iter))
     first_bubble_encounter_redshift_lo = np.zeros((n_iter))
     first_bubble_encounter_coord_z_lo = np.zeros((n_iter))
-
 
     z = wave_em.value / 1215.67 * (1 + z_source) - 1
     one_over_onepz = 1 / (1 + z)
