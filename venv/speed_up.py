@@ -3,6 +3,7 @@ from venv.galaxy_prop import get_js, p_EW
 from venv.igm_prop import get_xH, get_bubbles
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
+from astropy import units as u
 
 class OutsideContainer:
     def __init__(self):
