@@ -58,7 +58,8 @@ def _get_likelihood(
         consistent_noise=True,
         cont_filled=None,
         index_iter=None,
-        constrained_prior=False
+        constrained_prior=False,
+        reds_of_galaxies = None,
 ):
     """
 
@@ -140,7 +141,10 @@ def _get_likelihood(
     # For these parameters, let's iterate over galaxies
     if beta_data is None:
         beta_data = np.zeros(len(xs))
-    reds_of_galaxies = np.zeros(len(xs))
+    if reds_of_galaxies is None:
+        reds_of_galaxies_in = np.zeros(len(xs))
+    else:
+        reds_of_galaxies_in = reds_of_galaxies
     print(len(xs), "this is the number of galaxies senor", flush=True)
 
     names_used = []
@@ -188,11 +192,11 @@ def _get_likelihood(
                                      bins_tot - 1))  # bins_tot is the maximum number of bins
 
         tau_now_full = np.zeros((n_iter_bub * n_inside_tau, len(wave_em)))
-
-        red_s = z_at_proper_distance(
-            - zg / (1 + redshift) * u.Mpc, redshift
-        )
-        reds_of_galaxies[index_gal] = red_s
+        if reds_of_galaxies is None:
+            red_s = z_at_proper_distance(
+                - zg / (1 + redshift) * u.Mpc, redshift
+            )
+            reds_of_galaxies_in[index_gal] = red_s
         com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
             redshift).to(u.cm).value ** 2)
         # calculating fluxes if they are given -> To be removed
@@ -653,6 +657,7 @@ def sample_bubbles_grid(
         consistent_noise=True,
         cont_filled=None,
         constrained_prior=False,
+        redshifts_of_mocks=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -785,7 +790,8 @@ def sample_bubbles_grid(
                     consistent_noise=consistent_noise,
                     cont_filled=cont_filled,
                     index_iter=ind_iter,
-                    constrained_prior=constrained_prior
+                    constrained_prior=constrained_prior,
+                    reds_of_galaxies=redshifts_of_mocks[ind_iter],
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -863,6 +869,7 @@ def sample_bubbles_grid(
                 consistent_noise=consistent_noise,
                 cont_filled=cont_filled,
                 constrained_prior=constrained_prior,
+                reds_of_galaxies=redshifts_of_mocks,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -1021,7 +1028,7 @@ if __name__ == '__main__':
             z_b = []
             r_bubs = []
             tau_data_I = np.zeros((inputs.multiple_iter, n_gal))
-
+            redshifts_of_mocks = np.zeros((inputs.multiple_iter, n_gal))
             for index_iter in range(inputs.multiple_iter):
                 tdi, xdi, ydi, zdi, x_bi, y_bi, z_bi, r_bubs_i = get_mock_data(
                     n_gal=n_gal,
@@ -1031,6 +1038,11 @@ if __name__ == '__main__':
                     ENDSTA_data=inputs.obs_pos,
                     diff_pos_prob=inputs.diff_pos_prob,
                 )
+                for index_gal_in in range(len(xdi)):
+                    red_s = z_at_proper_distance(
+                        - zdi[index_gal_in] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
+                    )
+                    redshifts_of_mocks[index_iter, index_gal_in] = red_s
                 td[index_iter, :, :] = tdi
                 xd[index_iter, :] = xdi
                 yd[index_iter, :] = ydi
@@ -1433,6 +1445,7 @@ if __name__ == '__main__':
         noise_on_the_spectrum=inputs.noise_on_the_spectrum,
         consistent_noise=inputs.consistent_noise,
         cont_filled=cont_filled,
+        redshifts_of_mocks=redshifts_of_mocks,
     )
     if isinstance(likelihoods, tuple):
         np.save(
