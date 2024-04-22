@@ -8,14 +8,13 @@ from scipy.stats import gaussian_kde
 from astropy.cosmology import z_at_value
 from astropy import units as u
 from astropy.cosmology import Planck18 as Cosmo
-import time, datetime
+import datetime
 import itertools
 from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data, p_EW
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
-from venv.igm_prop import get_bubbles
-from venv.igm_prop import calculate_taus_i, get_xH
+
 from venv.save import HdF5Saver
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
 from venv.speed_up import get_content, calculate_taus_post
@@ -37,22 +36,16 @@ def _get_likelihood(
         n_iter_bub,
         redshift=7.5,
         muv=None,
-        include_muv_unc=False,
         beta_data=None,
         use_ew=False,
-        xh_unc=False,
         la_e_in=None,
         flux_int=None,
         flux_limit=1e-18,
         like_on_flux=False,
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
-        resolution_worsening=1,
         n_inside_tau=50,
         bins_tot=20,
-        high_prob_emit=False,
         cache=True,
-        fwhm_true=False,
-        EW_fixed=False,
         like_on_tau_full=False,
         noise_on_the_spectrum=2e-20,
         consistent_noise=True,
@@ -284,31 +277,31 @@ def _get_likelihood(
             #     dist=dist,
             # )
 
-            tau_now_i = cont_filled.tau_prec_full[
+            tau_now_i = np.copy(cont_filled.tau_prec_full[
                             index_gal_eff
                         ][
                         n * n_inside_tau: (n + 1) * n_inside_tau,:
-                        ]
-            fi_bu_en_ru_i = cont_filled.first_bubble_encounter_redshift_up_full[
+                        ])
+            fi_bu_en_ru_i = np.copy(cont_filled.first_bubble_encounter_redshift_up_full[
                 index_gal_eff
             ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
-            ]
-            fi_bu_en_rl_i = cont_filled.first_bubble_encounter_redshift_lo_full[
+            ])
+            fi_bu_en_rl_i = np.copy(cont_filled.first_bubble_encounter_redshift_lo_full[
                 index_gal_eff
             ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
-            ]
-            fi_bu_en_czu_i = cont_filled.first_bubble_encounter_coord_z_up_full[
+            ])
+            fi_bu_en_czu_i = np.copy(cont_filled.first_bubble_encounter_coord_z_up_full[
                 index_gal_eff
             ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
-            ]
-            fi_bu_en_czl_i = cont_filled.first_bubble_encounter_coord_z_lo_full[
+            ])
+            fi_bu_en_czl_i = np.copy(cont_filled.first_bubble_encounter_coord_z_lo_full[
                 index_gal_eff
             ][
                 n * n_inside_tau: (n + 1) * n_inside_tau
-            ]
+            ])
 
             tau_now_i += calculate_taus_post(
                 red_s,
