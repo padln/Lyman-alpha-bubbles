@@ -169,11 +169,6 @@ def _get_likelihood(
             }
 
         taus_now = []
-        flux_now = []
-        x_bubs_now = []
-        y_bubs_now = []
-        z_bubs_now = []
-        r_bubs_now = []
         xHs_now = []
         j_s_now = []
         lae_now = np.zeros((n_iter_bub * n_inside_tau))
