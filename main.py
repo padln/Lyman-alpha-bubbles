@@ -98,7 +98,6 @@ def _get_likelihood(
     # and the rejection criterion
     if constrained_prior:
         width_conp = 0.2
-        reject_conp = 0.95
 
     if cache:
         dir_name = 'dir_' + str(
