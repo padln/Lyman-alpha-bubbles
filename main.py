@@ -123,7 +123,6 @@ def _get_likelihood(
     likelihood_tau = np.zeros((len(xs)))
     # from now on likelihood is an array that stores cumulative likelihoods for
     # all galaxies up to a certain number
-    com_factor = np.zeros(len(xs))
     taus_tot = []
     flux_tot = []
     spectrum_tot = []
@@ -191,11 +190,10 @@ def _get_likelihood(
             reds_of_galaxies_in[index_gal] = red_s
         else:
             red_s = reds_of_galaxies_in[index_gal]
-        com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
-            red_s).to(u.cm).value ** 2)
+
         # calculating fluxes if they are given -> To be removed
         if la_e_in is not None:
-            flux_mock[index_gal] = li * com_factor[index_gal]
+            flux_mock[index_gal] = li * cont_filled.com_fact[index_gal]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
@@ -354,7 +352,7 @@ def _get_likelihood(
                          n * n_inside_tau:(n + 1) * n_inside_tau
                          ] * np.array(
                 taus_now
-            ).flatten()[n * n_inside_tau:(n + 1) * n_inside_tau] * com_factor[
+            ).flatten()[n * n_inside_tau:(n + 1) * n_inside_tau] * cont_filled.com_fact[
                              index_gal_eff]
             flux_now_i += np.random.normal(0, 5e-20, np.shape(flux_now_i))
             flux_now[n * n_inside_tau:(n + 1) * n_inside_tau] = flux_now_i
@@ -387,7 +385,7 @@ def _get_likelihood(
                                                                                       n + 1) * n_inside_tau
                                                         ] * eit_l * tau_CGM(
                                       muvi)[np.newaxis, :] *
-                                     com_factor[
+                                     cont_filled.com_fact[
                                          index_gal_eff] / integrate.trapz(
                                               cont_filled.j_s_full[
                                                   index_gal_eff][
@@ -420,7 +418,7 @@ def _get_likelihood(
                                            n * n_inside_tau: (
                                                                      n + 1) * n_inside_tau
                                            ] * eit_l * tau_CGM(
-                    muvi)[np.newaxis, :] * com_factor[
+                    muvi)[np.newaxis, :] * cont_filled.com_fact[
                             index_gal_eff] / integrate.trapz(
                     cont_filled.j_s_full[index_gal_eff][
                     n * n_inside_tau: (
