@@ -126,8 +126,6 @@ def _get_likelihood(
     taus_tot = []
     flux_tot = []
     spectrum_tot = []
-    if la_e_in is not None:
-        flux_mock = np.zeros(len(xs))
 
     # For these parameters, let's iterate over galaxies
     if beta_data is None:
@@ -185,10 +183,6 @@ def _get_likelihood(
             reds_of_galaxies_in[index_gal] = red_s
         else:
             red_s = reds_of_galaxies_in[index_gal]
-
-        # calculating fluxes if they are given -> To be removed
-        if la_e_in is not None:
-            flux_mock[index_gal] = li * cont_filled.com_fact[index_gal]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
