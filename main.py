@@ -104,20 +104,20 @@ def _get_likelihood(
         dir_name = 'dir_' + str(
             datetime.datetime.now().date()
         ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
-    if like_on_flux is not False:
-        bins_arr = [
-            np.linspace(
-                wave_em.value[0] * (1 + redshift),
-                wave_em.value[-1] * (1 + redshift),
-                bin_i + 1
-            ) for bin_i in range(2, bins_tot)
-        ]
-        wave_em_dig_arr = [
-            np.digitize(
-                wave_em.value * (1 + redshift),
-                bin_i
-            ) for bin_i in bins_arr
-        ]
+    # if like_on_flux is not False:
+    #     bins_arr = [
+    #         np.linspace(
+    #             wave_em.value[0] * (1 + redshift),
+    #             wave_em.value[-1] * (1 + redshift),
+    #             bin_i + 1
+    #         ) for bin_i in range(2, bins_tot)
+    #     ]
+    #     wave_em_dig_arr = [
+    #         np.digitize(
+    #             wave_em.value * (1 + redshift),
+    #             bin_i
+    #         ) for bin_i in bins_arr
+    #     ]
 
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
