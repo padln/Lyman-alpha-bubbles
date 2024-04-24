@@ -189,7 +189,7 @@ def get_content(
         )
 
     #checking out how delayed and Parallel work
-    print(Muvs, beta, redshift_of_mocks)
+    print(Muvs, beta, redshifts_of_mocks)
     def _fake_func(m,b,r):
         return m,b,r
     res = Parallel(n_jobs=30)(
