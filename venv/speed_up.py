@@ -198,6 +198,7 @@ def get_content(
         )(m,b,r) for (m,b,r) in zip(Muvs, beta, redshifts_of_mocks)
     )
     print(res)
+    assert False
 
     outputs = Parallel(
         n_jobs=30
