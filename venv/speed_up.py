@@ -188,6 +188,17 @@ def get_content(
             fi_bu_en_czl_i
         )
 
+    #checking out how delayed and Parallel work
+    print(Muvs, beta, redshift_of_mocks)
+    def _fake_func(m,b,r):
+        return m,b,r
+    res = Parallel(n_jobs=30)(
+        delayed(
+            _fake_func
+        )(m,b,r) for (m,b,r) in zip(Muvs, beta, redshifts_of_mocks)
+    )
+    print(res)
+
     outputs = Parallel(
         n_jobs=30
     )(delayed(
