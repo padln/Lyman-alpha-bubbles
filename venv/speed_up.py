@@ -226,14 +226,14 @@ def get_content(
             }
             try:
                 save_cl = HdF5Saver(
-                    x_gal=xg,
+                    x_gal=x_gal_position[index_gal],
                     n_iter_bub=n_iter_bub,
                     n_inside_tau=n_inside_tau,
                     output_dir=cache_dir + '/' + dir_name,
                 )
             except IndexError:
                 save_cl = HdF5Saver(
-                    x_gal=xg,
+                    x_gal=x_gal_position[index_gal],
                     n_iter_bub=n_iter_bub,
                     n_inside_tau=n_inside_tau,
                     output_dir=cache_dir + '/' + dir_name,
