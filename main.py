@@ -235,36 +235,25 @@ def _get_likelihood(
             # r_bubs_now.append(r_bubs)
 
             if n == 0 and cache:
-                print("This is what I'm trying to save:",
-                      cont_filled.x_bub_out_full[index_gal_eff][n][0],
-                      flush=True)
-                print("This are all of the bubbles,",
-                      cont_filled.x_bub_out_full[index_gal_eff][n], flush=True)
                 try:
                     save_cl = HdF5Saver(
                         x_gal=xg,
-                        x_first_bubble=
-                        cont_filled.x_bub_out_full[index_gal_eff][n][0],
+                        n_iter_bub=n_iter_bub,
+                        n_inside_tau=n_inside_tau,
                         output_dir=cache_dir + '/' + dir_name,
-                        x_main=xb,
-                        y_main=yb,
-                        z_main=zb,
-                        r_main=rb,
+                        create=False,
                     )
                 except IndexError:
                     save_cl = HdF5Saver(
                         x_gal=xg,
-                        x_first_bubble=
-                        cont_filled.x_bub_out_full[index_gal_eff][n],
+                        n_iter_bub=n_iter_bub,
+                        n_inside_tau=n_inside_tau,
                         output_dir=cache_dir + '/' + dir_name,
+                        create=False,
                     )
                     print(
                         "Beware, something weird happened with outside bubble",
-                        cont_filled.x_bub_out_full[index_gal_eff],
-                        cont_filled.y_bub_out_full[index_gal_eff],
-                        cont_filled.z_bub_out_full[index_gal_eff]
                     )
-                save_cl.save_attrs(dict_gal)
             #
             # tau_now_i = calculate_taus_i(
             #     cont_filled.x_bub_out_full[index_gal_eff][n],
@@ -445,40 +434,19 @@ def _get_likelihood(
                     )
 
         if cache:
-            max_len = np.max(
-                [len(a) for a in cont_filled.x_bub_out_full[index_gal_eff]])
-            x_bubs_arr = np.zeros(
-                (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-            y_bubs_arr = np.zeros(
-                (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-            z_bubs_arr = np.zeros(
-                (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-            r_bubs_arr = np.zeros(
-                (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-            for i_bub, (xar, yar, zar, rar) in enumerate(
-                    zip(
-                        cont_filled.x_bub_out_full[index_gal_eff],
-                        cont_filled.y_bub_out_full[index_gal_eff],
-                        cont_filled.z_bub_out_full[index_gal_eff],
-                        cont_filled.r_bub_out_full[index_gal_eff])
-            ):
-                x_bubs_arr[i_bub, :len(xar)] = xar
-                y_bubs_arr[i_bub, :len(xar)] = yar
-                z_bubs_arr[i_bub, :len(xar)] = zar
-                r_bubs_arr[i_bub, :len(xar)] = rar
-            dict_dat = {
-                'one_Js': np.array(j_s_now),
-                'xHs': np.array(xHs_now),
-                'x_bubs_arr': x_bubs_arr,
-                'y_bubs_arr': y_bubs_arr,
-                'z_bubs_arr': z_bubs_arr,
-                'r_bubs_arr': r_bubs_arr,
+
+            dict_dat_aft = {
                 'tau_full': tau_now_full,
                 'flux_integ': flux_now,
-                'Lyman_alpha_iter': lae_now,
                 'mock_spectra': spectrum_now,
             }
-            save_cl.save_datasets(dict_dat)
+            save_cl.save_data_after(
+                xb,
+                yb,
+                zb,
+                rb,
+                dict_dat_aft
+            )
 
             names_used.append(save_cl.fname)
             save_cl.close_file()
@@ -1391,6 +1359,9 @@ if __name__ == '__main__':
     cont_filled = get_content(
         Muv.flatten(),
         redshifts_of_mocks,
+        xd,
+        yd,
+        zd,
         n_iter_bub=inputs.n_iter_bub,
         n_inside_tau=inputs.n_inside_tau,
         include_muv_unc=inputs.mag_unc,
