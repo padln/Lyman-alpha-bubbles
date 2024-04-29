@@ -7,6 +7,7 @@ from venv.helpers import z_at_proper_distance, I, comoving_distance_from_source_
 from venv.igm_prop import tau_wv
 from venv.save import HdF5Saver
 from joblib import Parallel, delayed
+import datetime
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
