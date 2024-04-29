@@ -214,7 +214,7 @@ def get_content(
 
         if cache:
             dict_gal = {
-                'redshift': redshift_of_mocks[index_gal],
+                'redshift': redshifts_of_mocks[index_gal],
                 'x_galaxy_position': x_gal_position[index_gal],
                 'y_galaxy_position': y_gal_position[index_gal],
                 'z_galaxy_position': z_gal_position[index_gal],
