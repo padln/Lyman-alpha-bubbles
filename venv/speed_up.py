@@ -224,6 +224,8 @@ def get_content(
                 'n_iter_bub': n_iter_bub,
                 'n_inside_tau': n_inside_tau,
             }
+            print(dict_gal, flush=True)
+            assert False
             try:
                 save_cl = HdF5Saver(
                     x_gal=x_gal_position[index_gal],
