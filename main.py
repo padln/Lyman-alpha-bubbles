@@ -2,6 +2,7 @@ import numpy as np
 from numpy.linalg import LinAlgError
 import argparse
 import os
+import shutil
 from scipy import integrate
 from scipy.stats import gaussian_kde
 
@@ -15,7 +16,7 @@ from joblib import Parallel, delayed
 from venv.galaxy_prop import get_js, get_mock_data, p_EW
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 
-from venv.save import HdF5Saver
+from venv.save import HdF5Saver, HdF5SaverAft
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
 from venv.speed_up import get_content, calculate_taus_post
 
@@ -235,25 +236,23 @@ def _get_likelihood(
             # r_bubs_now.append(r_bubs)
 
             if n == 0 and cache:
+                param_name = f"{n_iter_bub}" + "_" + f"{n_inside_tau}"
+                n_p = f"{xg:.4f}" + "_" + param_name
+                fn_original = cache_dir + '/' + dir_name + '_' + n_p + '.hdf5'
+                pos_n = f"{xb:.2f}" + "_" + f"{yb:.2f}" + '_' + f"{zb:.2f}"
+                b_n = pos_n + '_' + f"{rb:.2f}" + '.hdf5'
+                fn_copy = cache_dir + '/' + dir_name + '_' + b_n
+                shutil.copyfile(fn_original, fn_copy)
+
                 try:
-                    save_cl = HdF5Saver(
-                        x_gal=xg,
-                        n_iter_bub=n_iter_bub,
-                        n_inside_tau=n_inside_tau,
-                        output_dir=cache_dir + '/' + dir_name,
-                        create=False,
+                    save_cl = HdF5SaverAft(
+                        fn_copy
                     )
                 except IndexError:
-                    save_cl = HdF5Saver(
-                        x_gal=xg,
-                        n_iter_bub=n_iter_bub,
-                        n_inside_tau=n_inside_tau,
-                        output_dir=cache_dir + '/' + dir_name,
-                        create=False,
-                    )
                     print(
                         "Beware, something weird happened with outside bubble",
                     )
+                    raise ValueError
             #
             # tau_now_i = calculate_taus_i(
             #     cont_filled.x_bub_out_full[index_gal_eff][n],
@@ -448,7 +447,7 @@ def _get_likelihood(
                 dict_dat_aft
             )
 
-            names_used.append(save_cl.fname)
+            names_used.append(save_cl.f_name)
             save_cl.close_file()
 
         flux_tot.append(np.array(flux_now).flatten())

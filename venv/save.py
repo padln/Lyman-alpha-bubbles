@@ -2,6 +2,7 @@ import numpy as np
 import h5py
 import os.path
 
+
 class HdF5Saver:
     def __init__(
             self,
@@ -10,7 +11,7 @@ class HdF5Saver:
             n_inside_tau,
             # x_first_bubble,
             output_dir,
-            create = True,
+            create=True,
             # x_main = 0.0,
             # y_main = 0.0,
             # z_main = 0.0,
@@ -37,7 +38,7 @@ class HdF5Saver:
                     pass
             self.create_file()
         else:
-            self.create=True
+            self.create = True
             self.open()
 
     def create_file(self):
@@ -46,15 +47,15 @@ class HdF5Saver:
                       f"{self.n_iter_bub}" + "_" +
                       f"{self.n_inside_tau}" +
                       '.hdf5')
-                      # f"{self.x_first_bubble:.4f}" + "_" +
-                      # f"{self.x_main:.2f}" + "_" +
-                      # f"{self.y_main:.2f}" + "_" +
-                      # f"{self.z_main:.2f}" + "_" +
-                      # f"{self.r_main:.2f}" + "_" +
-                      # '.hdf5')
+        # f"{self.x_first_bubble:.4f}" + "_" +
+        # f"{self.x_main:.2f}" + "_" +
+        # f"{self.y_main:.2f}" + "_" +
+        # f"{self.z_main:.2f}" + "_" +
+        # f"{self.r_main:.2f}" + "_" +
+        # '.hdf5')
         self.f = h5py.File(self.fname, 'a')
 
-        self.created=True
+        self.created = True
 
     def open(self):
         self.fname = (self.output_dir +
@@ -62,12 +63,12 @@ class HdF5Saver:
                       f"{self.n_iter_bub}" + "_" +
                       f"{self.n_inside_tau}" +
                       '.hdf5')
-                      # f"{self.x_first_bubble:.4f}" + "_" +
-                      # f"{self.x_main:.2f}" + "_" +
-                      # f"{self.y_main:.2f}" + "_" +
-                      # f"{self.z_main:.2f}" + "_" +
-                      # f"{self.r_main:.2f}" + "_" +
-                      # '.hdf5')
+        # f"{self.x_first_bubble:.4f}" + "_" +
+        # f"{self.x_main:.2f}" + "_" +
+        # f"{self.y_main:.2f}" + "_" +
+        # f"{self.z_main:.2f}" + "_" +
+        # f"{self.r_main:.2f}" + "_" +
+        # '.hdf5')
         self.f = h5py.File(self.fname, 'a')
 
     def save_attrs(self, dict_gal):
@@ -78,9 +79,25 @@ class HdF5Saver:
         for (nam, val) in dict_dat.items():
             self.f.create_dataset(
                 nam,
-                dtype = "float",
-                data = val
+                dtype="float",
+                data=val
             )
+
+    def close_file(self):
+        self.f.close()
+
+
+class HdF5SaverAft:
+    def __init__(
+            self,
+            f_name,
+    ):
+        self.f = None
+        self.f_name = f_name
+        self.open()
+
+    def open(self):
+        self.f = h5py.File(self.f_name, 'a')
 
     def save_data_after(self, x_main, y_main, z_main, r_bub_main, dict_dat):
         """
@@ -102,9 +119,8 @@ class HdF5Saver:
         for (nam, val) in dict_dat.items():
             f_group.create_dataset(
                 nam,
-                dtype = "float",
-                data = val
+                dtype="float",
+                data=val
             )
-
-    def close_file(self):
+    def close(self):
         self.f.close()
