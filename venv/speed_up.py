@@ -224,12 +224,10 @@ def get_content(
                 'z_galaxy_position': z_gal_position[index_gal],
                 'Muv': Muvs[index_gal],
                 'beta': beta[index_gal],
-                'Lyman_alpha_lum_galaxy': outputs[index_gal][6],
                 'n_iter_bub': n_iter_bub,
                 'n_inside_tau': n_inside_tau,
             }
-            print(dict_gal, flush=True)
-            assert False
+
             try:
                 save_cl = HdF5Saver(
                     x_gal=x_gal_position[index_gal],
@@ -248,75 +246,40 @@ def get_content(
                     "Beware, something weird happened with outside bubble",
                 )
             save_cl.save_attrs(dict_gal)
-            if cache:
-                max_len = np.max(
-                    [len(a) for a in cont_filled.x_bub_out_full[index_gal_eff]])
-                x_bubs_arr = np.zeros(
-                    (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-                y_bubs_arr = np.zeros(
-                    (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-                z_bubs_arr = np.zeros(
-                    (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-                r_bubs_arr = np.zeros(
-                    (len(cont_filled.x_bub_out_full[index_gal_eff]), max_len))
-                for i_bub, (xar, yar, zar, rar) in enumerate(
-                        zip(
-                            cont_filled.x_bub_out_full[index_gal_eff],
-                            cont_filled.y_bub_out_full[index_gal_eff],
-                            cont_filled.z_bub_out_full[index_gal_eff],
-                            cont_filled.r_bub_out_full[index_gal_eff])
-                ):
-                    x_bubs_arr[i_bub, :len(xar)] = xar
-                    y_bubs_arr[i_bub, :len(xar)] = yar
-                    z_bubs_arr[i_bub, :len(xar)] = zar
-                    r_bubs_arr[i_bub, :len(xar)] = rar
-                dict_dat = {
-                    'one_Js': np.array(j_s_now),
-                    'xHs': np.array(xHs_now),
-                    'x_bubs_arr': x_bubs_arr,
-                    'y_bubs_arr': y_bubs_arr,
-                    'z_bubs_arr': z_bubs_arr,
-                    'r_bubs_arr': r_bubs_arr,
-                    'tau_full': tau_now_full,
-                    'flux_integ': flux_now,
-                    'Lyman_alpha_iter': lae_now,
-                    'mock_spectra': spectrum_now,
-                }
-                save_cl.save_datasets(dict_dat)
-                max_len = np.max(
-                    [len(a) for a in outputs[index_gal][2]])
-                x_bubs_arr = np.zeros(
-                    (len(outputs[index_gal][2]), max_len))
-                y_bubs_arr = np.zeros(
-                    (len(outputs[index_gal][2]), max_len))
-                z_bubs_arr = np.zeros(
-                    (len(outputs[index_gal][2]), max_len))
-                r_bubs_arr = np.zeros(
-                    (len(outputs[index_gal][2]), max_len))
-                for i_bub, (xar, yar, zar, rar) in enumerate(
-                        zip(
-                            outputs[index_gal][2],
-                            outputs[index_gal][3],
-                            outputs[index_gal][4],
-                            outputs[index_gal][5],
-                        )
-                ):
-                    x_bubs_arr[i_bub, :len(xar)] = xar
-                    y_bubs_arr[i_bub, :len(xar)] = yar
-                    z_bubs_arr[i_bub, :len(xar)] = zar
-                    r_bubs_arr[i_bub, :len(xar)] = rar
-                dict_dat = {
-                    'one_Js': np.array(outputs[index_gal][0]),
-                    'xHs': np.array(outputs[index_gal][1]),
-                    'x_bubs_arr': x_bubs_arr,
-                    'y_bubs_arr': y_bubs_arr,
-                    'z_bubs_arr': z_bubs_arr,
-                    'r_bubs_arr': r_bubs_arr,
-                    'tau_prec': np.array(outputs[index_gal][7]),
-                    'Lyman_alpha_iter': np.array(outputs[index_gal][6]),
-                }
-                save_cl.save_datasets(dict_dat)
-                save_cl.close_file()
+            max_len = np.max(
+                [len(a) for a in outputs[index_gal][2]])
+            x_bubs_arr = np.zeros(
+                (len(outputs[index_gal][2]), max_len))
+            y_bubs_arr = np.zeros(
+                (len(outputs[index_gal][2]), max_len))
+            z_bubs_arr = np.zeros(
+                (len(outputs[index_gal][2]), max_len))
+            r_bubs_arr = np.zeros(
+                (len(outputs[index_gal][2]), max_len))
+            for i_bub, (xar, yar, zar, rar) in enumerate(
+                    zip(
+                        outputs[index_gal][2],
+                        outputs[index_gal][3],
+                        outputs[index_gal][4],
+                        outputs[index_gal][5],
+                    )
+            ):
+                x_bubs_arr[i_bub, :len(xar)] = xar
+                y_bubs_arr[i_bub, :len(xar)] = yar
+                z_bubs_arr[i_bub, :len(xar)] = zar
+                r_bubs_arr[i_bub, :len(xar)] = rar
+            dict_dat = {
+                'one_Js': np.array(outputs[index_gal][0]),
+                'xHs': np.array(outputs[index_gal][1]),
+                'x_bubs_arr': x_bubs_arr,
+                'y_bubs_arr': y_bubs_arr,
+                'z_bubs_arr': z_bubs_arr,
+                'r_bubs_arr': r_bubs_arr,
+                'tau_prec': np.array(outputs[index_gal][7]),
+                'Lyman_alpha_iter': np.array(outputs[index_gal][6]),
+            }
+            save_cl.save_datasets(dict_dat)
+            save_cl.close_file()
 
         cont_now.add_j_s(outputs[index_gal][0])
         cont_now.add_la_flux(
