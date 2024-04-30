@@ -238,10 +238,10 @@ def _get_likelihood(
             if n == 0 and cache:
                 param_name = f"{n_iter_bub}" + "_" + f"{n_inside_tau}"
                 n_p = f"{xg:.4f}" + "_" + param_name
-                fn_original = cache_dir + '/' + dir_name + '_' + n_p + '.hdf5'
+                fn_original = cache_dir + '/' + dir_name + n_p + '.hdf5'
                 pos_n = f"{xb:.2f}" + "_" + f"{yb:.2f}" + '_' + f"{zb:.2f}"
-                b_n = pos_n + '_' + f"{rb:.2f}" + '.hdf5'
-                fn_copy = cache_dir + '/' + dir_name + '_' + b_n
+                b_n = n_p + '_' + pos_n + '_' + f"{rb:.2f}" + '.hdf5'
+                fn_copy = cache_dir + '/' + dir_name + b_n
                 shutil.copyfile(fn_original, fn_copy)
 
                 try:
