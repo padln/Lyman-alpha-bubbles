@@ -48,11 +48,19 @@ class HdF5Saver:
             self.open()
 
     def create_file(self):
-
+        print(str(self.n_iter_bub))
+        if hasattr(self.n_inside_tau, '__len__'):
+            nib = self.n_inside_tau[0]
+        else:
+            nib = self.n_inside_tau
+        if hasattr(self.n_iter_bub, '__len__'):
+            nit = self.n_iter_bub[0]
+        else:
+            nit = self.n_iter_bub
         self.fname = (self.output_dir +
-                      f"{self.x_gal:.4f}" + "_" +
-                      str(self.n_iter_bub) + "_" +
-                      str(self.n_inside_tau) +
+                      f"{self.x_gal:.8f}" + "_" +
+                      str(nib) + "_" +
+                      str(nit) +
                       '.hdf5')
         # f"{self.x_first_bubble:.4f}" + "_" +
         # f"{self.x_main:.2f}" + "_" +
