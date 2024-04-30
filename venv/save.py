@@ -20,6 +20,12 @@ class HdF5Saver:
         """Saving is done by referencing the first galaxies x-position and
         the first bubbles positin"""
         self.x_gal = x_gal
+
+        if type(n_iter_bub) is tuple:
+            n_iter_bub = n_iter_bub[0]
+        if type(n_inside_tau) is tuple:
+            n_inside_tau = n_inside_tau[0]
+
         self.n_iter_bub = n_iter_bub,
         self.n_inside_tau = n_inside_tau,
         # self.x_first_bubble = x_first_bubble
@@ -42,10 +48,11 @@ class HdF5Saver:
             self.open()
 
     def create_file(self):
+
         self.fname = (self.output_dir +
                       f"{self.x_gal:.4f}" + "_" +
-                      f"{self.n_iter_bub}" + "_" +
-                      f"{self.n_inside_tau}" +
+                      str(self.n_iter_bub) + "_" +
+                      str(self.n_inside_tau) +
                       '.hdf5')
         # f"{self.x_first_bubble:.4f}" + "_" +
         # f"{self.x_main:.2f}" + "_" +
