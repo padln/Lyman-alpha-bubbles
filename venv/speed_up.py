@@ -95,6 +95,10 @@ def get_content(
         Note that n_iter_bub and n_inside_tau have fiducial values that show
         convergence in the integrated flux.
     """
+    if type(n_iter_bub) is tuple:
+        n_iter_bub = n_iter_bub[0]
+    if type(n_inside_tau) is tuple:
+        n_inside_tau = n_inside_tau[0]
 
     if cache:
         dir_name = 'dir_' + str(
