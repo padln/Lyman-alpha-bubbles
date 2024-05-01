@@ -236,8 +236,8 @@ def _get_likelihood(
             # r_bubs_now.append(r_bubs)
 
             if n == 0 and cache:
-                param_name = f"{n_iter_bub}" + "_" + f"{n_inside_tau}"
-                n_p = f"{xg:.4f}" + "_" + param_name
+                param_name = str(n_iter_bub) + "_" + str(n_inside_tau)
+                n_p = f"{xg:.8f}" + "_" + param_name
                 fn_original = cache_dir + '/' + dir_name + n_p + '.hdf5'
                 pos_n = f"{xb:.2f}" + "_" + f"{yb:.2f}" + '_' + f"{zb:.2f}"
                 b_n = n_p + '_' + pos_n + '_' + f"{rb:.2f}" + '.hdf5'
