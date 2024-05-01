@@ -448,7 +448,7 @@ def _get_likelihood(
             )
 
             names_used.append(save_cl.f_name)
-            save_cl.close_file()
+            save_cl.close()
 
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
