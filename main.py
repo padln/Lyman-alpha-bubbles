@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from numpy.linalg import LinAlgError
 import argparse
@@ -300,6 +302,7 @@ def _get_likelihood(
                 fi_bu_en_rl_i,
                 n_iter = n_inside_tau,
             )
+            del fi_bu_en_czl_i, fi_bu_en_czu_i, fi_bu_en_rl_i, fi_bu_en_ru_i
 
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
@@ -316,6 +319,8 @@ def _get_likelihood(
                     wave_em.value, axis=1)[:, np.newaxis],
                 wave_em.value
             )
+            del tau_cgm_gal_in
+            del tau_now_i
 
             if np.all(np.array(res) < 10000):
                 if use_ew:
@@ -357,7 +362,7 @@ def _get_likelihood(
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 0
 
-
+            del res
 
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
@@ -423,6 +428,7 @@ def _get_likelihood(
                     noise_on_the_spectrum,
                     np.shape(full_flux_res_i)
                 )
+                del continuum_i
                 for bin_i, wav_dig_i in zip(
                         range(2, inputs.bins_tot), wave_em_dig_arr
                 ):
@@ -449,13 +455,12 @@ def _get_likelihood(
 
             names_used.append(save_cl.f_name)
             save_cl.close()
-
+            del save_cl, dict_dat_aft
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
         spectrum_tot.append(spectrum_now)
     # print("Calculated all the spectra", spectrum_tot, "Shape of spectra", np.shape(spectrum_tot))
     # assert False
-    taus_tot_b = []
     # print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
     try:
@@ -1370,7 +1375,7 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
     )
-
+    print("THis is the size of the container", sys.getsizeof(cont_filled))
     # print("Finishing setting up mocks", like_on_flux)
     # assert False
     likelihoods, names_used = sample_bubbles_grid(
