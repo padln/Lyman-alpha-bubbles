@@ -101,7 +101,6 @@ def _get_likelihood(
     # and the rejection criterion
     if constrained_prior:
         width_conp = 0.2
-        reject_conp = 0.95
 
     if cache:
         dir_name = 'dir_' + str(
@@ -156,22 +155,6 @@ def _get_likelihood(
             index_gal_eff = index_gal
         # defining a dictionary that's going to contain all information about
         # this run for the caching process
-        if cache:
-            dict_gal = {
-                'redshift': redshift,
-                'x_galaxy_position': xg,
-                'y_galaxy_position': yg,
-                'z_galaxy_position': zg,
-                'Muv': muvi,
-                'beta': beti,
-                'Lyman_alpha_lum_galaxy': li,
-                'x_bubble_position': xb,
-                'y_bubble_position': yb,
-                'z_bubble_position': zb,
-                'R_main_bubble': rb,
-                'n_iter_bub': n_iter_bub,
-                'n_inside_tau': n_inside_tau,
-            }
 
         taus_now = []
         flux_now = []
@@ -322,6 +305,7 @@ def _get_likelihood(
             del tau_cgm_gal_in
             del tau_now_i
 
+
             if np.all(np.array(res) < 10000):
                 if use_ew:
                     taus_now.extend(
@@ -363,7 +347,7 @@ def _get_likelihood(
                                 index_gal, n * n_inside_tau + index_tau_for] = 0
 
             del res
-
+            del flux_now_i
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
                            ])
@@ -406,6 +390,7 @@ def _get_likelihood(
                     spectrum_now[n * n_inside_tau:(n + 1) * n_inside_tau,
                     bin_i - 1,
                     :bin_i] = spectrum_now_i.T
+                    del spectrum_now_i
             else:
                 continuum_i = (
                         cont_filled.la_flux_out_full[index_gal_eff][
@@ -437,6 +422,7 @@ def _get_likelihood(
                     :bin_i] = perturb_flux(
                         full_flux_res_i, bin_i
                     )
+                del full_flux_res_i
 
         if cache:
 
@@ -725,7 +711,7 @@ def sample_bubbles_grid(
             if like_on_flux is not False:
                 like_on_flux_i = like_on_flux[ind_iter]
             like_calc = Parallel(
-                n_jobs=50
+                n_jobs=25
             )(
                 delayed(
                     _get_likelihood
@@ -798,7 +784,7 @@ def sample_bubbles_grid(
 
     else:
         like_calc = Parallel(
-            n_jobs=50
+            n_jobs=25
         )(
             delayed(
                 _get_likelihood
