@@ -2,7 +2,6 @@ import numpy as np
 from numpy.linalg import LinAlgError
 import argparse
 import os
-from scipy import integrate
 from scipy.stats import gaussian_kde
 
 from astropy.cosmology import z_at_value
@@ -306,12 +305,8 @@ def _get_likelihood(
             res = np.trapz(
                 eit_l * tau_cgm_gal_in * cont_filled.j_s_full[index_gal_eff][
                                          n * n_inside_tau: (
-                                                                       n + 1) * n_inside_tau
-                                         ] / integrate.trapz(
-                    cont_filled.j_s_full[index_gal_eff][
-                    n * n_inside_tau: (n + 1) * n_inside_tau
-                    ],
-                    wave_em.value, axis=1)[:, np.newaxis],
+                                            n + 1) * n_inside_tau
+                                         ],
                 wave_em.value
             )
 
@@ -375,14 +370,7 @@ def _get_likelihood(
                                                         ] * eit_l * tau_CGM(
                                       muvi)[np.newaxis, :] *
                                      cont_filled.com_fact[
-                                         index_gal_eff] / integrate.trapz(
-                                              cont_filled.j_s_full[
-                                                  index_gal_eff][
-                                              n * n_inside_tau: (
-                                                                        n + 1) * n_inside_tau
-                                              ],
-                                              wave_em.value, axis=1)[:,
-                                                          np.newaxis]
+                                         index_gal_eff]
                                      )[:, wav_dig_i == i_bin + 1], axis=1) for
                          i_bin
                          in range(bin_i)
@@ -408,12 +396,7 @@ def _get_likelihood(
                                                                      n + 1) * n_inside_tau
                                            ] * eit_l * tau_CGM(
                     muvi)[np.newaxis, :] * cont_filled.com_fact[
-                            index_gal_eff] / integrate.trapz(
-                    cont_filled.j_s_full[index_gal_eff][
-                    n * n_inside_tau: (
-                                              n + 1) * n_inside_tau
-                    ],
-                    wave_em.value, axis=1)[:, np.newaxis]
+                            index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
                 full_flux_res_i += np.random.normal(
@@ -1033,16 +1016,13 @@ if __name__ == '__main__':
                 )
                 one_J_arr[index_iter, :, :] = np.array(one_J[0][:n_gal])
 
-                #           print(tau_data_I, np.shape(tau_data_I))
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal])
                     eit = np.exp(-tdi[i_gal])
                     tau_data_I[index_iter, i_gal] = np.trapz(
-                        eit * tau_cgm_gal * one_J[0][i_gal] / integrate.trapz(
-                            one_J[0][i_gal],
-                            wave_em.value
-                        ), wave_em.value)
-        #          print(tau_data_I, np.shape(tau_data_I))
+                        eit * tau_cgm_gal * one_J[0][i_gal],
+                        wave_em.value
+                    )
 
         else:
             td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
@@ -1072,10 +1052,7 @@ if __name__ == '__main__':
                 tau_cgm_gal = tau_CGM(Muv[i])
                 tau_data_I.append(
                     np.trapz(
-                        eit * tau_cgm_gal * one_J[0][i] / integrate.trapz(
-                            one_J[0][i],
-                            wave_em.value
-                        ),
+                        eit * tau_cgm_gal * one_J[0][i] ,
                         wave_em.value)
                 )
 
@@ -1087,10 +1064,8 @@ if __name__ == '__main__':
                 high_prob_emit=inputs.high_prob_emit,
                 EW_fixed=inputs.EW_fixed,
             )
-            # print("This is la_e_in now", la_e_in, "this is shape of Muv", np.shape(Muv))
             ew_factor = ew_factor.reshape((np.shape(Muv)))
             la_e = la_e.reshape((np.shape(Muv)))
-            # print("and this is it now: ", la_e_in, "\n with a shape", np.shape(la_e_in))
             data = np.array(tau_data_I)
         else:
             data = np.array(tau_data_I)
@@ -1242,9 +1217,7 @@ if __name__ == '__main__':
                                          ) * tau_CGM(Muv[index_gal]) / (
                                                     4 * np.pi * Cosmo.luminosity_distance(
                                                 7.5).to(
-                                                u.cm).value ** 2) / integrate.trapz(
-                                             one_J[index_gal],
-                                             wave_em.value)
+                                                u.cm).value ** 2)
                                             )[wav_dig_i == i + 1]) for i in
                                 range(bin_i)
                             ]
@@ -1269,9 +1242,7 @@ if __name__ == '__main__':
                                             Muv[index_iter, index_gal]) / (
                                                    4 * np.pi * Cosmo.luminosity_distance(
                                                7.5).to(
-                                               u.cm).value ** 2) / integrate.trapz(
-                                            one_J_arr[index_iter, index_gal, :],
-                                            wave_em.value)
+                                               u.cm).value ** 2)
                                            )[wav_dig_i == i + 1]) for i in
                                     range(bin_i)
                                 ]
@@ -1298,11 +1269,7 @@ if __name__ == '__main__':
                     Muv) / (
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
-                        ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J,
-                    wave_em.value,
-                    axis=-1,
-                )[:, :,np.newaxis]
+                        ).to(u.cm).value ** 2)
                 )
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
                 full_flux_res += np.random.normal(
@@ -1331,13 +1298,8 @@ if __name__ == '__main__':
                     Muv) / (
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
-                        ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J[:n_gal,:],
-                    wave_em.value,
-                    axis=-1,
-                )[:,  np.newaxis]
+                        ).to(u.cm).value ** 2)
                 )
-
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
 
@@ -1353,9 +1315,6 @@ if __name__ == '__main__':
                         full_flux_res, bin_i
                     )
 
-
-
-    # print(np.shape(xd), flush=True)
     # assert False
     if inputs.like_on_flux:
         like_on_flux = flux_noise_mock
