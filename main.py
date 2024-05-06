@@ -1362,9 +1362,7 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
     )
-    print("THis is the size of the container", sys.getsizeof(cont_filled))
-    # print("Finishing setting up mocks", like_on_flux)
-    # assert False
+
     likelihoods, names_used = sample_bubbles_grid(
         tau_data=np.array(data),
         xs=xd,
@@ -1374,10 +1372,8 @@ if __name__ == '__main__':
         n_grid=inputs.n_grid,
         redshift=inputs.redshift,
         muv=Muv,
-        include_muv_unc=inputs.mag_unc,
         use_ew=inputs.use_EW,
         beta_data=beta,
-        xh_unc=inputs.xH_unc,
         la_e=la_e,
         flux_int=flux_tau,
         multiple_iter=inputs.multiple_iter,
@@ -1385,10 +1381,7 @@ if __name__ == '__main__':
         like_on_flux=like_on_flux,
         resolution_worsening=inputs.resolution_worsening,
         n_inside_tau=inputs.n_inside_tau,
-        high_prob_emit=inputs.high_prob_emit,
         cache=inputs.cache,
-        fwhm_true=inputs.fwhm_true,
-        EW_fixed=inputs.EW_fixed,
         like_on_tau_full=inputs.like_on_tau_full,
         noise_on_the_spectrum=inputs.noise_on_the_spectrum,
         consistent_noise=inputs.consistent_noise,
