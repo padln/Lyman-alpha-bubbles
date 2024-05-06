@@ -52,6 +52,7 @@ def _get_likelihood(
         index_iter=None,
         constrained_prior=False,
         reds_of_galaxies = None,
+        dir_name=None,
 ):
     """
 
@@ -98,10 +99,10 @@ def _get_likelihood(
     if constrained_prior:
         width_conp = 0.2
 
-    if cache:
-        dir_name = 'dir_' + str(
-            datetime.datetime.now().date()
-        ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
+    # if cache:
+    #     dir_name = 'dir_' + str(
+    #         datetime.datetime.now().date()
+    #     ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
     # if like_on_flux is not False:
     #     bins_arr = [
     #         np.linspace(
@@ -665,6 +666,13 @@ def sample_bubbles_grid(
         likelihoods for the data on a grid defined above.
     """
 
+    if cache:
+        dir_name = 'dir_' + str(
+            datetime.datetime.now().date()
+        ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
+    else:
+        dir_name = None
+
     # first specify a range for bubble size and bubble position
     r_min = 5  # small bubble
     # r_max = 37  # bubble not bigger than the actual size of the box
@@ -755,6 +763,7 @@ def sample_bubbles_grid(
                     index_iter=ind_iter,
                     constrained_prior=constrained_prior,
                     reds_of_galaxies=redshifts_of_mocks[ind_iter],
+                    dir_name=dir_name,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -827,6 +836,7 @@ def sample_bubbles_grid(
                 cont_filled=cont_filled,
                 constrained_prior=constrained_prior,
                 reds_of_galaxies=redshifts_of_mocks,
+                dir_name=dir_name,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
