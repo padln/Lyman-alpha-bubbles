@@ -55,7 +55,8 @@ def _get_likelihood(
         cont_filled=None,
         index_iter=None,
         constrained_prior=False,
-        reds_of_galaxies = None,
+        reds_of_galaxies=None,
+        dir_name=None,
 ):
     """
 
@@ -102,10 +103,6 @@ def _get_likelihood(
     if constrained_prior:
         width_conp = 0.2
 
-    if cache:
-        dir_name = 'dir_' + str(
-            datetime.datetime.now().date()
-        ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
     if like_on_flux is not False:
         bins_arr = [
             np.linspace(
@@ -594,10 +591,8 @@ def sample_bubbles_grid(
         n_grid=10,
         redshift=7.5,
         muv=None,
-        include_muv_unc=False,
         beta_data=None,
         use_ew=False,
-        xh_unc=False,
         la_e=None,
         flux_int=None,
         multiple_iter=False,
@@ -606,10 +601,7 @@ def sample_bubbles_grid(
         resolution_worsening=1,
         n_inside_tau=50,
         bins_tot=20,
-        high_prob_emit=False,
         cache=True,
-        fwhm_true=False,
-        EW_fixed=False,
         like_on_tau_full=False,
         noise_on_the_spectrum=2e-20,
         consistent_noise=True,
@@ -653,6 +645,13 @@ def sample_bubbles_grid(
     :return likelihood_grid: np.array of shape (N_grid, N_grid, N_grid, N_grid);
         likelihoods for the data on a grid defined above.
     """
+
+    if cache:
+        dir_name = 'dir_' + str(
+            datetime.datetime.now().date()
+        ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
+    else:
+        dir_name = None
 
     # first specify a range for bubble size and bubble position
     r_min = 5  # small bubble
@@ -744,6 +743,7 @@ def sample_bubbles_grid(
                     index_iter=ind_iter,
                     constrained_prior=constrained_prior,
                     reds_of_galaxies=redshifts_of_mocks[ind_iter],
+                    dir_name=dir_name,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -816,6 +816,7 @@ def sample_bubbles_grid(
                 cont_filled=cont_filled,
                 constrained_prior=constrained_prior,
                 reds_of_galaxies=redshifts_of_mocks,
+                dir_name=dir_name,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
