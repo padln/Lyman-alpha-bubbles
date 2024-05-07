@@ -296,7 +296,7 @@ def _get_likelihood(
                 fi_bu_en_ru_i,
                 fi_bu_en_czl_i,
                 fi_bu_en_rl_i,
-                n_iter = n_inside_tau,
+                n_iter=n_inside_tau,
             )
 
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
@@ -311,26 +311,10 @@ def _get_likelihood(
                 wave_em.value
             )
 
-            if np.all(np.array(res) < 10000):
-                if use_ew:
-                    taus_now.extend(
-                        res.tolist()
-                    )
-                else:
-                    taus_now.extend(np.array(res).tolist())  # just to be sure
-            else:
-                print("smth wrong", res, flush=True)
+            taus_now.extend(res.tolist())
 
-            # lae_now_i = np.array(
-            #     [p_EW(
-            #         muvi,
-            #         beti,
-            #         high_prob_emit=high_prob_emit,
-            #         EW_fixed=EW_fixed,
-            #     )[1] for blah in range(len(eit_l))]
-            # )
             lae_now[
-            n * n_inside_tau:(n + 1) * n_inside_tau
+                n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
                 n * n_inside_tau:(n + 1) * n_inside_tau]
             flux_now_i = cont_filled.la_flux_out_full[index_gal_eff][
