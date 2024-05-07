@@ -333,6 +333,13 @@ def _get_likelihood(
                              index_gal_eff]
             flux_now_i += np.random.normal(0, 5e-20, np.shape(flux_now_i))
             flux_now[n * n_inside_tau:(n + 1) * n_inside_tau] = flux_now_i
+            if np.any(np.isnan(flux_now)) or np.any(np.isinf(flux_now)):
+                print("Whoa, something bad happened and you have a nan or inf", flush=True)
+                print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
+                print("tau:", taus_now, flush=True)
+                print("end result", flux_now, flush=True)
+                raise ValueError
+
             if constrained_prior:
                 if flux_int[index_gal] > flux_limit:
                     for index_tau_for, res_i_for in enumerate(res):
@@ -424,7 +431,7 @@ def _get_likelihood(
         if cache:
 
             dict_dat_aft = {
-                'tau_full': tau_now_full,
+                #'tau_full': tau_now_full,
                 'flux_integ': flux_now,
                 'mock_spectra': spectrum_now,
             }
@@ -468,6 +475,11 @@ def _get_likelihood(
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
+            if np.any(np.isnan(np.log10(1e19 * (3e-19 + (np.array(flux_line))))) or np.isinf(np.log10(1e19 * (3e-19 + (np.array(flux_line)))))):
+                print("Oops maybe zeros?")
+                print(flux_line, flush=True)
+                print("This happens for galaxy with index:", ind_data, flush=True)
+                raise ValueError
 
             flux_kde = gaussian_kde(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),

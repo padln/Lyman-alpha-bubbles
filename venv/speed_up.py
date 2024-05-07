@@ -269,14 +269,14 @@ def get_content(
                 z_bubs_arr[i_bub, :len(xar)] = zar
                 r_bubs_arr[i_bub, :len(xar)] = rar
             dict_dat = {
-                'one_Js': np.array(outputs[index_gal][0]),
+                #'one_Js': np.array(outputs[index_gal][0]),
                 'xHs': np.array(outputs[index_gal][1]),
                 'x_bubs_arr': x_bubs_arr,
                 'y_bubs_arr': y_bubs_arr,
                 'z_bubs_arr': z_bubs_arr,
                 'r_bubs_arr': r_bubs_arr,
-                'tau_prec': np.array(outputs[index_gal][7]),
-                'Lyman_alpha_iter': np.array(outputs[index_gal][6]),
+                #'tau_prec': np.array(outputs[index_gal][7]),
+                #'Lyman_alpha_iter': np.array(outputs[index_gal][6]),
             }
             save_cl.save_datasets(dict_dat)
             save_cl.close_file()
