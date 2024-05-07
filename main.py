@@ -302,9 +302,9 @@ def _get_likelihood(
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
-            tau_cgm_gal_in = tau_CGM(muvi)
+            tau_cgm_in = tau_CGM(muvi)
             res = np.trapz(
-                eit_l * tau_cgm_gal_in * cont_filled.j_s_full[index_gal_eff][
+                eit_l * tau_cgm_in * cont_filled.j_s_full[index_gal_eff][
                                          n * n_inside_tau: (
                                             n + 1) * n_inside_tau
                                          ],
@@ -317,14 +317,16 @@ def _get_likelihood(
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
                 n * n_inside_tau:(n + 1) * n_inside_tau]
-            flux_now_i = cont_filled.la_flux_out_full[index_gal_eff][
-                         n * n_inside_tau:(n + 1) * n_inside_tau
-                         ] * np.array(
+            flux_now_i = lae_now[
+                n * n_inside_tau:(n + 1) * n_inside_tau
+            ] * np.array(
                 taus_now
-            ).flatten()[n * n_inside_tau:(n + 1) * n_inside_tau] * cont_filled.com_fact[
+            ).flatten(
+            )[n * n_inside_tau:(n + 1) * n_inside_tau] * cont_filled.com_fact[
                              index_gal_eff]
             flux_now_i += np.random.normal(0, 5e-20, np.shape(flux_now_i))
             flux_now[n * n_inside_tau:(n + 1) * n_inside_tau] = flux_now_i
+
             if constrained_prior:
                 if flux_int[index_gal] > flux_limit:
                     for index_tau_for, res_i_for in enumerate(res):
@@ -335,25 +337,26 @@ def _get_likelihood(
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 0
 
-
-
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
                            ])
+
             if not consistent_noise:
                 for bin_i, wav_dig_i in zip(range(2, bins_tot),
                                             wave_em_dig_arr):
                     spectrum_now_i = np.array(
                         [np.trapz(x=wave_em.value[wav_dig_i == i_bin + 1],
-                                  y=(cont_filled.la_flux_out_full[
-                                         index_gal_eff][
-                                     n * n_inside_tau:(n + 1) * n_inside_tau
-                                     ][:, np.newaxis] * cont_filled.j_s_full[
+                                  y=(lae_now[
+                                        n * n_inside_tau:(n + 1) * n_inside_tau
+                                    ][:, np.newaxis] * cont_filled.j_s_full[
                                                             index_gal_eff][
                                                         n * n_inside_tau: (
-                                                                                      n + 1) * n_inside_tau
-                                                        ] * eit_l * tau_CGM(
-                                      muvi)[np.newaxis, :] *
+                                                            n + 1
+                                                        ) * n_inside_tau
+                                                        ] * eit_l * tau_cgm_in[
+                                                                    np.newaxis,
+                                                                    :
+                                                                ] *
                                      cont_filled.com_fact[
                                          index_gal_eff]
                                      )[:, wav_dig_i == i_bin + 1], axis=1) for
