@@ -475,10 +475,14 @@ def _get_likelihood(
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-            if np.any(np.isnan(np.log10(1e19 * (3e-19 + (np.array(flux_line))))) or np.any(np.isinf(np.log10(1e19 * (3e-19 + (np.array(flux_line))))))):
+            fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+            if ind_data==0:
+                print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
+            if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
                 print("Oops maybe zeros?")
                 print(flux_line, flush=True)
                 print("This happens for galaxy with index:", ind_data, flush=True)
+                print("and actual problem:", fl_l, flush=True)
                 raise ValueError
 
             flux_kde = gaussian_kde(
