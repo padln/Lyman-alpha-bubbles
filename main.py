@@ -475,7 +475,7 @@ def _get_likelihood(
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-            if np.any(np.isnan(np.log10(1e19 * (3e-19 + (np.array(flux_line))))) or np.isinf(np.log10(1e19 * (3e-19 + (np.array(flux_line)))))):
+            if np.any(np.isnan(np.log10(1e19 * (3e-19 + (np.array(flux_line))))) or np.any(np.isinf(np.log10(1e19 * (3e-19 + (np.array(flux_line))))))):
                 print("Oops maybe zeros?")
                 print(flux_line, flush=True)
                 print("This happens for galaxy with index:", ind_data, flush=True)
