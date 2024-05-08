@@ -75,8 +75,7 @@ def _get_likelihood(
         transmissivities of galaxies.
     :param n_iter_bub: integer;
         how many times to iterate over the bubbles.
-    :param include_muv_unc: boolean;
-        whether to include the uncertainty in the Muv.
+
     :param beta_data: numpy.array or None.
         UV-slopes for each of the mock galaxies. If None, then a default choice
         of -2.0 is used.
@@ -88,7 +87,7 @@ def _get_likelihood(
     Note: to be used only in the sampler
     """
 
-    # Let's define here whatever will be needded for the constrained prior
+    # Let's define here whatever will be needed for the constrained prior
     # calculation. The only thing to define is the width of the distribution
     # and the rejection criterion
     if constrained_prior:
@@ -116,8 +115,8 @@ def _get_likelihood(
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
     likelihood_tau = np.zeros((len(xs)))
-    # from now on likelihood is an array that stores cumulative likelihoods for
-    # all galaxies up to a certain number
+    # from now on a likelihood is an array that stores cumulative likelihoods
+    # for all galaxies up to a certain number
     taus_tot = []
     flux_tot = []
     spectrum_tot = []
@@ -131,7 +130,7 @@ def _get_likelihood(
         reds_of_galaxies_in = reds_of_galaxies
     print(len(xs), "this is the number of galaxies senor", flush=True)
 
-    names_used = []
+    names_used_this_iter = []
 
     keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
 
@@ -192,7 +191,10 @@ def _get_likelihood(
             z_end_bub = z_at_proper_distance(dist / (1 + red_s) * u.Mpc, red_s)
         else:
             z_end_bub = red_s
-            dist = 0
+
+        #CGM contribution is non-stochastic so it can be outside the loop.
+        tau_cgm_in = tau_CGM(muvi)
+
         for n in range(n_iter_bub):
             # j_s = get_js(
             #     muv=muvi,
@@ -297,7 +299,7 @@ def _get_likelihood(
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
-            tau_cgm_in = tau_CGM(muvi)
+
             res = np.trapz(
                 eit_l * tau_cgm_in * cont_filled.j_s_full[index_gal_eff][
                                          n * n_inside_tau: (
@@ -432,7 +434,7 @@ def _get_likelihood(
             }
             save_cl.save_datasets(dict_dat)
 
-            names_used.append(save_cl.fname)
+            names_used_this_iter.append(save_cl.fname)
             save_cl.close_file()
 
         flux_tot.append(np.array(flux_now).flatten())
@@ -565,18 +567,22 @@ def _get_likelihood(
         raise TypeError
 
     if not cache:
-        names_used = None
+        names_used_this_iter = None
 
     if hasattr(likelihood_tau[0], '__len__'):
-        ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
+        return ndex, (
+            likelihood_tau,
+            likelihood_int,
+            likelihood_spec
+        ), names_used_this_iter
         # return ndex, (
         #     np.array([np.product(li) for li in likelihood_tau]),
         #     np.array([np.product(li) for li in likelihood_int]),
         #     np.array([np.product(li) for li in likelihood_spec])
-        # ), names_used
+        # ), names_used_this_iter
     else:
         return ndex, (
-            likelihood_tau, likelihood_int, likelihood_spec), names_used
+            likelihood_tau, likelihood_int, likelihood_spec), names_used_this_iter
 
 
 def sample_bubbles_grid(
