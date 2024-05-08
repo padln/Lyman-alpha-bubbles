@@ -36,7 +36,6 @@ def _get_likelihood(
         redshift=7.5,
         muv=None,
         beta_data=None,
-        use_ew=False,
         la_e_in=None,
         flux_int=None,
         flux_limit=1e-18,
@@ -81,10 +80,6 @@ def _get_likelihood(
     :param beta_data: numpy.array or None.
         UV-slopes for each of the mock galaxies. If None, then a default choice
         of -2.0 is used.
-    :param use_ew: boolean
-        Whether likelihood calculation is done on flux and other flux-related
-        quantities, unlike the False option when the likelihood is calculated
-        on transmission directly.
     :param cache_dir: string
         Directory where files will be cached.
 
@@ -595,7 +590,6 @@ def sample_bubbles_grid(
         muv=None,
         include_muv_unc=False,
         beta_data=None,
-        use_ew=False,
         xh_unc=False,
         la_e=None,
         flux_int=None,
@@ -640,8 +634,6 @@ def sample_bubbles_grid(
         whether to include muv uncertainty.
     :param beta_data: float,
         beta data.
-    :param use_ew: boolean
-        whether to use EW or transmissions directly.
     :param xh_unc: boolean
         whether to use uncertainty in the underlying neutral fraction in the
         likelihood analysis
@@ -735,7 +727,6 @@ def sample_bubbles_grid(
                     redshift=redshift,
                     muv=muv[ind_iter],
                     beta_data=beta_data[ind_iter],
-                    use_ew=use_ew,
                     la_e_in=la_e[ind_iter],
                     flux_int=flux_int[ind_iter],
                     flux_limit=flux_limit,
@@ -809,7 +800,6 @@ def sample_bubbles_grid(
                 redshift=redshift,
                 muv=muv,
                 beta_data=beta_data,
-                use_ew=use_ew,
                 la_e_in=la_e,
                 flux_int=flux_int,
                 flux_limit=flux_limit,
@@ -868,7 +858,6 @@ if __name__ == '__main__':
     parser.add_argument("--max_dist", type=float, default=15.0)
     parser.add_argument("--n_gal", type=int, default=20)
     parser.add_argument("--obs_pos", action="store_true")
-    parser.add_argument("--use_EW", action="store_true")
     parser.add_argument("--diff_mags", action="store_false")
     parser.add_argument(
         "--use_Endsley_Stark_mags",
@@ -1053,19 +1042,16 @@ if __name__ == '__main__':
                         wave_em.value)
                 )
 
-        if inputs.use_EW:
-            ew_factor, la_e = p_EW(
-                Muv.flatten(),
-                beta.flatten(),
-                return_lum=True,
-                high_prob_emit=inputs.high_prob_emit,
-                EW_fixed=inputs.EW_fixed,
-            )
-            ew_factor = ew_factor.reshape((np.shape(Muv)))
-            la_e = la_e.reshape((np.shape(Muv)))
-            data = np.array(tau_data_I)
-        else:
-            data = np.array(tau_data_I)
+        ew_factor, la_e = p_EW(
+            Muv.flatten(),
+            beta.flatten(),
+            return_lum=True,
+            high_prob_emit=inputs.high_prob_emit,
+            EW_fixed=inputs.EW_fixed,
+        )
+        ew_factor = ew_factor.reshape((np.shape(Muv)))
+        la_e = la_e.reshape((np.shape(Muv)))
+        data = np.array(tau_data_I)
 
     else:
         data = np.load(
@@ -1355,7 +1341,6 @@ if __name__ == '__main__':
         redshift=inputs.redshift,
         muv=Muv,
         include_muv_unc=inputs.mag_unc,
-        use_ew=inputs.use_EW,
         beta_data=beta,
         xh_unc=inputs.xH_unc,
         la_e=la_e,
