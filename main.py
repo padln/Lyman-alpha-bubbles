@@ -378,9 +378,10 @@ def _get_likelihood(
                         n * n_inside_tau:(n + 1) * n_inside_tau
                         ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
                                            n * n_inside_tau: (
-                                                                     n + 1) * n_inside_tau
-                                           ] * eit_l * tau_CGM(
-                    muvi)[np.newaxis, :] * cont_filled.com_fact[
+                                                n + 1) * n_inside_tau
+                                           ] * eit_l * tau_cgm_in[
+                                                       np.newaxis, :
+                                                       ] * cont_filled.com_fact[
                             index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
