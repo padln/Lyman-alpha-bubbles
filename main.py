@@ -479,11 +479,18 @@ def _get_likelihood(
             if ind_data==0:
                 print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
+                ind_nan = np.isnan(fl_l.flatten()).index(1)
+                ind_inf = np.isinf(fl_l.flatten()).index(1)
                 print("Oops maybe zeros?")
-                print(flux_line, flush=True)
+                if ind_nan is not None:
+                    print(flux_line[ind_nan], flush=True)
+                if ind_inf is not None:
+                    print(flux_line[ind_inf], flush=True)
                 print("This happens for galaxy with index:", ind_data, flush=True)
-                print("and actual problem:", fl_l, flush=True)
-                raise ValueError
+                #print("and actual problem:", fl_l[ind_nan], flush=True)
+                flux_line.pop(np.concatenate(ind_nan, ind_inf))
+                spec_line.pop(np.concatenate(ind_nan, ind_inf))
+                #raise ValueError
 
             flux_kde = gaussian_kde(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
