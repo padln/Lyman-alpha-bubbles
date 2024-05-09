@@ -442,8 +442,6 @@ def _get_likelihood(
                 bw_method=0.15
             )
 
-            # if la_e_in is not None:
-            #     flux_tau = flux_mock[ind_data] * tau_data[ind_data]
             # print(len(spec_kde), flush=True)
             # print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
