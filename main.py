@@ -54,7 +54,7 @@ def _get_likelihood(
         cont_filled=None,
         index_iter=None,
         constrained_prior=False,
-        reds_of_galaxies=None
+        reds_of_galaxies=None,
         dir_name=None,
 ):
     """
