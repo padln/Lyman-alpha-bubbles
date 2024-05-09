@@ -474,6 +474,9 @@ def _get_likelihood(
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
                         )
+                    print(data_to_get, flush=True)
+                    print("just in case, print", data_to_get[0], flush=True)
+                    print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
