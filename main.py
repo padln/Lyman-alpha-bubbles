@@ -264,7 +264,7 @@ def _get_likelihood(
                                          ],
                 wave_em.value
             )
-            del tau_cgm_gal_in
+            del tau_cgm_in
             del tau_now_i
 
 
@@ -562,13 +562,11 @@ def sample_bubbles_grid(
         redshift=7.5,
         muv=None,
         beta_data=None,
-        xh_unc=False,
         la_e=None,
         flux_int=None,
         multiple_iter=False,
         flux_limit=1e-18,
         like_on_flux=False,
-        resolution_worsening=1,
         n_inside_tau=50,
         bins_tot=20,
         cache=True,
@@ -599,8 +597,6 @@ def sample_bubbles_grid(
         redshift of the analysis.
     :param muv: muv,
         UV magnitude data
-    :param include_muv_unc: boolean,
-        whether to include muv uncertainty.
     :param beta_data: float,
         beta data.
     :param xh_unc: boolean
@@ -1310,14 +1306,12 @@ if __name__ == '__main__':
         n_grid=inputs.n_grid,
         redshift=inputs.redshift,
         muv=Muv,
-        include_muv_unc=inputs.mag_unc,
         beta_data=beta,
         la_e=la_e,
         flux_int=flux_tau,
         multiple_iter=inputs.multiple_iter,
         flux_limit=inputs.flux_limit,
         like_on_flux=like_on_flux,
-        resolution_worsening=inputs.resolution_worsening,
         n_inside_tau=inputs.n_inside_tau,
         cache=inputs.cache,
         like_on_tau_full=inputs.like_on_tau_full,
