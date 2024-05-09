@@ -464,7 +464,7 @@ def _get_likelihood(
                         tau_kde.evaluate((tau_data[ind_data]))
                     )
             if like_on_flux is not False:
-                for bin_i in range(2, bins_tot):
+                for bin_i in range(2, bins_tot-1):
 
                     if bin_i < 4:
                         data_to_get = np.log10(
