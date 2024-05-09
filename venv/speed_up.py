@@ -8,6 +8,7 @@ from venv.igm_prop import tau_wv
 from venv.save import HdF5Saver
 from joblib import Parallel, delayed
 import datetime
+from astropy.cosmology import Planck18 as Cosmo
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -17,6 +18,7 @@ r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
 
 class OutsideContainer:
     def __init__(self):
+        self.com_fact = None
         self.j_s_full = []
         self.x_h_full = []
         self.x_bub_out_full = []
@@ -67,6 +69,9 @@ class OutsideContainer:
             first_bubble_encounter_coord_z_lo_now
         )
 
+    def add_com_fact(self, com_fact_all):
+        self.com_fact = com_fact_all
+
 
 def get_content(
         Muvs,
@@ -94,6 +99,9 @@ def get_content(
         and calculate the likelihood.
         Note that n_iter_bub and n_inside_tau have fiducial values that show
         convergence in the integrated flux.
+        I can also add here quantities that are going to be accessed throughout
+        the likelihood code and that can be calculated once. First thing that
+        comes to mind is the comoving distance factor.
     """
     if type(n_iter_bub) is tuple:
         n_iter_bub = n_iter_bub[0]
@@ -106,6 +114,12 @@ def get_content(
         ) + '_' + str(n_iter_bub) + '_' + str(n_inside_tau) + '/'
 
     cont_now = OutsideContainer()
+
+    com_factor = np.zeros(len(Muvs))
+    for index_gal in range(len(Muvs)):
+        com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
+            redshifts_of_mocks[index_gal]).to(u.cm).value ** 2)
+    cont_now.add_com_fact(com_factor)
 
     if beta is None:
         beta = np.array([-2.0] * len(Muvs))

@@ -40,7 +40,6 @@ def _get_likelihood(
         redshift=7.5,
         muv=None,
         beta_data=None,
-        use_ew=False,
         la_e_in=None,
         flux_int=None,
         flux_limit=1e-18,
@@ -55,7 +54,7 @@ def _get_likelihood(
         cont_filled=None,
         index_iter=None,
         constrained_prior=False,
-        reds_of_galaxies=None,
+        reds_of_galaxies=None
         dir_name=None,
 ):
     """
@@ -80,15 +79,10 @@ def _get_likelihood(
         transmissivities of galaxies.
     :param n_iter_bub: integer;
         how many times to iterate over the bubbles.
-    :param include_muv_unc: boolean;
-        whether to include the uncertainty in the Muv.
+
     :param beta_data: numpy.array or None.
         UV-slopes for each of the mock galaxies. If None, then a default choice
         of -2.0 is used.
-    :param use_ew: boolean
-        Whether likelihood calculation is done on flux and other flux-related
-        quantities, unlike the False option when the likelihood is calculated
-        on transmission directly.
     :param cache_dir: string
         Directory where files will be cached.
 
@@ -97,38 +91,20 @@ def _get_likelihood(
     Note: to be used only in the sampler
     """
 
-    # Let's define here whatever will be needded for the constrained prior
+    # Let's define here whatever will be needed for the constrained prior
     # calculation. The only thing to define is the width of the distribution
     # and the rejection criterion
     if constrained_prior:
         width_conp = 0.2
 
-    if like_on_flux is not False:
-        bins_arr = [
-            np.linspace(
-                wave_em.value[0] * (1 + redshift),
-                wave_em.value[-1] * (1 + redshift),
-                bin_i + 1
-            ) for bin_i in range(2, bins_tot)
-        ]
-        wave_em_dig_arr = [
-            np.digitize(
-                wave_em.value * (1 + redshift),
-                bin_i
-            ) for bin_i in bins_arr
-        ]
-
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
     likelihood_tau = np.zeros((len(xs)))
-    # from now on likelihood is an array that stores cumulative likelihoods for
-    # all galaxies up to a certain number
-    com_factor = np.zeros(len(xs))
+    # from now on a likelihood is an array that stores cumulative likelihoods
+    # for all galaxies up to a certain number
     taus_tot = []
     flux_tot = []
     spectrum_tot = []
-    if la_e_in is not None:
-        flux_mock = np.zeros(len(xs))
 
     # For these parameters, let's iterate over galaxies
     if beta_data is None:
@@ -139,7 +115,7 @@ def _get_likelihood(
         reds_of_galaxies_in = reds_of_galaxies
     print(len(xs), "this is the number of galaxies senor", flush=True)
 
-    names_used = []
+    names_used_this_iter = []
 
     keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
 
@@ -154,11 +130,6 @@ def _get_likelihood(
         # this run for the caching process
 
         taus_now = []
-        flux_now = []
-        x_bubs_now = []
-        y_bubs_now = []
-        z_bubs_now = []
-        r_bubs_now = []
         xHs_now = []
         j_s_now = []
         lae_now = np.zeros((n_iter_bub * n_inside_tau))
@@ -175,11 +146,6 @@ def _get_likelihood(
             reds_of_galaxies_in[index_gal] = red_s
         else:
             red_s = reds_of_galaxies_in[index_gal]
-        com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
-            red_s).to(u.cm).value ** 2)
-        # calculating fluxes if they are given -> To be removed
-        if la_e_in is not None:
-            flux_mock[index_gal] = li * com_factor[index_gal]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
@@ -194,7 +160,10 @@ def _get_likelihood(
             z_end_bub = z_at_proper_distance(dist / (1 + red_s) * u.Mpc, red_s)
         else:
             z_end_bub = red_s
-            dist = 0
+
+        #CGM contribution is non-stochastic so it can be outside the loop.
+        tau_cgm_in = tau_CGM(muvi)
+
         for n in range(n_iter_bub):
             # j_s = get_js(
             #     muv=muvi,
@@ -280,59 +249,41 @@ def _get_likelihood(
                 fi_bu_en_ru_i,
                 fi_bu_en_czl_i,
                 fi_bu_en_rl_i,
-                n_iter = n_inside_tau,
+                n_iter=n_inside_tau,
             )
             del fi_bu_en_czl_i, fi_bu_en_czu_i, fi_bu_en_rl_i, fi_bu_en_ru_i
 
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
-            tau_cgm_gal_in = tau_CGM(muvi)
+
             res = np.trapz(
-                eit_l * tau_cgm_gal_in * cont_filled.j_s_full[index_gal_eff][
+                eit_l * tau_cgm_in * cont_filled.j_s_full[index_gal_eff][
                                          n * n_inside_tau: (
-                                                                       n + 1) * n_inside_tau
-                                         ] / integrate.trapz(
-                    cont_filled.j_s_full[index_gal_eff][
-                    n * n_inside_tau: (n + 1) * n_inside_tau
-                    ],
-                    wave_em.value, axis=1)[:, np.newaxis],
+                                            n + 1) * n_inside_tau
+                                         ],
                 wave_em.value
             )
             del tau_cgm_gal_in
             del tau_now_i
 
 
-            if np.all(np.array(res) < 10000):
-                if use_ew:
-                    taus_now.extend(
-                        res.tolist()
-                    )
-                else:
-                    taus_now.extend(np.array(res).tolist())  # just to be sure
-            else:
-                print("smth wrong", res, flush=True)
+            taus_now.extend(res.tolist())
 
-            # lae_now_i = np.array(
-            #     [p_EW(
-            #         muvi,
-            #         beti,
-            #         high_prob_emit=high_prob_emit,
-            #         EW_fixed=EW_fixed,
-            #     )[1] for blah in range(len(eit_l))]
-            # )
             lae_now[
-            n * n_inside_tau:(n + 1) * n_inside_tau
+                n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
                 n * n_inside_tau:(n + 1) * n_inside_tau]
-            flux_now_i = cont_filled.la_flux_out_full[index_gal_eff][
-                         n * n_inside_tau:(n + 1) * n_inside_tau
-                         ] * np.array(
+            flux_now_i = lae_now[
+                n * n_inside_tau:(n + 1) * n_inside_tau
+            ] * np.array(
                 taus_now
-            ).flatten()[n * n_inside_tau:(n + 1) * n_inside_tau] * com_factor[
+            ).flatten(
+            )[n * n_inside_tau:(n + 1) * n_inside_tau] * cont_filled.com_fact[
                              index_gal_eff]
             flux_now_i += np.random.normal(0, 5e-20, np.shape(flux_now_i))
             flux_now[n * n_inside_tau:(n + 1) * n_inside_tau] = flux_now_i
+
             if np.any(np.isnan(flux_now)) or np.any(np.isinf(flux_now)):
                 print("Whoa, something bad happened and you have a nan or inf", flush=True)
                 print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
@@ -352,32 +303,29 @@ def _get_likelihood(
 
             del res
             del flux_now_i
+
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
                            ])
+
             if not consistent_noise:
                 for bin_i, wav_dig_i in zip(range(2, bins_tot),
                                             wave_em_dig_arr):
                     spectrum_now_i = np.array(
                         [np.trapz(x=wave_em.value[wav_dig_i == i_bin + 1],
-                                  y=(cont_filled.la_flux_out_full[
-                                         index_gal_eff][
-                                     n * n_inside_tau:(n + 1) * n_inside_tau
-                                     ][:, np.newaxis] * cont_filled.j_s_full[
+                                  y=(lae_now[
+                                        n * n_inside_tau:(n + 1) * n_inside_tau
+                                    ][:, np.newaxis] * cont_filled.j_s_full[
                                                             index_gal_eff][
                                                         n * n_inside_tau: (
-                                                                                      n + 1) * n_inside_tau
-                                                        ] * eit_l * tau_CGM(
-                                      muvi)[np.newaxis, :] *
-                                     com_factor[
-                                         index_gal_eff] / integrate.trapz(
-                                              cont_filled.j_s_full[
-                                                  index_gal_eff][
-                                              n * n_inside_tau: (
-                                                                        n + 1) * n_inside_tau
-                                              ],
-                                              wave_em.value, axis=1)[:,
-                                                          np.newaxis]
+                                                            n + 1
+                                                        ) * n_inside_tau
+                                                        ] * eit_l * tau_cgm_in[
+                                                                    np.newaxis,
+                                                                    :
+                                                                ] *
+                                     cont_filled.com_fact[
+                                         index_gal_eff]
                                      )[:, wav_dig_i == i_bin + 1], axis=1) for
                          i_bin
                          in range(bin_i)
@@ -401,15 +349,11 @@ def _get_likelihood(
                         n * n_inside_tau:(n + 1) * n_inside_tau
                         ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
                                            n * n_inside_tau: (
-                                                                     n + 1) * n_inside_tau
-                                           ] * eit_l * tau_CGM(
-                    muvi)[np.newaxis, :] * com_factor[
-                            index_gal_eff] / integrate.trapz(
-                    cont_filled.j_s_full[index_gal_eff][
-                    n * n_inside_tau: (
-                                              n + 1) * n_inside_tau
-                    ],
-                    wave_em.value, axis=1)[:, np.newaxis]
+                                                n + 1) * n_inside_tau
+                                           ] * eit_l * tau_cgm_in[
+                                                       np.newaxis, :
+                                                       ] * cont_filled.com_fact[
+                            index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
                 full_flux_res_i += np.random.normal(
@@ -435,6 +379,7 @@ def _get_likelihood(
                 'flux_integ': flux_now,
                 'mock_spectra': spectrum_now,
             }
+
             save_cl.save_data_after(
                 xb,
                 yb,
@@ -591,18 +536,22 @@ def _get_likelihood(
         raise TypeError
 
     if not cache:
-        names_used = None
+        names_used_this_iter = None
 
     if hasattr(likelihood_tau[0], '__len__'):
-        ndex, (likelihood_tau, likelihood_int, likelihood_spec), names_used
+        return ndex, (
+            likelihood_tau,
+            likelihood_int,
+            likelihood_spec
+        ), names_used_this_iter
         # return ndex, (
         #     np.array([np.product(li) for li in likelihood_tau]),
         #     np.array([np.product(li) for li in likelihood_int]),
         #     np.array([np.product(li) for li in likelihood_spec])
-        # ), names_used
+        # ), names_used_this_iter
     else:
         return ndex, (
-            likelihood_tau, likelihood_int, likelihood_spec), names_used
+            likelihood_tau, likelihood_int, likelihood_spec), names_used_this_iter
 
 
 def sample_bubbles_grid(
@@ -615,7 +564,7 @@ def sample_bubbles_grid(
         redshift=7.5,
         muv=None,
         beta_data=None,
-        use_ew=False,
+        xh_unc=False,
         la_e=None,
         flux_int=None,
         multiple_iter=False,
@@ -656,8 +605,6 @@ def sample_bubbles_grid(
         whether to include muv uncertainty.
     :param beta_data: float,
         beta data.
-    :param use_ew: boolean
-        whether to use EW or transmissions directly.
     :param xh_unc: boolean
         whether to use uncertainty in the underlying neutral fraction in the
         likelihood analysis
@@ -751,7 +698,6 @@ def sample_bubbles_grid(
                     redshift=redshift,
                     muv=muv[ind_iter],
                     beta_data=beta_data[ind_iter],
-                    use_ew=use_ew,
                     la_e_in=la_e[ind_iter],
                     flux_int=flux_int[ind_iter],
                     flux_limit=flux_limit,
@@ -825,7 +771,6 @@ def sample_bubbles_grid(
                 redshift=redshift,
                 muv=muv,
                 beta_data=beta_data,
-                use_ew=use_ew,
                 la_e_in=la_e,
                 flux_int=flux_int,
                 flux_limit=flux_limit,
@@ -884,7 +829,6 @@ if __name__ == '__main__':
     parser.add_argument("--max_dist", type=float, default=15.0)
     parser.add_argument("--n_gal", type=int, default=20)
     parser.add_argument("--obs_pos", action="store_true")
-    parser.add_argument("--use_EW", action="store_true")
     parser.add_argument("--diff_mags", action="store_false")
     parser.add_argument(
         "--use_Endsley_Stark_mags",
@@ -1029,16 +973,13 @@ if __name__ == '__main__':
                 )
                 one_J_arr[index_iter, :, :] = np.array(one_J[0][:n_gal])
 
-                #           print(tau_data_I, np.shape(tau_data_I))
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal])
                     eit = np.exp(-tdi[i_gal])
                     tau_data_I[index_iter, i_gal] = np.trapz(
-                        eit * tau_cgm_gal * one_J[0][i_gal] / integrate.trapz(
-                            one_J[0][i_gal],
-                            wave_em.value
-                        ), wave_em.value)
-        #          print(tau_data_I, np.shape(tau_data_I))
+                        eit * tau_cgm_gal * one_J[0][i_gal],
+                        wave_em.value
+                    )
 
         else:
             td, xd, yd, zd, x_b, y_b, z_b, r_bubs = get_mock_data(
@@ -1068,28 +1009,20 @@ if __name__ == '__main__':
                 tau_cgm_gal = tau_CGM(Muv[i])
                 tau_data_I.append(
                     np.trapz(
-                        eit * tau_cgm_gal * one_J[0][i] / integrate.trapz(
-                            one_J[0][i],
-                            wave_em.value
-                        ),
+                        eit * tau_cgm_gal * one_J[0][i] ,
                         wave_em.value)
                 )
 
-        if inputs.use_EW:
-            ew_factor, la_e = p_EW(
-                Muv.flatten(),
-                beta.flatten(),
-                return_lum=True,
-                high_prob_emit=inputs.high_prob_emit,
-                EW_fixed=inputs.EW_fixed,
-            )
-            # print("This is la_e_in now", la_e_in, "this is shape of Muv", np.shape(Muv))
-            ew_factor = ew_factor.reshape((np.shape(Muv)))
-            la_e = la_e.reshape((np.shape(Muv)))
-            # print("and this is it now: ", la_e_in, "\n with a shape", np.shape(la_e_in))
-            data = np.array(tau_data_I)
-        else:
-            data = np.array(tau_data_I)
+        ew_factor, la_e = p_EW(
+            Muv.flatten(),
+            beta.flatten(),
+            return_lum=True,
+            high_prob_emit=inputs.high_prob_emit,
+            EW_fixed=inputs.EW_fixed,
+        )
+        ew_factor = ew_factor.reshape((np.shape(Muv)))
+        la_e = la_e.reshape((np.shape(Muv)))
+        data = np.array(tau_data_I)
 
     else:
         data = np.load(
@@ -1238,9 +1171,7 @@ if __name__ == '__main__':
                                          ) * tau_CGM(Muv[index_gal]) / (
                                                     4 * np.pi * Cosmo.luminosity_distance(
                                                 7.5).to(
-                                                u.cm).value ** 2) / integrate.trapz(
-                                             one_J[index_gal],
-                                             wave_em.value)
+                                                u.cm).value ** 2)
                                             )[wav_dig_i == i + 1]) for i in
                                 range(bin_i)
                             ]
@@ -1265,9 +1196,7 @@ if __name__ == '__main__':
                                             Muv[index_iter, index_gal]) / (
                                                    4 * np.pi * Cosmo.luminosity_distance(
                                                7.5).to(
-                                               u.cm).value ** 2) / integrate.trapz(
-                                            one_J_arr[index_iter, index_gal, :],
-                                            wave_em.value)
+                                               u.cm).value ** 2)
                                            )[wav_dig_i == i + 1]) for i in
                                     range(bin_i)
                                 ]
@@ -1294,11 +1223,7 @@ if __name__ == '__main__':
                     Muv) / (
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
-                        ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J,
-                    wave_em.value,
-                    axis=-1,
-                )[:, :,np.newaxis]
+                        ).to(u.cm).value ** 2)
                 )
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
                 full_flux_res += np.random.normal(
@@ -1327,13 +1252,8 @@ if __name__ == '__main__':
                     Muv) / (
                                 4 * np.pi * Cosmo.luminosity_distance(
                             7.5
-                        ).to(u.cm).value ** 2) / integrate.trapz(
-                    one_J[:n_gal,:],
-                    wave_em.value,
-                    axis=-1,
-                )[:,  np.newaxis]
+                        ).to(u.cm).value ** 2)
                 )
-
 
                 full_flux_res = full_res_flux(continuum, inputs.redshift)
 
@@ -1349,9 +1269,6 @@ if __name__ == '__main__':
                         full_flux_res, bin_i
                     )
 
-
-
-    # print(np.shape(xd), flush=True)
     # assert False
     if inputs.like_on_flux:
         like_on_flux = flux_noise_mock
@@ -1395,7 +1312,7 @@ if __name__ == '__main__':
         n_grid=inputs.n_grid,
         redshift=inputs.redshift,
         muv=Muv,
-        use_ew=inputs.use_EW,
+        include_muv_unc=inputs.mag_unc,
         beta_data=beta,
         la_e=la_e,
         flux_int=flux_tau,
