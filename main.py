@@ -386,7 +386,7 @@ def _get_likelihood(
                 dict_dat_aft
             )
 
-            names_used.append(save_cl.f_name)
+            names_used_this_iter = [].append(save_cl.f_name)
             save_cl.close()
             del save_cl, dict_dat_aft
         flux_tot.append(np.array(flux_now).flatten())
