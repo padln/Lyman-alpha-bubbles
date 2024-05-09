@@ -5,7 +5,6 @@ from numpy.linalg import LinAlgError
 import argparse
 import os
 import shutil
-from scipy import integrate
 from scipy.stats import gaussian_kde
 
 from astropy.cosmology import z_at_value
@@ -264,7 +263,6 @@ def _get_likelihood(
                                          ],
                 wave_em.value
             )
-            del tau_cgm_in
             del tau_now_i
 
 
