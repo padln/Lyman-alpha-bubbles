@@ -18,7 +18,7 @@ from joblib import Parallel, delayed
 from venv.galaxy_prop import get_js, get_mock_data, p_EW
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 
-from venv.save import HdF5Saver, HdF5SaverAft
+from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
 from venv.speed_up import get_content, calculate_taus_post
 
@@ -54,7 +54,7 @@ def _get_likelihood(
         cont_filled=None,
         index_iter=None,
         constrained_prior=False,
-        reds_of_galaxies=None
+        reds_of_galaxies=None,
         dir_name=None,
 ):
     """
@@ -264,7 +264,7 @@ def _get_likelihood(
                                          ],
                 wave_em.value
             )
-            del tau_cgm_gal_in
+
             del tau_now_i
 
 
@@ -1328,36 +1328,46 @@ if __name__ == '__main__':
         cont_filled=cont_filled,
         redshifts_of_mocks=redshifts_of_mocks,
     )
+
+    dict_to_save_data = dict()
     if isinstance(likelihoods, tuple):
-        np.save(
-            inputs.save_dir + '/likelihoods_tau.npy',
-            likelihoods[0]
-        )
-        np.save(
-            inputs.save_dir + '/likelihoods_int.npy',
-            likelihoods[1]
-        )
-        np.save(
-            inputs.save_dir + '/likelihoods_spec.npy',
-            likelihoods[2]
-        )
+        # np.save(
+        #     inputs.save_dir + '/likelihoods_tau.npy',
+        #     likelihoods[0]
+        # )
+        # np.save(
+        #     inputs.save_dir + '/likelihoods_int.npy',
+        #     likelihoods[1]
+        # )
+        # np.save(
+        #     inputs.save_dir + '/likelihoods_spec.npy',
+        #     likelihoods[2]
+        # )
+        dict_to_save_data['likelihoods_tau'] = likelihoods[0]
+        dict_to_save_data['likelihoods_int'] = likelihoods[1]
+        dict_to_save_data['likelihoods_spec'] = likelihoods[2]
     else:
-        np.save(
-            inputs.save_dir + '/likelihoods.npy',
-            likelihoods
-        )
-    np.save(
-        inputs.save_dir + '/x_gal_mock.npy',
-        np.array(xd)
-    )
-    np.save(
-        inputs.save_dir + '/y_gal_mock.npy',
-        np.array(yd)
-    )
-    np.save(
-        inputs.save_dir + '/z_gal_mock.npy',
-        np.array(zd)
-    )
+        # np.save(
+        #     inputs.save_dir + '/likelihoods.npy',
+        #     likelihoods
+        # )
+        dict_to_save_data['likelihoods'] = likelihoods
+    # np.save(
+    #     inputs.save_dir + '/x_gal_mock.npy',
+    #     np.array(xd)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/y_gal_mock.npy',
+    #     np.array(yd)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/z_gal_mock.npy',
+    #     np.array(zd)
+    # )
+    dict_to_save_data['x_gal_mock'] = np.array(xd)
+    dict_to_save_data['y_gal_mock'] = np.array(xd)
+    dict_to_save_data['z_gal_mock'] = np.array(xd)
+
     if inputs.multiple_iter:
         max_len_bubs = 0
         for xbi in x_b:
@@ -1379,76 +1389,100 @@ if __name__ == '__main__':
         y_b_arr = np.array(y_b)
         z_b_arr = np.array(z_b)
         r_b_arr = np.array(r_bubs)
-    print("Where am I saving?")
-    print(inputs.save_dir + '/x_bub_mock.npy')
-    np.save(
-        inputs.save_dir + '/x_bub_mock.npy',
-        np.array(x_b_arr)
-    )
-    np.save(
-        inputs.save_dir + '/y_bub_mock.npy',
-        np.array(y_b_arr)
-    )
-    np.save(
-        inputs.save_dir + '/z_bub_mock.npy',
-        np.array(z_b_arr)
-    )
-    np.save(
-        inputs.save_dir + '/r_bubs_mock.npy',
-        np.array(r_b_arr)
-    )
-    np.save(
-        inputs.save_dir + '/data.npy',
-        np.array(data),
-    )
-    if inputs.multiple_iter:
-        np.save(
-            inputs.save_dir + '/one_J.npy',
-            np.array(one_J_arr),
-        )
-    else:
-        np.save(
-            inputs.save_dir + '/one_J.npy',
-            np.array(one_J),
-        )
-    np.save(
-        inputs.save_dir + '/Muvs.npy',
-        np.array(Muv),
-    )
-    np.save(
-        inputs.save_dir + '/la_e_in.npy',
-        np.array(la_e),
-    )
-    np.save(
-        inputs.save_dir + '/td.npy',
-        np.array(td),
-    )
-    flux_to_save = np.zeros(len(Muv.flatten()))
-    for i, (xdi, ydi, zdi, tdi, li) in enumerate(zip(
-            xd.flatten(), yd.flatten(), zd.flatten(), data.flatten(),
-            la_e.flatten()
-    )):
-        red_s = z_at_value(
-            Cosmo.comoving_distance,
-            Cosmo.comoving_distance(inputs.redshift) + zdi * u.Mpc,
-            ztol=0.00005
-        )
 
-        # calculating fluxes if they are given
-        if la_e is not None:
-            flux_to_save[i] = li / (
-                    4 * np.pi * Cosmo.luminosity_distance(
-                red_s).to(u.cm).value ** 2
-            )
-    np.save(
-        inputs.save_dir + '/flux_data.npy',
-        np.array(flux_to_save.reshape(np.shape(Muv)))
-    )
+    # np.save(
+    #     inputs.save_dir + '/x_bub_mock.npy',
+    #     np.array(x_b_arr)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/y_bub_mock.npy',
+    #     np.array(y_b_arr)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/z_bub_mock.npy',
+    #     np.array(z_b_arr)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/r_bubs_mock.npy',
+    #     np.array(r_b_arr)
+    # )
+    # np.save(
+    #     inputs.save_dir + '/data.npy',
+    #     np.array(data),
+    # )
+
+    dict_to_save_data['x_bub_mock'] = np.array(x_b_arr)
+    dict_to_save_data['y_bub_mock'] = np.array(y_b_arr)
+    dict_to_save_data['z_bub_mock'] = np.array(z_b_arr)
+    dict_to_save_data['r_bub_mock'] = np.array(r_b_arr)
+    dict_to_save_data['integrated_tau'] = np.array(data)
+
+    if inputs.multiple_iter:
+        # np.save(
+        #     inputs.save_dir + '/one_J.npy',
+        #     np.array(one_J_arr),
+        # )
+        dict_to_save_data['Lyman_alpha_J'] = np.array(one_J_arr)
+    else:
+        # np.save(
+        #     inputs.save_dir + '/one_J.npy',
+        #     np.array(one_J),
+        # )
+        dict_to_save_data['Lyman_alpha_J'] = np.array(one_J)
+
+    # np.save(
+    #     inputs.save_dir + '/Muvs.npy',
+    #     np.array(Muv),
+    # )
+    # np.save(
+    #     inputs.save_dir + '/la_e_in.npy',
+    #     np.array(la_e),
+    # )
+    # np.save(
+    #     inputs.save_dir + '/td.npy',
+    #     np.array(td),
+    # )
+    dict_to_save_data['Muvs'] = np.array(Muv)
+    dict_to_save_data['Lyman_alpha_lums'] = np.array(la_e)
+    dict_to_save_data['full_tau'] = np.array(td)
+
+    # flux_to_save = np.zeros(len(Muv.flatten()))
+    # for i, (xdi, ydi, zdi, tdi, li) in enumerate(zip(
+    #         xd.flatten(), yd.flatten(), zd.flatten(), data.flatten(),
+    #         la_e.flatten()
+    # )):
+    #     red_s = z_at_value(
+    #         Cosmo.comoving_distance,
+    #         Cosmo.comoving_distance(inputs.redshift) + zdi * u.Mpc,
+    #         ztol=0.00005
+    #     )
+    #
+    #     # calculating fluxes if they are given
+    #     if la_e is not None:
+    #         flux_to_save[i] = li / (
+    #                 4 * np.pi * Cosmo.luminosity_distance(
+    #             red_s).to(u.cm).value ** 2
+    #         )
+    # np.save(
+    #     inputs.save_dir + '/flux_data.npy',
+    #     np.array(flux_to_save.reshape(np.shape(Muv)))
+    # )
+    dict_to_save_data['flux_integrated'] = np.array(flux_tau)
     if inputs.like_on_flux:
-        np.save(
-            inputs.save_dir + '/flux_spectrum.npy',
-            np.array(like_on_flux)
-        )
+        # np.save(
+        #     inputs.save_dir + '/flux_spectrum.npy',
+        #     np.array(like_on_flux)
+        # )
+        dict_to_save_data['flux_spectrum'] = np.array(like_on_flux)
+
+    cl_save = HdF5SaveMocks(
+        n_gal,
+        inputs.n_iter_bub,
+        inputs.n_inside_tau,
+        inputs.save_dir
+    )
+    cl_save.save_datasets(dict_to_save_data)
+    cl_save.close_file()
     if inputs.cache:
         with open(inputs.save_dir + '/names_done.txt', 'w') as f:
             for line in names_used:
