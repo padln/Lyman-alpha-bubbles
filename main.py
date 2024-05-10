@@ -1025,99 +1025,126 @@ if __name__ == '__main__':
         data = np.array(tau_data_I)
 
     else:
-        data = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/tau_data.npy'  # maybe I'll change this
-        )[:n_gal]
-        xd = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/x_gal_mock.npy'
-        )[:n_gal]
-        yd = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/y_gal_mock.npy'
-        )[:n_gal]
-        zd = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/z_gal_mock.npy'
-        )[:n_gal]
-        x_b = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/x_bub_mock.npy'
-        )
-        y_b = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/y_bub_mock.npy'
-        )
-        z_b = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/z_bub_mock.npy'
-        )
-        r_bubs = np.load(
-            '/home/inikolic/projects/Lyalpha_bubbles/code/'
-            + inputs.mock_direc
-            + '/r_bubs_mock.npy'
-        )
 
-        if os.path.isfile(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/tau_shape.npy'
-        ):
-            td = np.load(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/tau_shape.npy'
-            )[:n_gal]
-        if os.path.isfile(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/Muvs.npy'
-        ):
-            Muv = np.load(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/Muvs.npy'
-            )[:n_gal]
-        if os.path.isfile(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/one_J.npy'
-        ):
-            one_J = np.load(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/one_J.npy'
-            )[:n_gal]
-        if os.path.isfile(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/la_e_in.npy'
-        ):
-            la_e = np.load(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/la_e_in.npy'
-            )[:n_gal]
-        if os.path.isfile(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/flux_spectrum.npy'
-        ):
-            flux_spectrum_mock = np.load(
-                '/home/inikolic/projects/Lyalpha_bubbles/code/'
-                + inputs.mock_direc
-                + '/flux_spectrum.npy'
-            )
+        cl_load = HdF5SaveMocks(
+            n_gal,
+            inputs.n_iter_bub,
+            inputs.n_inside_tau,
+            inputs.mock_dir,
+            write=False
+        )
+        # data = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/tau_data.npy'  # maybe I'll change this
+        # )[:n_gal]
+        data = np.array(cl_load.f['integrated_tau'])
+        xd = np.array(cl_load.f['x_gal_mock'])
+        yd = np.array(cl_load.f['y_gal_mock'])
+        zd = np.array(cl_load.f['z_gal_mock'])
+        x_b = np.array(cl_load.f['x_bub_mock'])
+        y_b = np.array(cl_load.f['y_bub_mock'])
+        z_b = np.array(cl_load.f['z_bub_mock'])
+        r_b = np.array(cl_load.f['r_bub_mock'])
+        td = np.array(cl_load.f['full_tau'])
+        Muv = np.array(cl_load.f['Muvs'])
+        if inputs.multiple_iter:
+            one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
         else:
-            flux_spectrum_mock = None
+            one_J = np.array(cl_load.f['Lyman_alpha_J'])
+        la_e = np.array(cl_load.f['Lyman_alpha_lums'])
+        flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
+        flux_tau = np.array(cl_load.f['flux_integrated'])
+        cl_load.close_file()
+
+        # xd = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/x_gal_mock.npy'
+        # )[:n_gal]
+        # yd = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/y_gal_mock.npy'
+        # )[:n_gal]
+        # zd = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/z_gal_mock.npy'
+        # )[:n_gal]
+        # x_b = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/x_bub_mock.npy'
+        # )
+        # y_b = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/y_bub_mock.npy'
+        # )
+        # z_b = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/z_bub_mock.npy'
+        # )
+        # r_bubs = np.load(
+        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #     + inputs.mock_direc
+        #     + '/r_bubs_mock.npy'
+        # )
+        #
+        # if os.path.isfile(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/tau_shape.npy'
+        # ):
+        #     td = np.load(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/tau_shape.npy'
+        #     )[:n_gal]
+        # if os.path.isfile(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/Muvs.npy'
+        # ):
+        #     Muv = np.load(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/Muvs.npy'
+        #     )[:n_gal]
+        # if os.path.isfile(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/one_J.npy'
+        # ):
+        #     one_J = np.load(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/one_J.npy'
+        #     )[:n_gal]
+        # if os.path.isfile(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/la_e_in.npy'
+        # ):
+        #     la_e = np.load(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/la_e_in.npy'
+        #     )[:n_gal]
+        # if os.path.isfile(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/flux_spectrum.npy'
+        # ):
+        #     flux_spectrum_mock = np.load(
+        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
+        #         + inputs.mock_direc
+        #         + '/flux_spectrum.npy'
+        #     )
+        # else:
+        #     flux_spectrum_mock = None
     # print(tau_data_I, np.shape(tau_data_I))
     # print(np.array(data), np.shape(np.array(data)))
     # assert False
@@ -1209,65 +1236,68 @@ if __name__ == '__main__':
                 flux_noise_mock = flux_spectrum_mock
 
         else:
-            if inputs.multiple_iter:
-                flux_noise_mock = np.zeros(
-                    (
-                        inputs.multiple_iter,
-                        n_gal,
-                        inputs.bins_tot - 1,
-                        inputs.bins_tot - 1)
-                )
-                one_J = one_J_arr[0]
-                continuum = (
-                        la_e[:, :, np.newaxis] * one_J * np.exp(-td) * tau_CGM(
-                    Muv) / (
-                                4 * np.pi * Cosmo.luminosity_distance(
-                            7.5
-                        ).to(u.cm).value ** 2)
-                )
-                full_flux_res = full_res_flux(continuum, inputs.redshift)
-                full_flux_res += np.random.normal(
-                    0,
-                    inputs.noise_on_the_spectrum,
-                    np.shape(full_flux_res)
-                )
-                for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot - 1), wave_em_dig_arr
-                ):
-                    flux_noise_mock[:,:, bin_i - 1, :bin_i] = perturb_flux(
-                        full_flux_res, bin_i
+            if inputs.mock_direc is None:
+                if inputs.multiple_iter:
+                    flux_noise_mock = np.zeros(
+                        (
+                            inputs.multiple_iter,
+                            n_gal,
+                            inputs.bins_tot - 1,
+                            inputs.bins_tot - 1)
                     )
+                    one_J = one_J_arr[0]
+                    continuum = (
+                            la_e[:, :, np.newaxis] * one_J * np.exp(-td) * tau_CGM(
+                        Muv) / (
+                                    4 * np.pi * Cosmo.luminosity_distance(
+                                7.5
+                            ).to(u.cm).value ** 2)
+                    )
+                    full_flux_res = full_res_flux(continuum, inputs.redshift)
+                    full_flux_res += np.random.normal(
+                        0,
+                        inputs.noise_on_the_spectrum,
+                        np.shape(full_flux_res)
+                    )
+                    for bin_i, wav_dig_i in zip(
+                            range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                    ):
+                        flux_noise_mock[:,:, bin_i - 1, :bin_i] = perturb_flux(
+                            full_flux_res, bin_i
+                        )
+                else:
+                    flux_noise_mock = np.zeros(
+                        (
+                            n_gal,
+                            inputs.bins_tot - 1,
+                            inputs.bins_tot - 1)
+                    )
+                    one_J = one_J[0]
+                    # print(np.shape(la_e[:, np.newaxis] * one_J[:n_gal,:]), np.shape(td), np.shape(tau_CGM(
+                    #     Muv)))
+                    continuum = (
+                            la_e[:, np.newaxis] * one_J[:n_gal,:] * np.exp(-td) * tau_CGM(
+                        Muv) / (
+                                    4 * np.pi * Cosmo.luminosity_distance(
+                                7.5
+                            ).to(u.cm).value ** 2)
+                    )
+
+                    full_flux_res = full_res_flux(continuum, inputs.redshift)
+
+                    full_flux_res += np.random.normal(
+                        0,
+                        inputs.noise_on_the_spectrum,
+                        np.shape(full_flux_res)
+                    )
+                    for bin_i, wav_dig_i in zip(
+                            range(2, inputs.bins_tot), wave_em_dig_arr
+                    ):
+                        flux_noise_mock[:,  bin_i - 1, :bin_i] = perturb_flux(
+                            full_flux_res, bin_i
+                        )
             else:
-                flux_noise_mock = np.zeros(
-                    (
-                        n_gal,
-                        inputs.bins_tot - 1,
-                        inputs.bins_tot - 1)
-                )
-                one_J = one_J[0]
-                # print(np.shape(la_e[:, np.newaxis] * one_J[:n_gal,:]), np.shape(td), np.shape(tau_CGM(
-                #     Muv)))
-                continuum = (
-                        la_e[:, np.newaxis] * one_J[:n_gal,:] * np.exp(-td) * tau_CGM(
-                    Muv) / (
-                                4 * np.pi * Cosmo.luminosity_distance(
-                            7.5
-                        ).to(u.cm).value ** 2)
-                )
-
-                full_flux_res = full_res_flux(continuum, inputs.redshift)
-
-                full_flux_res += np.random.normal(
-                    0,
-                    inputs.noise_on_the_spectrum,
-                    np.shape(full_flux_res)
-                )
-                for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot), wave_em_dig_arr
-                ):
-                    flux_noise_mock[:,  bin_i - 1, :bin_i] = perturb_flux(
-                        full_flux_res, bin_i
-                    )
+                flux_noise_mock = flux_spectrum_mock
 
     # assert False
     if inputs.like_on_flux:
@@ -1276,12 +1306,13 @@ if __name__ == '__main__':
         like_on_flux = False
 
     # from now flux is calculated here in the integrated version, and it contains noise
-    flux_mock = la_e / (
-            4 * np.pi * Cosmo.luminosity_distance(
-        7.5).to(u.cm).value ** 2
-    )
-    flux_tau = flux_mock * tau_data_I
-    flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
+    if inputs.mock_direc is None:
+        flux_mock = la_e / (
+                4 * np.pi * Cosmo.luminosity_distance(
+            7.5).to(u.cm).value ** 2
+        )
+        flux_tau = flux_mock * tau_data_I
+        flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,

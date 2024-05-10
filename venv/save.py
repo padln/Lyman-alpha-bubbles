@@ -148,7 +148,8 @@ class HdF5SaveMocks:
             n_gal,
             n_iter_bub,
             n_inside_tau,
-            save_dir
+            save_dir,
+            write=True
     ):
         self.n_gal = n_gal
         self.n_iter_bub = n_iter_bub
@@ -158,10 +159,13 @@ class HdF5SaveMocks:
             self.n_gal) + "_nib" + str(
             self.n_iter_bub) + "_nit" + str(
             self.n_inside_tau) + ".hdf5"
-        self.__create__()
+        self.__create__(write=write)
 
-    def __create__(self):
-        self.f = h5py.File(self.f_name, 'a')
+    def __create__(self, write=True):
+        if write:
+            self.f = h5py.File(self.f_name, 'a')
+        else:
+            self.f = h5py.File(self.f_name, 'r')
 
     def save_datasets(self, dict_dat):
         for (nam, val) in dict_dat.items():
