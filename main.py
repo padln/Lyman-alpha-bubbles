@@ -853,7 +853,7 @@ if __name__ == '__main__':
     parser.add_argument("--resolution_worsening", type=float, default=1)
     parser.add_argument("--n_inside_tau", type=int, default=50)
     parser.add_argument("--n_iter_bub", type=int, default=50)
-    parser.add_argument("--bins_tot", type=int, default=15)
+    parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", action="store_true")
     parser.add_argument("--cache", action="store_false")
     parser.add_argument("--fwhm_true", action="store_true")
