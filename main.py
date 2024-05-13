@@ -860,7 +860,7 @@ if __name__ == '__main__':
     parser.add_argument("--noise_on_the_spectrum", type=float, default=2e-20)
     parser.add_argument("--consistent_noise", action="store_true")
     parser.add_argument("--constrained_prior", action="store_true")
-    parser.add_argumnet("--AH22_model", action="store_true")
+    parser.add_argument("--AH22_model", action="store_true")
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
