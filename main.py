@@ -421,7 +421,7 @@ def _get_likelihood(
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
             fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
             if ind_data==0:
-                print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
+                #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
                 ind_nan = np.isnan(fl_l.flatten()).index(1)
                 ind_inf = np.isinf(fl_l.flatten()).index(1)
@@ -475,9 +475,9 @@ def _get_likelihood(
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
                         )
-                    print(data_to_get, flush=True)
-                    print("just in case, print", data_to_get[0], flush=True)
-                    print("also", data_to_get[-1], flush=True)
+                    #print(data_to_get, flush=True)
+                    #print("just in case, print", data_to_get[0], flush=True)
+                    #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
@@ -500,7 +500,7 @@ def _get_likelihood(
                             data_to_eval
                         )
                     )
-            print("This is flux_int", flux_int)
+            #print("This is flux_int", flux_int)
             if flux_int[ind_data] < flux_limit:
                 print("This galaxy failed the tau test, it's flux is",
                       flux_int[ind_data])

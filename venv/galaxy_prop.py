@@ -232,6 +232,8 @@ def get_mock_data(
         else:
             dist = 0
             z_end_bub = red_s
+
+        #Is it maybe different inconsistent taus?
         tau = calculate_taus_i(
             x_b,
             y_b,
