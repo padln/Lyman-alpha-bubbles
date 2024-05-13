@@ -1045,7 +1045,7 @@ if __name__ == '__main__':
         x_b = np.array(cl_load.f['x_bub_mock'])
         y_b = np.array(cl_load.f['y_bub_mock'])
         z_b = np.array(cl_load.f['z_bub_mock'])
-        r_b = np.array(cl_load.f['r_bub_mock'])
+        r_bubs = np.array(cl_load.f['r_bub_mock'])
         td = np.array(cl_load.f['full_tau'])
         Muv = np.array(cl_load.f['Muvs'])
         if inputs.multiple_iter:
