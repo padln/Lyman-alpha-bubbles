@@ -420,7 +420,7 @@ def _get_likelihood(
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
             fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
-            if ind_data==0:
+            #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
                 ind_nan = np.isnan(fl_l.flatten()).index(1)
