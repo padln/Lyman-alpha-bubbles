@@ -1343,7 +1343,6 @@ if __name__ == '__main__':
         n_grid=inputs.n_grid,
         redshift=inputs.redshift,
         muv=Muv,
-        include_muv_unc=inputs.mag_unc,
         beta_data=beta,
         la_e=la_e,
         flux_int=flux_tau,
