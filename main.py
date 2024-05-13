@@ -14,7 +14,7 @@ import datetime
 import itertools
 from joblib import Parallel, delayed
 
-from venv.galaxy_prop import get_js, get_mock_data, p_EW
+from venv.galaxy_prop import get_js, get_mock_data, p_EW, L_intr_AH22
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 
 from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
@@ -860,6 +860,7 @@ if __name__ == '__main__':
     parser.add_argument("--noise_on_the_spectrum", type=float, default=2e-20)
     parser.add_argument("--consistent_noise", action="store_true")
     parser.add_argument("--constrained_prior", action="store_true")
+    parser.add_argumnet("--AH22_model", action="store_true")
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1009,13 +1010,17 @@ if __name__ == '__main__':
                         wave_em.value)
                 )
 
-        ew_factor, la_e = p_EW(
-            Muv.flatten(),
-            beta.flatten(),
-            return_lum=True,
-            high_prob_emit=inputs.high_prob_emit,
-            EW_fixed=inputs.EW_fixed,
-        )
+        if inputs.AH22_model:
+            la_e = L_intr_AH22(Muv.flatten())
+            ew_factor = np.ones((np.shape(Muv)))
+        else:
+            ew_factor, la_e = p_EW(
+                Muv.flatten(),
+                beta.flatten(),
+                return_lum=True,
+                high_prob_emit=inputs.high_prob_emit,
+                EW_fixed=inputs.EW_fixed,
+            )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
         la_e = la_e.reshape((np.shape(Muv)))
         data = np.array(tau_data_I)
@@ -1334,6 +1339,7 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
         cache=inputs.cache,
+        AH22_model=input.AH22_model,
     )
 
     likelihoods, names_used = sample_bubbles_grid(

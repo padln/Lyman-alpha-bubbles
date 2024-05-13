@@ -1,5 +1,5 @@
 import numpy as np
-from venv.galaxy_prop import get_js, p_EW
+from venv.galaxy_prop import get_js, p_EW, L_intr_AH22
 from venv.igm_prop import get_xH, get_bubbles
 from astropy import units as u
 from astropy import constants as const
@@ -89,6 +89,7 @@ def get_content(
         high_prob_emit=False,
         EW_fixed=False,
         cache=True,
+        AH22_model=False,
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
 ):
     """
@@ -162,14 +163,19 @@ def get_content(
             y_out_gal_i.append(y_outs)
             z_out_gal_i.append(z_outs)
             r_out_gal_i.append(r_bubs)
-            lae_now_i = np.array(
-                [p_EW(
-                    muv_i,
-                    beti,
-                    high_prob_emit=high_prob_emit,
-                    EW_fixed=EW_fixed,
-                )[1] for blah in range(n_inside_tau)]
-            )
+            if AH22_model:
+                lae_now_i = np.array(
+                    [p_EW(
+                        muv_i,
+                        beti,
+                        high_prob_emit=high_prob_emit,
+                        EW_fixed=EW_fixed,
+                    )[1] for blah in range(n_inside_tau)]
+                )
+            else:
+                lae_now_i = np.array(
+                    [L_intr_AH22(muv_i) for blah in range(n_inside_tau)]
+                )
 
             la_flux_gal_i[
             bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
