@@ -1030,7 +1030,7 @@ if __name__ == '__main__':
             n_gal,
             inputs.n_iter_bub,
             inputs.n_inside_tau,
-            inputs.mock_dir,
+            inputs.mock_direc,
             write=False
         )
         # data = np.load(
