@@ -1056,7 +1056,12 @@ if __name__ == '__main__':
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
         cl_load.close_file()
-
+        redshifts_of_mocks = np.zeros(n_gal)
+        for i in range(n_gal):
+            red_s = z_at_proper_distance(
+                - zd[i] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
+            )
+            redshifts_of_mocks[i] = red_s
         # xd = np.load(
         #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
         #     + inputs.mock_direc
