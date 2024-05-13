@@ -1337,6 +1337,7 @@ if __name__ == '__main__':
         xh_unc=inputs.xH_unc,
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
+        cache=inputs.cache,
     )
 
     likelihoods, names_used = sample_bubbles_grid(
