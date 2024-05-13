@@ -1339,7 +1339,7 @@ if __name__ == '__main__':
         high_prob_emit=inputs.high_prob_emit,
         EW_fixed=inputs.EW_fixed,
         cache=inputs.cache,
-        AH22_model=input.AH22_model,
+        AH22_model=inputs.AH22_model,
     )
 
     likelihoods, names_used = sample_bubbles_grid(
