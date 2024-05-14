@@ -116,11 +116,11 @@ def get_content(
 
     cont_now = OutsideContainer()
 
-    com_factor = np.zeros(len(Muvs))
-    for index_gal in range(len(Muvs)):
+    com_factor = np.zeros(len(Muvs.flatten()))
+    for index_gal in range(len(Muvs.flatten())):
         com_factor[index_gal] = 1 / (4 * np.pi * Cosmo.luminosity_distance(
-            redshifts_of_mocks[index_gal]).to(u.cm).value ** 2)
-    cont_now.add_com_fact(com_factor)
+            redshifts_of_mocks.flatten()[index_gal]).to(u.cm).value ** 2)
+    cont_now.add_com_fact(com_factor.reshape(np.shape(Muvs)))
 
     if beta is None:
         beta = np.array([-2.0] * len(Muvs))
