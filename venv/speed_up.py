@@ -514,7 +514,7 @@ def calculate_taus_post(
         tau_i = np.zeros((len(wave_em)))
         if z_up_i == np.inf:
 
-            dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble).value
+            dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble)
             taus[index_iter, :] = tau_wv(
                 wave_em,
                 dist=dist,
