@@ -397,19 +397,29 @@ def calculate_taus_prep(
         red_edge_up_sorted = red_edge_up[np.flip(indices_up)]
         red_edge_lo_sorted = red_edge_lo[np.flip(indices_up)]
 
-        indices_to_del_lo = []
-        indices_to_del_up = []
-        for i_fi in range(len(z_edge_up) - 1):
-            if len(z_edge_up_sorted) != 1:
-                if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
-                    # got an overlapping bubble
-                    indices_to_del_lo.append(i_fi)
-                    indices_to_del_up.append(i_fi + 1)
-        z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
-        z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
-        red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
-        red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
+        while True:
+            indices_to_del_lo = []
+            indices_to_del_up = []
+            for i_fi in range(len(z_edge_up_sorted) - 1):
+                if len(z_edge_up_sorted) != 1:
+                    if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
+                        # got an overlapping bubble
+                        indices_to_del_lo.append(i_fi)
+                        indices_to_del_up.append(i_fi + 1)
+            if len(indices_to_del_lo) == 0:
+                break
+            z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
+            z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
+            red_edge_up_sorted = np.delete(red_edge_up_sorted,
+                                           indices_to_del_up)
+            red_edge_lo_sorted = np.delete(red_edge_lo_sorted,
+                                           indices_to_del_lo)
         tau_i = np.zeros(len(wave_em))
+
+        red_edge_up_sorted = np.flip(red_edge_up_sorted)
+        z_edge_up_sorted = np.flip(z_edge_up_sorted)
+        red_edge_lo_sorted = np.flip(red_edge_lo_sorted)
+        z_edge_lo_sorted = np.flip(z_edge_lo_sorted)
 
         # up to this point, redshifts are calculated for ionized bubbles.
         # An idea is to calculate taus for all outside bubbles, and remember the
@@ -470,7 +480,6 @@ def calculate_taus_prep(
             else:
                 raise IndexError("Something else")
     taus = taus.flatten()
-    taus[taus < 0.0] = np.inf
 
     return (
         taus.reshape((n_iter, len(wave_em))),
@@ -505,7 +514,7 @@ def calculate_taus_post(
         tau_i = np.zeros((len(wave_em)))
         if z_up_i == np.inf:
 
-            dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble)
+            dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble).value
             taus[index_iter, :] = tau_wv(
                 wave_em,
                 dist=dist,
@@ -549,5 +558,4 @@ def calculate_taus_post(
             else:
                 raise IndexError("Something else")
     taus = taus.flatten()
-    taus[taus < 0.0] = np.inf
     return taus.reshape((n_iter, len(wave_em)))

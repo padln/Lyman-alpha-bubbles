@@ -252,7 +252,12 @@ def _get_likelihood(
             )
             del fi_bu_en_czl_i, fi_bu_en_czu_i, fi_bu_en_rl_i, fi_bu_en_ru_i
 
+            tau_sh = np.shape(tau_now_i)
+            tau_now_i_fl = tau_now_i.flatten()
+            tau_now_i_fl[tau_now_i_fl < 0.0] = np.inf
+            tau_now_i = tau_now_i_fl.reshape(tau_sh)
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
+
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
 
