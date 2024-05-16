@@ -305,8 +305,8 @@ def _get_likelihood(
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 0
 
-            del res
-            del flux_now_i
+            #del res
+            #del flux_now_i
 
             j_s_now.extend(cont_filled.j_s_full[index_gal_eff][
                            n * n_inside_tau: (n + 1) * n_inside_tau
@@ -346,7 +346,7 @@ def _get_likelihood(
                     spectrum_now[n * n_inside_tau:(n + 1) * n_inside_tau,
                     bin_i - 1,
                     :bin_i] = spectrum_now_i.T
-                    del spectrum_now_i
+                    #del spectrum_now_i
             else:
                 continuum_i = (
                         cont_filled.la_flux_out_full[index_gal_eff][
@@ -365,7 +365,7 @@ def _get_likelihood(
                     noise_on_the_spectrum,
                     np.shape(full_flux_res_i)
                 )
-                del continuum_i
+                #del continuum_i
                 for bin_i, wav_dig_i in zip(
                         range(2, inputs.bins_tot), wave_em_dig_arr
                 ):
@@ -374,7 +374,7 @@ def _get_likelihood(
                     :bin_i] = perturb_flux(
                         full_flux_res_i, bin_i
                     )
-                del full_flux_res_i
+                #del full_flux_res_i
 
         if cache:
 
@@ -1022,7 +1022,6 @@ if __name__ == '__main__':
             ew_factor, la_e = p_EW(
                 Muv.flatten(),
                 beta.flatten(),
-                return_lum=True,
                 high_prob_emit=inputs.high_prob_emit,
                 EW_fixed=inputs.EW_fixed,
             )
@@ -1320,7 +1319,7 @@ if __name__ == '__main__':
     if inputs.mock_direc is None:
         flux_mock = la_e / (
                 4 * np.pi * Cosmo.luminosity_distance(
-            7.5).to(u.cm).value ** 2
+            redshifts_of_mocks).to(u.cm).value ** 2
         )
         flux_tau = flux_mock * tau_data_I
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
