@@ -867,8 +867,7 @@ if __name__ == '__main__':
     parser.add_argument("--constrained_prior", action="store_true")
     parser.add_argument("--AH22_model", action="store_true")
     inputs = parser.parse_args()
-    print(inputs.constrained_prior)
-    assert False
+
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
             raise ValueError("set you density value")

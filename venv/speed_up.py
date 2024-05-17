@@ -163,7 +163,7 @@ def get_content(
             y_out_gal_i.append(y_outs)
             z_out_gal_i.append(z_outs)
             r_out_gal_i.append(r_bubs)
-            if AH22_model:
+            if not AH22_model:
                 lae_now_i = np.array(
                     [p_EW(
                         muv_i,
