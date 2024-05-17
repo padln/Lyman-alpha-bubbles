@@ -451,7 +451,7 @@ def _get_likelihood(
             # like_on_flux = np.array(like_on_flux)
             # print(np.shape(like_on_flux), flush=True)
             # print(ind_data, "index_data", flush=True)
-           if like_on_tau_full:
+            if like_on_tau_full:
                 if tau_data[ind_data] < 0.01:
                     likelihood_tau[:ind_data] += np.log(
                         tau_kde.integrate_box(0.0, 0.01)
