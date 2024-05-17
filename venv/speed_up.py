@@ -91,6 +91,7 @@ def get_content(
         cache=True,
         AH22_model=False,
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
 ):
     """
         Function fills up the container which has all of the forward model parts
@@ -150,7 +151,7 @@ def get_content(
             bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau, :
             ] = j_s[0][:n_inside_tau]
             if xh_unc:
-                x_H = get_xH(redshift)  # using the central redshift.
+                x_H = get_xH(redshift,main_dir = main_dir)  # using the central redshift.
             else:
                 x_H = 0.65
             x_h_gal_i[bubble_iter] = x_H
