@@ -1370,6 +1370,7 @@ if __name__ == '__main__':
         consistent_noise=inputs.consistent_noise,
         cont_filled=cont_filled,
         redshifts_of_mocks=redshifts_of_mocks,
+        bins_tot=inputs.bins_tot
     )
 
     dict_to_save_data = dict()
