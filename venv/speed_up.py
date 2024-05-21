@@ -285,11 +285,11 @@ def get_content(
                         outputs[index_gal][5],
                     )
             ):
-                x_bubs_arr[i_bub, :len(xar)] = xar
-                y_bubs_arr[i_bub, :len(xar)] = yar
-                z_bubs_arr[i_bub, :len(xar)] = zar
+                x_bubs_arr[i_bub, :len(xar)] = np.array(xar).flatten()
+                y_bubs_arr[i_bub, :len(xar)] = np.array(yar).flatten()
+                z_bubs_arr[i_bub, :len(xar)] = np.array(zar).flatten()
                 print(rar, np.shape(rar), np.shape(r_bubs_arr), r_bubs_arr)
-                r_bubs_arr[i_bub, :len(xar)] = rar
+                r_bubs_arr[i_bub, :len(xar)] = np.array(rar).flatten()
             dict_dat = {
                 #'one_Js': np.array(outputs[index_gal][0]),
                 #'xHs': np.array(outputs[index_gal][1]),
