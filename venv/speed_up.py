@@ -288,6 +288,7 @@ def get_content(
                 x_bubs_arr[i_bub, :len(xar)] = xar
                 y_bubs_arr[i_bub, :len(xar)] = yar
                 z_bubs_arr[i_bub, :len(xar)] = zar
+                print(rar, np.shape(rar), np.shape(r_bubs_arr), r_bubs_arr)
                 r_bubs_arr[i_bub, :len(xar)] = rar
             dict_dat = {
                 #'one_Js': np.array(outputs[index_gal][0]),
