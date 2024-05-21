@@ -583,7 +583,8 @@ def sample_bubbles_grid(
         cont_filled=None,
         constrained_prior=False,
         redshifts_of_mocks=None,
-        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/'
+        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/',
+        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -716,6 +717,7 @@ def sample_bubbles_grid(
                     reds_of_galaxies=redshifts_of_mocks[ind_iter],
                     dir_name=dir_name,
                     main_dir=main_dir,
+                    cache_dir=cache_dir,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -789,6 +791,7 @@ def sample_bubbles_grid(
                 reds_of_galaxies=redshifts_of_mocks,
                 dir_name=dir_name,
                 main_dir=main_dir,
+                cache_dir=cache_dir,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -1376,7 +1379,8 @@ if __name__ == '__main__':
         cont_filled=cont_filled,
         redshifts_of_mocks=redshifts_of_mocks,
         bins_tot=inputs.bins_tot,
-        main_dir=inputs.main_dir
+        main_dir=inputs.main_dir,
+        cache_dir=inputs.cache_dir
     )
 
     dict_to_save_data = dict()
