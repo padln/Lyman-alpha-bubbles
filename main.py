@@ -871,6 +871,7 @@ if __name__ == '__main__':
     parser.add_argument("--constrained_prior", action="store_true")
     parser.add_argument("--AH22_model", action="store_true")
     parser.add_argument("--main_dir", type=str, default="/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
+    parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1350,6 +1351,7 @@ if __name__ == '__main__':
         cache=inputs.cache,
         AH22_model=inputs.AH22_model,
         main_dir=inputs.main_dir,
+        cache_dir=inputs.cache_dir,
     )
 
     likelihoods, names_used = sample_bubbles_grid(
