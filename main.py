@@ -21,7 +21,7 @@ from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
 from venv.speed_up import get_content, calculate_taus_post
 
-wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
+wave_em = np.linspace(1214, 1230., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
 
 
@@ -874,6 +874,7 @@ if __name__ == '__main__':
     parser.add_argument("--AH22_model", action="store_true")
     parser.add_argument("--main_dir", type=str, default="/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
+    parser.add_argument("--gauss_distr", action="store_true")
     inputs = parser.parse_args()
 
     if inputs.uvlf_consistently:
@@ -1032,6 +1033,7 @@ if __name__ == '__main__':
                 beta.flatten(),
                 high_prob_emit=inputs.high_prob_emit,
                 EW_fixed=inputs.EW_fixed,
+                gauss_distr=inputs.gauss_distr
             )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
         la_e = la_e.reshape((np.shape(Muv)))
@@ -1354,6 +1356,7 @@ if __name__ == '__main__':
         AH22_model=inputs.AH22_model,
         main_dir=inputs.main_dir,
         cache_dir=inputs.cache_dir,
+        gauss_distr=inputs.gauss_distr,
     )
 
     likelihoods, names_used = sample_bubbles_grid(
