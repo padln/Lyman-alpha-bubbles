@@ -16,9 +16,9 @@ from joblib import Parallel, delayed
 
 from venv.galaxy_prop import get_js, get_mock_data, p_EW, L_intr_AH22
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
-
+from venv.igm_prop import tau_wv
 from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
-from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
+from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux, comoving_distance_from_source_Mpc
 from venv.speed_up import get_content, calculate_taus_post
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
@@ -258,7 +258,15 @@ def _get_likelihood(
             tau_now_i_fl[tau_now_i_fl < 0.0] = np.inf
             tau_now_i = tau_now_i_fl.reshape(tau_sh)
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
-
+            if np.any(tau_now_i[:, -1] < 0.0):
+                dist = comoving_distance_from_source_Mpc(red_s, z_end_bub).value
+                tau_now_i[tau_now_i[:, -1] < 0.0] = tau_wv(
+                    wave_em,
+                    dist=dist,
+                    zs=red_s,
+                    z_end=5.3,
+                    nf=0.8
+                )
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
 
