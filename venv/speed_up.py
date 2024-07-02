@@ -554,12 +554,12 @@ def calculate_taus_post(
                 tau_i = tau_pref * zb_ar ** 1.5 * (
                         I(zb_ar) - I((1 + z_ei) * one_over_onepz)
                 )
-        try:
-            taus[index_iter, :] = tau_i
-        except IndexError:
-            if n_iter == 1:
-                taus = tau_i
-            else:
-                raise IndexError("Something else")
+            try:
+                taus[index_iter, :] = tau_i
+            except IndexError:
+                if n_iter == 1:
+                    taus = tau_i
+                else:
+                    raise IndexError("Something else")
     taus = taus.flatten()
     return taus.reshape((n_iter, len(wave_em)))
