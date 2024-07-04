@@ -143,6 +143,7 @@ def get_content(
 
         for bubble_iter in range(n_iter_bub):
             j_s = get_js(
+                z=redshift,
                 muv=muv_i,
                 n_iter=n_inside_tau,
                 include_muv_unc=include_muv_unc,
