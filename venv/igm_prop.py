@@ -612,18 +612,37 @@ def calculate_taus_i(
         red_edge_up_sorted = red_edge_up[np.flip(indices_up)]
         red_edge_lo_sorted = red_edge_lo[np.flip(indices_up)]
 
-        indices_to_del_lo = []
-        indices_to_del_up = []
-        for i_fi in range(len(z_edge_up) - 1):
-            if len(z_edge_up_sorted) != 1:
-                if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
-                    # got an overlapping bubble
-                    indices_to_del_lo.append(i_fi)
-                    indices_to_del_up.append(i_fi + 1)
-        z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
-        z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
-        red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
-        red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
+        # indices_to_del_lo = []
+        # indices_to_del_up = []
+        # for i_fi in range(len(z_edge_up) - 1):
+        #     if len(z_edge_up_sorted) != 1:
+        #         if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
+        #             # got an overlapping bubble
+        #             indices_to_del_lo.append(i_fi)
+        #             indices_to_del_up.append(i_fi + 1)
+        # z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
+        # z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
+        # red_edge_up_sorted = np.delete(red_edge_up_sorted, indices_to_del_up)
+        # red_edge_lo_sorted = np.delete(red_edge_lo_sorted, indices_to_del_lo)
+
+        while True:
+            indices_to_del_lo = []
+            indices_to_del_up = []
+            for i_fi in range(len(z_edge_up_sorted) - 1):
+                if len(z_edge_up_sorted) != 1:
+                    if z_edge_lo_sorted[i_fi] < z_edge_up_sorted[i_fi + 1]:
+                        # got an overlapping bubble
+                        indices_to_del_lo.append(i_fi)
+                        indices_to_del_up.append(i_fi + 1)
+            if len(indices_to_del_lo) == 0:
+                break
+            z_edge_lo_sorted = np.delete(z_edge_lo_sorted, indices_to_del_lo)
+            z_edge_up_sorted = np.delete(z_edge_up_sorted, indices_to_del_up)
+            red_edge_up_sorted = np.delete(red_edge_up_sorted,
+                                           indices_to_del_up)
+            red_edge_lo_sorted = np.delete(red_edge_lo_sorted,
+                                           indices_to_del_lo)
+
         tau_i = np.zeros(len(wave_em))
         for index, (z_up_i, z_lo_i, red_up_i, red_lo_i) in enumerate(
                 zip(z_edge_up_sorted, z_edge_lo_sorted, red_edge_up_sorted,
@@ -633,12 +652,13 @@ def calculate_taus_i(
                     print("wrong bubble, it's above the galaxy.")
                     raise ValueError
                 if z_up_i < 0 < z_lo_i:
-                    z_bi = z_end_bubble
-                    z_ei = red_lo_i
-                    zb_ar = (1 + z_bi) * one_over_onepz
-                    tau_i = tau_pref * zb_ar ** 1.5 * (
-                            I(zb_ar) - I((1 + z_ei) * one_over_onepz)
-                    )
+                    # z_bi = z_end_bubble
+                    # z_ei = red_lo_i
+                    # zb_ar = (1 + z_bi) * one_over_onepz
+                    # tau_i = tau_pref * zb_ar ** 1.5 * (
+                    #         I(zb_ar) - I((1 + z_ei) * one_over_onepz)
+                    # )
+                    tau_i = np.zeros(len(wave_em))
                 else:
                     z_bi = z_end_bubble
                     z_ei = red_up_i
