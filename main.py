@@ -376,7 +376,7 @@ def _get_likelihood(
                 )
                 #del continuum_i
                 for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot), wave_em_dig_arr
+                        range(2, bins_tot), wave_em_dig_arr
                 ):
                     spectrum_now[n * n_inside_tau:(n + 1) * n_inside_tau,
                     bin_i - 1,
