@@ -643,6 +643,11 @@ def calculate_taus_i(
             red_edge_lo_sorted = np.delete(red_edge_lo_sorted,
                                            indices_to_del_lo)
 
+        red_edge_up_sorted = np.flip(red_edge_up_sorted)
+        z_edge_up_sorted = np.flip(z_edge_up_sorted)
+        red_edge_lo_sorted = np.flip(red_edge_lo_sorted)
+        z_edge_lo_sorted = np.flip(z_edge_lo_sorted)
+
         tau_i = np.zeros(len(wave_em))
         for index, (z_up_i, z_lo_i, red_up_i, red_lo_i) in enumerate(
                 zip(z_edge_up_sorted, z_edge_lo_sorted, red_edge_up_sorted,
