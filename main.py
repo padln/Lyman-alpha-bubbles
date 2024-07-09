@@ -884,7 +884,8 @@ if __name__ == '__main__':
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
     inputs = parser.parse_args()
-
+    print("Save dir:", inputs.save_dir)
+    print("mock_direc", inputs.mock_direc)
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
             raise ValueError("set you density value")
@@ -1546,6 +1547,7 @@ if __name__ == '__main__':
         inputs.n_inside_tau,
         inputs.save_dir
     )
+    print(cl_save.f_name, "This is the filename")
     cl_save.save_datasets(dict_to_save_data)
     cl_save.close_file()
     if inputs.cache:
