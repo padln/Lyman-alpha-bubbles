@@ -1391,7 +1391,8 @@ if __name__ == '__main__':
         redshifts_of_mocks=redshifts_of_mocks,
         bins_tot=inputs.bins_tot,
         main_dir=inputs.main_dir,
-        cache_dir=inputs.cache_dir
+        cache_dir=inputs.cache_dir,
+        constrained_prior=inputs.constrained_prior
     )
 
     dict_to_save_data = dict()
