@@ -166,7 +166,7 @@ class HdF5SaveMocks:
             print("This one should be used")
             print(self.f_name)
             self.f = h5py.File(self.f_name, 'w')
-            print(dict(f.keys()))
+            print(dict(self.f.keys()))
         else:
             self.f = h5py.File(self.f_name, 'r')
 
