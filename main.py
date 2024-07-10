@@ -422,6 +422,9 @@ def _get_likelihood(
                     taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
                     flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
                     spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+
+                    print("Let's see what's actually done in constrained prior")
+                    print(taus_tot_b, len(taus_tot_b))
                 else:
                     taus_tot_b.append(li)
                     flux_tot_b.append(fi)
