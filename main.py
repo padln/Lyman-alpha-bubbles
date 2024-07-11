@@ -419,9 +419,9 @@ def _get_likelihood(
                 zip(flux_tot, taus_tot, spectrum_tot)):
             if np.all(np.array(li) < 10000.0):  # maybe unnecessary
                 if constrained_prior:
-                    taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-                    flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-                    spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+                    taus_tot_b.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                    flux_tot_b.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                    spectrum_tot_b.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
                     print(np.array(li), keep_conp[ind_i_gal])
                     print("Let's see what's actually done in constrained prior")
                     print(taus_tot_b, len(taus_tot_b))
