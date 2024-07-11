@@ -1273,26 +1273,26 @@ if __name__ == '__main__':
                             inputs.bins_tot - 1,
                             inputs.bins_tot - 1)
                     )
-                    one_J = one_J_arr[0]
-                    continuum = (
-                            la_e[:, :, np.newaxis] * one_J * np.exp(-td) * tau_CGM(
-                        Muv, main_dir=inputs.main_dir) / (
-                                    4 * np.pi * Cosmo.luminosity_distance(
-                                7.5
-                            ).to(u.cm).value ** 2)
-                    )
-                    full_flux_res = full_res_flux(continuum, inputs.redshift)
-                    full_flux_res += np.random.normal(
-                        0,
-                        inputs.noise_on_the_spectrum,
-                        np.shape(full_flux_res)
-                    )
-                    for bin_i, wav_dig_i in zip(
-                            range(2, inputs.bins_tot - 1), wave_em_dig_arr
-                    ):
-                        flux_noise_mock[:,:, bin_i - 1, :bin_i] = perturb_flux(
-                            full_flux_res, bin_i
+                    for ind_iter in range(inputs.multiple_iter):
+                        continuum = (
+                                la_e[index_iter, :, np.newaxis] * one_J_arr[index_iter,:,:] * np.exp(-td[index_iter]) * tau_CGM(
+                            Muv[index_iter], main_dir=inputs.main_dir) / (
+                                        4 * np.pi * Cosmo.luminosity_distance(
+                                    redshifts_of_mocks[index_iter]
+                                ).to(u.cm).value ** 2)[:,np.newaxis]
                         )
+                        full_flux_res = full_res_flux(continuum, inputs.redshift)
+                        full_flux_res += np.random.normal(
+                            0,
+                            inputs.noise_on_the_spectrum,
+                            np.shape(full_flux_res)
+                        )
+                        for bin_i, wav_dig_i in zip(
+                                range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                        ):
+                            flux_noise_mock[index_iter,:, bin_i - 1, :bin_i] = perturb_flux(
+                                full_flux_res, bin_i
+                            )
                 else:
                     flux_noise_mock = np.zeros(
                         (
