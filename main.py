@@ -480,13 +480,13 @@ def _get_likelihood(
                     )
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
-                    if bin_i < 7:
+                    if bin_i < 5:
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                         )
                     else:
                         data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:7]).T
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:5]).T
                         )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
@@ -494,7 +494,7 @@ def _get_likelihood(
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
-                    if bin_i < 7:
+                    if bin_i < 5:
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
@@ -505,8 +505,8 @@ def _get_likelihood(
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:7])
-                            ).reshape(6, 1)
+                                            bin_i - 1, 1:5])
+                            ).reshape(4, 1)
                         )
                     likelihood_spec[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
@@ -884,8 +884,7 @@ if __name__ == '__main__':
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
     inputs = parser.parse_args()
-    print("Save dir:", inputs.save_dir)
-    print("mock_direc", inputs.mock_direc)
+
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
             raise ValueError("set you density value")
@@ -1547,7 +1546,6 @@ if __name__ == '__main__':
         inputs.n_inside_tau,
         inputs.save_dir
     )
-    print(cl_save.f_name, "This is the filename")
     cl_save.save_datasets(dict_to_save_data)
     cl_save.close_file()
     if inputs.cache:

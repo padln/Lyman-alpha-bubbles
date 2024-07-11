@@ -163,16 +163,12 @@ class HdF5SaveMocks:
 
     def __create__(self, write=True):
         if write:
-            print("This one should be used")
-            print(self.f_name)
             self.f = h5py.File(self.f_name, 'w')
-            print(dict(self.f.keys()))
         else:
             self.f = h5py.File(self.f_name, 'r')
 
     def save_datasets(self, dict_dat):
         for (nam, val) in dict_dat.items():
-            print("Filename inside the function", self.f_name)
             self.f.create_dataset(
                 nam,
                 dtype="float",
