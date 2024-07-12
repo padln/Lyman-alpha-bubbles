@@ -116,7 +116,6 @@ def _get_likelihood(
         reds_of_galaxies_in = np.zeros(len(xs))
     else:
         reds_of_galaxies_in = reds_of_galaxies
-    print(len(xs), "this is the number of galaxies senor", flush=True)
 
     names_used_this_iter = []
 
@@ -429,9 +428,7 @@ def _get_likelihood(
                     taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
                     flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
                     spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
-                    print(np.array(li), keep_conp[ind_i_gal])
-                    print("Let's see what's actually done in constrained prior")
-                    print(taus_tot_b, len(taus_tot_b))
+
                 taus_tot_b.append(li)
                 flux_tot_b.append(fi)
                 spectrum_tot_b.append(speci)
