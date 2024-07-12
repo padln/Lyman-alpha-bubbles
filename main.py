@@ -428,7 +428,7 @@ def _get_likelihood(
                     taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
                     flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
                     spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
-
+                    print(keep_conp[ind_i_gal])
                 taus_tot_b.append(li)
                 flux_tot_b.append(fi)
                 spectrum_tot_b.append(speci)
@@ -505,7 +505,6 @@ def _get_likelihood(
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
-
                     if bin_i < 4:
                         data_to_eval = np.log10(
                             (1e18 * (
@@ -527,6 +526,9 @@ def _get_likelihood(
                     )
                 if constrained_prior:
                     for bin_i in range(2, bins_tot):
+                        print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
+                        print("Lengths")
+
                         if bin_i < 4:
                             data_to_get = np.log10(
                                 1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
