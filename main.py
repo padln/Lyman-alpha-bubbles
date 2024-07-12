@@ -1287,15 +1287,13 @@ if __name__ == '__main__':
                             inputs.noise_on_the_spectrum,
                             np.shape(full_flux_res)
                         )
-                        print(full_flux_res, flush=True)
                         for bin_i, wav_dig_i in zip(
                                 range(2, inputs.bins_tot - 1), wave_em_dig_arr
                         ):
-                            flux_noise_mock[index_iter,:, bin_i - 1, :bin_i] = perturb_flux(
+                            flux_noise_mock[ind_iter,:, bin_i - 1, :bin_i] = perturb_flux(
                                 full_flux_res, bin_i
                             )
-                    print(flux_noise_mock, "final", flush=True)
-                    assert False
+
                 else:
                     flux_noise_mock = np.zeros(
                         (
@@ -1333,8 +1331,6 @@ if __name__ == '__main__':
     # assert False
     if inputs.like_on_flux:
         like_on_flux = flux_noise_mock
-        print(like_on_flux, "This is like on flux", flush=True)
-        assert False
     else:
         like_on_flux = False
 
