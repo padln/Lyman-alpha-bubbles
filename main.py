@@ -1330,6 +1330,8 @@ if __name__ == '__main__':
     # assert False
     if inputs.like_on_flux:
         like_on_flux = flux_noise_mock
+        print(like_on_flux, "This is like on flux", flush=True)
+        assert False
     else:
         like_on_flux = False
 
