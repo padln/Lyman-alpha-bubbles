@@ -17,7 +17,7 @@ from joblib import Parallel, delayed
 from venv.galaxy_prop import get_js, get_mock_data, p_EW, L_intr_AH22
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
 from venv.igm_prop import tau_wv
-from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
+from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks, HdF5LoadMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux, comoving_distance_from_source_Mpc
 from venv.speed_up import get_content, calculate_taus_post
 
@@ -838,7 +838,7 @@ def sample_bubbles_grid(
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mock_direc", type=str, default=None)
+    parser.add_argument("--mock_file", type=str, default=None)
     parser.add_argument("--redshift", type=float, default=7.5)
     parser.add_argument("--r_bub", type=float, default=15.0)
     parser.add_argument("--max_dist", type=float, default=15.0)
@@ -949,7 +949,7 @@ if __name__ == '__main__':
         else:
             beta = -2.0 * np.ones(n_gal)
 
-    if inputs.mock_direc is None:
+    if inputs.mock_file is None:
         if inputs.multiple_iter:
             td = np.zeros((inputs.multiple_iter, n_gal, 100))
             xd = np.zeros((inputs.multiple_iter, n_gal))
@@ -1049,18 +1049,10 @@ if __name__ == '__main__':
 
     else:
 
-        cl_load = HdF5SaveMocks(
-            n_gal,
-            inputs.n_iter_bub,
-            inputs.n_inside_tau,
-            inputs.mock_direc,
-            write=False
+        cl_load = HdF5LoadMocks(
+            inputs.mock_file,
         )
-        # data = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/tau_data.npy'  # maybe I'll change this
-        # )[:n_gal]
+
         data = np.array(cl_load.f['integrated_tau'])
         xd = np.array(cl_load.f['x_gal_mock'])
         yd = np.array(cl_load.f['y_gal_mock'])
@@ -1085,97 +1077,7 @@ if __name__ == '__main__':
                 - zd[i] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
             )
             redshifts_of_mocks[i] = red_s
-        # xd = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/x_gal_mock.npy'
-        # )[:n_gal]
-        # yd = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/y_gal_mock.npy'
-        # )[:n_gal]
-        # zd = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/z_gal_mock.npy'
-        # )[:n_gal]
-        # x_b = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/x_bub_mock.npy'
-        # )
-        # y_b = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/y_bub_mock.npy'
-        # )
-        # z_b = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/z_bub_mock.npy'
-        # )
-        # r_bubs = np.load(
-        #     '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #     + inputs.mock_direc
-        #     + '/r_bubs_mock.npy'
-        # )
-        #
-        # if os.path.isfile(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/tau_shape.npy'
-        # ):
-        #     td = np.load(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/tau_shape.npy'
-        #     )[:n_gal]
-        # if os.path.isfile(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/Muvs.npy'
-        # ):
-        #     Muv = np.load(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/Muvs.npy'
-        #     )[:n_gal]
-        # if os.path.isfile(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/one_J.npy'
-        # ):
-        #     one_J = np.load(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/one_J.npy'
-        #     )[:n_gal]
-        # if os.path.isfile(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/la_e_in.npy'
-        # ):
-        #     la_e = np.load(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/la_e_in.npy'
-        #     )[:n_gal]
-        # if os.path.isfile(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/flux_spectrum.npy'
-        # ):
-        #     flux_spectrum_mock = np.load(
-        #         '/home/inikolic/projects/Lyalpha_bubbles/code/'
-        #         + inputs.mock_direc
-        #         + '/flux_spectrum.npy'
-        #     )
-        # else:
-        #     flux_spectrum_mock = None
-    # print(tau_data_I, np.shape(tau_data_I))
-    # print(np.array(data), np.shape(np.array(data)))
-    # assert False
+
 
     if inputs.like_on_flux:
         bins_arr = [
@@ -1194,7 +1096,7 @@ if __name__ == '__main__':
 
         # TODO make things self-consistent and modular
         if not inputs.consistent_noise:
-            if inputs.mock_direc is None or flux_spectrum_mock is None:
+            if inputs.mock_file is None or flux_spectrum_mock is None:
                 if inputs.multiple_iter:
                     flux_noise_mock = np.zeros(
                         (
@@ -1211,7 +1113,7 @@ if __name__ == '__main__':
 
                     full_res_flux = 1  # to fill this
 
-                    if not inputs.mock_direc:
+                    if not inputs.mock_file:
                         one_J = one_J[0]
 
                     for index_gal in range(n_gal):
@@ -1264,7 +1166,7 @@ if __name__ == '__main__':
                 flux_noise_mock = flux_spectrum_mock
 
         else:
-            if inputs.mock_direc is None:
+            if inputs.mock_file is None:
                 if inputs.multiple_iter:
                     flux_noise_mock = np.zeros(
                         (
@@ -1334,7 +1236,7 @@ if __name__ == '__main__':
         like_on_flux = False
 
     # from now flux is calculated here in the integrated version, and it contains noise
-    if inputs.mock_direc is None:
+    if inputs.mock_file is None:
         flux_mock = la_e / (
                 4 * np.pi * Cosmo.luminosity_distance(
             redshifts_of_mocks).to(u.cm).value ** 2

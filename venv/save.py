@@ -177,3 +177,18 @@ class HdF5SaveMocks:
 
     def close_file(self):
         self.f.close()
+
+
+class HdF5LoadMocks:
+    def __init__(
+            self,
+            mock_fname
+    ):
+        self.f_name = mock_fname
+        self.__create__()
+
+    def __create__(self):
+        self.f = h5py.File(self.f_name, 'r')
+
+    def close_file(self):
+        self.f.close()
