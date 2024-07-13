@@ -1334,8 +1334,8 @@ if __name__ == '__main__':
     #     np.array(zd)
     # )
     dict_to_save_data['x_gal_mock'] = np.array(xd)
-    dict_to_save_data['y_gal_mock'] = np.array(xd)
-    dict_to_save_data['z_gal_mock'] = np.array(xd)
+    dict_to_save_data['y_gal_mock'] = np.array(yd)
+    dict_to_save_data['z_gal_mock'] = np.array(zd)
 
     if inputs.multiple_iter:
         max_len_bubs = 0
