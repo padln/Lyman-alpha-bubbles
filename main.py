@@ -1227,8 +1227,7 @@ if __name__ == '__main__':
                             full_flux_res, bin_i
                         )
             else:
-                print("This is where it should end")
-                assert False
+
                 flux_noise_mock = flux_spectrum_mock
 
     # assert False
