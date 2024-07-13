@@ -1275,10 +1275,10 @@ if __name__ == '__main__':
                     )
                     for ind_iter in range(inputs.multiple_iter):
                         continuum = (
-                                la_e[index_iter, :, np.newaxis] * one_J_arr[index_iter,:,:] * np.exp(-td[index_iter]) * tau_CGM(
-                            Muv[index_iter], main_dir=inputs.main_dir) / (
+                                la_e[ind_iter, :, np.newaxis] * one_J_arr[ind_iter,:,:] * np.exp(-td[ind_iter]) * tau_CGM(
+                            Muv[ind_iter], main_dir=inputs.main_dir) / (
                                         4 * np.pi * Cosmo.luminosity_distance(
-                                    redshifts_of_mocks[index_iter]
+                                    redshifts_of_mocks[ind_iter]
                                 ).to(u.cm).value ** 2)[:,np.newaxis]
                         )
                         full_flux_res = full_res_flux(continuum, inputs.redshift)
