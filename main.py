@@ -95,7 +95,7 @@ def _get_likelihood(
     # calculation. The only thing to define is the width of the distribution
     # and the rejection criterion
     if constrained_prior:
-        width_conp = 0.2
+        width_conp = 0.05
 
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
