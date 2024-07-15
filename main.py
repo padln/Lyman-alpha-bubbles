@@ -20,6 +20,7 @@ from venv.igm_prop import tau_wv
 from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux, comoving_distance_from_source_Mpc
 from venv.speed_up import get_content, calculate_taus_post
+from venv.cache import cache_main
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -388,7 +389,7 @@ def _get_likelihood(
         if cache:
 
             dict_dat_aft = {
-                #'tau_full': tau_now_full,
+                'tau_full': tau_now_full,
                 'flux_integ': flux_now,
                 'mock_spectra': spectrum_now,
             }
@@ -870,6 +871,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", action="store_true")
+    parser.add_argument("--use_cache", type=str, default= None)
     parser.add_argument("--cache", action="store_false")
     parser.add_argument("--fwhm_true", action="store_true")
     parser.add_argument("--n_grid", type=int, default=5)
@@ -884,6 +886,22 @@ if __name__ == '__main__':
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
     inputs = parser.parse_args()
+
+    if inputs.use_cache is not None:
+        cache_main(
+            inputs.save_dir,
+            inputs.flux_limit,
+            inputs.n_inside_tau,
+            inputs.n_iter_bub,
+            inputs.use_cache,
+            inputs.mock_direc,
+            inputs.redshift,
+            inputs.bins_tot,
+            inputs.constrained_prior,
+            inputs.cache_dir,
+            inputs.n_grid,
+        )
+        sys.exit(0)
 
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
