@@ -307,14 +307,14 @@ def _get_likelihood(
                 raise ValueError
 
             if constrained_prior:
-                if flux_int[index_gal] > flux_limit:
-                    for index_tau_for, res_i_for in enumerate(res):
-                        if abs(res_i_for - tau_data[index_gal]) < width_conp:
-                            keep_conp[
-                                index_gal, n * n_inside_tau + index_tau_for] = 1
-                        else:
-                            keep_conp[
-                                index_gal, n * n_inside_tau + index_tau_for] = 0
+                #if flux_int[index_gal] > flux_limit:
+                for index_tau_for, res_i_for in enumerate(res):
+                    if abs(res_i_for - tau_data[index_gal]) < width_conp:
+                        keep_conp[
+                            index_gal, n * n_inside_tau + index_tau_for] = 1
+                    else:
+                        keep_conp[
+                            index_gal, n * n_inside_tau + index_tau_for] = 0
 
             #del res
             #del flux_now_i
