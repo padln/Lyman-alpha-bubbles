@@ -1,0 +1,399 @@
+#This is a new file that is mean to develop a framework that takes in cached files and simply performs likelihood inference.
+#The outline of the get_likelihood will be the same, only the properties will not
+#be calculated.
+
+#The first thing to note is that it's the galaxy position that sets up the name
+# of the cached file
+import numpy as np
+import h5py
+
+
+class HdF5CacheRead:
+    def __init__(
+            self,
+            x_gal,
+            n_iter_bub,
+            n_inside_tau,
+            output_dir,
+            x_main,
+            y_main,
+            z_main,
+            r_bub_main,
+    ):
+        self.f = None
+        self.x_gal = x_gal
+        self.n_iter_bub = n_iter_bub
+        self.n_inside_tau = n_inside_tau
+        self.outpud_dir = output_dir
+        pos_n = f"{x_main:.2f}" + "_" + f"{y_main:.2f}" + '_' + f"{z_main:.2f}"
+        b_n = pos_n + '_' + f"{r_bub_main:.2f}" + '.hdf5'
+        self.fname = (self.output_dir +
+                      f"{self.x_gal:.8f}" + "_" +
+                      f"{self.n_iter_bub}" + "_" +
+                      f"{self.n_inside_tau}" + "_" +
+                      b_n)
+        self.open()
+        return self.f
+
+    def open(self):
+        self.f = h5py.File(self.f_name, 'r')
+
+    def close(self):
+        self.f.close()
+
+class HdF5SaveCached:
+    def __init__(
+            self,
+            n_gal,
+            n_iter_bub,
+            n_inside_tau,
+            save_dir,
+    ):
+        self.n_gal = n_gal
+        self.n_iter_bub = n_iter_bub
+        self.n_inside_tau = n_inside_tau
+        self.save_dir = save_dir
+        self.f_name = self.save_dir + "Init_ngal" + str(
+            self.n_gal) + "_nib" + str(
+            self.n_iter_bub) + "_nit" + str(
+            self.n_inside_tau) + "_cached.hdf5"
+        self.__create__()
+
+    def __create__(self,):
+        self.f = h5py.File(self.f_name, 'a')
+
+    def save_datasets(self, dict_dat):
+        for (nam, val) in dict_dat.items():
+            self.f.create_dataset(
+                nam,
+                dtype="float",
+                data=val
+            )
+
+    def close_file(self):
+        self.f.close()
+
+
+def get_cache_likelihood(
+        x_gal,
+        n_iter_bub,
+        n_inside_tau,
+        x_main,
+        y_main,
+        z_main,
+        R_main,
+):
+    """
+    This is to be updated when I think of a function.
+
+    :return:
+    """
+
+    f_this = HdF5CacheRead(
+        x_gal,
+        n_iter_bub,
+        n_inside_tau,
+        output_dir,
+        x_main,
+        y_main,
+        z_main,
+        R_main
+    )
+    tau_now_full = np.array(f_this['tau_full'])
+    flux_now = np.array(f_this['flux_integ'])
+    spectrum_now = np.array(f_this['mock_spectra'])
+    f_this.close()
+    return flux_now, spectrum_now, tau_now_full
+
+#I'll also re-write the general structure of the code, but in a much simpler way
+
+def _get_likelihood_cache(
+        ndex,
+        xb,
+        yb,
+        zb,
+        rb,
+        xs,
+        ys,
+        zs,
+        tau_data,
+        n_iter_bub,
+        redshift=7.5,
+        muv=None,
+        beta_data=None,
+        la_e_in=None,
+        flux_int=None,
+        flux_limit=1e-18,
+        like_on_flux=False,
+        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        n_inside_tau=50,
+        bins_tot=20,
+        cache=True,
+        constrained_prior=False,
+        reds_of_galaxies=None,
+):
+    if constrained_prior:
+        width_conp = 0.2
+    likelihood_spec = np.zeros((len(xs), bins_tot - 1))
+    likelihood_int = np.zeros((len(xs)))
+    likelihood_tau = np.zeros((len(xs)))
+    taus_tot = []
+    flux_tot = []
+    spectrum_tot = []
+    if beta_data is None:
+        beta_data = np.zeros(len(xs))
+
+    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
+    for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
+            zip(xs, ys, zs, muv, beta_data, la_e_in)
+    ):
+        flux_now, spectrum_now, tau_now_full = get_cache_likelihood(
+            xg,
+            n_iter_bub,
+            n_inside_tau,
+            xb,
+            yb,
+            zb,
+            rb,
+        )
+        flux_tot.append(np.array(flux_now).flatten())
+        taus_tot.append(np.array(taus_now).flatten())
+        spectrum_tot.append(spectrum_now)
+    try:
+        taus_tot_b = []
+        flux_tot_b = []
+        spectrum_tot_b = []
+        for ind_i_gal, (fi, li, speci) in enumerate(
+                zip(flux_tot, taus_tot, spectrum_tot)):
+            if np.all(np.array(li) < 10000.0):  # maybe unnecessary
+                if constrained_prior:
+                    taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
+                    flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
+                    spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+                else:
+                    taus_tot_b.append(li)
+                    flux_tot_b.append(fi)
+                    spectrum_tot_b.append(speci)
+        #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+
+        for ind_data, (flux_line, tau_line, spec_line) in enumerate(
+                zip(np.array(flux_tot_b), np.array(taus_tot_b),
+                    np.array(spectrum_tot_b))
+        ):
+            tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
+            fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+            #if ind_data==0:
+                #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
+            if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
+                ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+                ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+
+                #print("and actual problem:", fl_l[ind_nan], flush=True)
+                flux_line.pop(np.concatenate(ind_nan, ind_inf))
+                spec_line.pop(np.concatenate(ind_nan, ind_inf))
+                #raise ValueError
+
+            flux_kde = gaussian_kde(
+                np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+                bw_method=0.15
+            )
+
+
+            if like_on_tau_full:
+                if tau_data[ind_data] < 0.01:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.integrate_box(0.0, 0.01)
+                    )
+                else:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.evaluate((tau_data[ind_data]))
+                    )
+
+            else:
+                if flux_int[ind_data] < flux_limit:
+                    pass
+                    # likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
+                else:
+                    likelihood_tau[:ind_data] += np.log(
+                        tau_kde.evaluate((tau_data[ind_data]))
+                    )
+            if like_on_flux is not False:
+                for bin_i in range(2, bins_tot):
+                    if bin_i < 4:
+                        data_to_get = np.log10(
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
+                        )
+                    else:
+                        data_to_get = np.log10(
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
+                        )
+
+                    spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+
+                    if bin_i < 4:
+                        data_to_eval = np.log10(
+                            (1e18 * (
+                                    5e-19 + like_on_flux[ind_data][
+                                            bin_i - 1, 1:bin_i])
+                            ).reshape(bin_i - 1, 1)
+                        )
+                    else:
+                        data_to_eval = np.log10(
+                            (1e18 * (
+                                    5e-19 + like_on_flux[ind_data][
+                                            bin_i - 1, 1:4])
+                            ).reshape(3, 1)
+                        )
+                    likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                        spec_kde.evaluate(
+                            data_to_eval
+                        )
+                    )
+            if flux_int[ind_data] < flux_limit:
+                likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
+                                                                           np.log10(
+                                                                               1e19 * (
+                                                                                       3e-19 + flux_limit))))
+
+            else:
+                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+                    np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+                )
+
+    except (LinAlgError, ValueError, TypeError):
+        likelihood_tau[:ind_data] += -np.inf
+        likelihood_spec[:ind_data] += -np.inf
+        likelihood_int[:ind_data] += -np.inf
+
+        print("OOps there was value error, let's see why:", flush=True)
+
+    if hasattr(likelihood_tau[0], '__len__'):
+        return ndex, (
+            likelihood_tau,
+            likelihood_int,
+            likelihood_spec
+        )
+
+    else:
+        return ndex, (
+            likelihood_tau, likelihood_int, likelihood_spec)
+
+
+def cache_main(
+    save_dir,
+    flux_limit,
+    n_inside_tau,
+    n_iter_bub,
+    use_cache,
+    mock_direc,
+    redshift,
+    bins_tot,
+    constrained_prior,
+    cache_dir,
+    n_grid
+):
+    if mock_direc is None:
+        raise ValueError("You need to specify a mock that created this. For now")
+
+    cl_load = HdF5SaveMocks(
+        n_gal,
+        inputs.n_iter_bub,
+        inputs.n_inside_tau,
+        inputs.mock_direc,
+        write=False
+    )
+
+    data = np.array(cl_load.f['integrated_tau'])
+    xd = np.array(cl_load.f['x_gal_mock'])
+    yd = np.array(cl_load.f['y_gal_mock'])
+    zd = np.array(cl_load.f['z_gal_mock'])
+    Muv = np.array(cl_load.f['Muvs'])
+
+    la_e = np.array(cl_load.f['Lyman_alpha_lums'])
+    flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
+    flux_tau = np.array(cl_load.f['flux_integrated'])
+    cl_load.close_file()
+    redshifts_of_mocks = np.zeros(n_gal)
+    for i in range(n_gal):
+        red_s = z_at_proper_distance(
+            - zd[i] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
+        )
+        redshifts_of_mocks[i] = red_s
+    like_on_flux = flux_spectrum_mock
+
+    z_min = -5.0
+    z_max = 5.0
+    r_min = 5.0
+    r_max = 15.0
+    z_grid = np.linspace(z_min, z_max, n_grid)
+
+    x_grid = np.linspace(-5.0, 5.0, 5)
+    y_grid = np.linspace(-5.0, 5.0, 5)
+    r_grid = np.linspace(r_min, r_max, n_grid)
+    like_calc = Parallel(
+        n_jobs=25
+    )(
+        delayed(
+            _get_likelihood_cache
+        )(
+            index,
+            xb,
+            yb,
+            zb,
+            rb,
+            xd,
+            yd,
+            zd,
+            data,
+            n_iter_bub,
+            redshift=redshift,
+            muv=Muv,
+            beta_data = -2.0 * np.ones(np.shape(Muv)),
+            la_e_in=la_e,
+            flux_int=flux_tau,
+            flux_limit=flux_limit,
+            like_on_flux=like_on_flux,
+            n_inside_tau=n_inside_tau,
+            bins_tot=bins_tot,
+            cache=use_cache,
+            constrained_prior=constrained_prior,
+            reds_of_galaxies=redshifts_of_mocks,
+            cache_dir=cache_dir,
+        ) for index, (xb, yb, zb, rb) in enumerate(
+            itertools.product(x_grid, y_grid, z_grid, r_grid)
+        )
+    )
+    like_calc.sort(key=lambda x: x[0])
+    likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
+    likelihood_grid_tau = likelihood_grid_tau.reshape(
+        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+    )
+    likelihood_grid_int = np.array([l[1][1] for l in like_calc])
+    likelihood_grid_int = likelihood_grid_int.reshape(
+        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+    )
+    likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+    likelihood_grid_spec = likelihood_grid_spec.reshape(
+        (
+            len(x_grid),
+            len(y_grid),
+            len(z_grid),
+            len(r_grid),
+            len(xs),
+            bins_tot - 1
+        )
+    )
+
+    dict_to_save_data = dict()
+
+    dict_to_save_data['likelihoods_tau'] = likelihood_grid_tau
+    dict_to_save_data['likelihoods_int'] = likelihood_grid_int
+    dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
+    cl_save = HdF5SaveCached(
+        len(Muv),
+        n_iter_bub,
+        n_inside_tau,
+        save_dir
+    )
+    cl_save.save_datasets(dict_to_save_data)
+    cl_save.close_file()
