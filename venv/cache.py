@@ -39,7 +39,6 @@ class HdF5CacheRead:
                       f"{self.n_inside_tau}" + "_" +
                       b_n)
         self.open()
-        return self.f
 
     def open(self):
         self.f = h5py.File(self.f_name, 'r')
@@ -106,9 +105,9 @@ def get_cache_likelihood(
         z_main,
         R_main
     )
-    tau_now_full = np.array(f_this['tau_full'])
-    flux_now = np.array(f_this['flux_integ'])
-    spectrum_now = np.array(f_this['mock_spectra'])
+    tau_now_full = np.array(f_this.f['tau_full'])
+    flux_now = np.array(f_this.f['flux_integ'])
+    spectrum_now = np.array(f_this.f['mock_spectra'])
     f_this.close()
     return flux_now, spectrum_now, tau_now_full
 
