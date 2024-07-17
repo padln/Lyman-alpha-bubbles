@@ -369,11 +369,11 @@ def cache_main(
     like_calc.sort(key=lambda x: x[0])
     likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
     likelihood_grid_tau = likelihood_grid_tau.reshape(
-        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
     )
     likelihood_grid_int = np.array([l[1][1] for l in like_calc])
     likelihood_grid_int = likelihood_grid_int.reshape(
-        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
     )
     likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
     likelihood_grid_spec = likelihood_grid_spec.reshape(
@@ -382,7 +382,7 @@ def cache_main(
             len(y_grid),
             len(z_grid),
             len(r_grid),
-            len(xs),
+            len(xd),
             bins_tot - 1
         )
     )
