@@ -139,7 +139,6 @@ def _get_likelihood_cache(
         constrained_prior=False,
         reds_of_galaxies=None,
 ):
-    print("Starting with index", ndex, flush=True)
     if constrained_prior:
         width_conp = 0.2
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
@@ -165,7 +164,6 @@ def _get_likelihood_cache(
             rb,
             output_dir=cache_dir,
         )
-        print(flux_now, spectrum_now, tau_now_full, flush=True)
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
         spectrum_tot.append(spectrum_now)
@@ -184,7 +182,7 @@ def _get_likelihood_cache(
                     taus_tot_b.append(li)
                     flux_tot_b.append(fi)
                     spectrum_tot_b.append(speci)
-                print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+        print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b), np.array(taus_tot_b),
