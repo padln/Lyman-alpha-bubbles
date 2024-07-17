@@ -173,7 +173,7 @@ def _get_likelihood_cache(
         spectrum_tot_b = []
         for ind_i_gal, (fi, li, speci) in enumerate(
                 zip(flux_tot, taus_tot, spectrum_tot)):
-            print(ind_i_gal, fi, li, speci)
+            #print(ind_i_gal, fi, li, speci)
             if np.all(np.array(li) < 10000.0):  # maybe unnecessary
                 if constrained_prior:
                     taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
@@ -183,6 +183,10 @@ def _get_likelihood_cache(
                     taus_tot_b.append(li)
                     flux_tot_b.append(fi)
                     spectrum_tot_b.append(speci)
+            else:
+                with np.printoptions(threshold=numpy.inf):
+                    print("OOps", li, flush=True)
+                raise ValueError
         print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
