@@ -285,7 +285,7 @@ def cache_main(
     n_inside_tau,
     n_iter_bub,
     use_cache,
-    mock_direc,
+    mock_file,
     redshift,
     bins_tot,
     constrained_prior,
@@ -295,13 +295,9 @@ def cache_main(
     if mock_direc is None:
         raise ValueError("You need to specify a mock that created this. For now")
 
-    cl_load = HdF5SaveMocks(
-        n_gal,
-        inputs.n_iter_bub,
-        inputs.n_inside_tau,
-        inputs.mock_direc,
-        write=False
-    )
+    cl_load = HdF5LoadMocks(
+            mock_file,
+        )
 
     data = np.array(cl_load.f['integrated_tau'])
     xd = np.array(cl_load.f['x_gal_mock'])
