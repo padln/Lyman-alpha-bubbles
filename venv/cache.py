@@ -33,7 +33,7 @@ class HdF5CacheRead:
         self.output_dir = output_dir
         pos_n = f"{x_main:.2f}" + "_" + f"{y_main:.2f}" + '_' + f"{z_main:.2f}"
         b_n = pos_n + '_' + f"{r_bub_main:.2f}" + '.hdf5'
-        self.fname = (self.output_dir +
+        self.f_name = (self.output_dir +
                       f"{self.x_gal:.8f}" + "_" +
                       f"{self.n_iter_bub}" + "_" +
                       f"{self.n_inside_tau}" + "_" +
