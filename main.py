@@ -389,7 +389,7 @@ def _get_likelihood(
         if cache:
 
             dict_dat_aft = {
-                'tau_full': tau_now_full,
+                'tau_full': np.array(taus_now),
                 'flux_integ': flux_now,
                 'mock_spectra': spectrum_now,
             }
