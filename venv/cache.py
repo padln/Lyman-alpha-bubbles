@@ -173,6 +173,7 @@ def _get_likelihood_cache(
         spectrum_tot_b = []
         for ind_i_gal, (fi, li, speci) in enumerate(
                 zip(flux_tot, taus_tot, spectrum_tot)):
+            print(ind_i_gal, fi, li, speci)
             if np.all(np.array(li) < 10000.0):  # maybe unnecessary
                 if constrained_prior:
                     taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
