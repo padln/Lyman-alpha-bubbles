@@ -898,7 +898,6 @@ if __name__ == '__main__':
             inputs.redshift,
             inputs.bins_tot,
             inputs.constrained_prior,
-            inputs.cache_dir,
             inputs.n_grid,
         )
         sys.exit(0)
