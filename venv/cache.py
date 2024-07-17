@@ -7,6 +7,7 @@
 import numpy as np
 import h5py
 from venv.save import HdF5LoadMocks
+from venv.helpers import z_at_proper_distance
 
 class HdF5CacheRead:
     def __init__(
