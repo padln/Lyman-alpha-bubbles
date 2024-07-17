@@ -292,7 +292,7 @@ def cache_main(
     cache_dir,
     n_grid
 ):
-    if mock_direc is None:
+    if mock_file is None:
         raise ValueError("You need to specify a mock that created this. For now")
 
     cl_load = HdF5LoadMocks(
