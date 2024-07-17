@@ -313,7 +313,7 @@ def cache_main(
     redshifts_of_mocks = np.zeros(n_gal)
     for i in range(n_gal):
         red_s = z_at_proper_distance(
-            - zd[i] / (1 + inputs.redshift) * u.Mpc, inputs.redshift
+            - zd[i] / (1 + redshift) * u.Mpc, redshift
         )
         redshifts_of_mocks[i] = red_s
     like_on_flux = flux_spectrum_mock
