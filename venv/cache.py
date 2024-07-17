@@ -11,6 +11,8 @@ from venv.helpers import z_at_proper_distance
 from astropy import units as u
 from joblib import Parallel, delayed
 from scipy.stats import gaussian_kde
+import itertools
+from scipy.linalg import LinAlgError
 
 class HdF5CacheRead:
     def __init__(
