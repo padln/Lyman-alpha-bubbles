@@ -139,6 +139,7 @@ def _get_likelihood_cache(
         constrained_prior=False,
         reds_of_galaxies=None,
 ):
+    print("Starting with index", ndex, flush=True)
     if constrained_prior:
         width_conp = 0.2
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
