@@ -30,7 +30,7 @@ class HdF5CacheRead:
         self.x_gal = x_gal
         self.n_iter_bub = n_iter_bub
         self.n_inside_tau = n_inside_tau
-        self.outpud_dir = output_dir
+        self.output_dir = output_dir
         pos_n = f"{x_main:.2f}" + "_" + f"{y_main:.2f}" + '_' + f"{z_main:.2f}"
         b_n = pos_n + '_' + f"{r_bub_main:.2f}" + '.hdf5'
         self.fname = (self.output_dir +
@@ -88,6 +88,7 @@ def get_cache_likelihood(
         y_main,
         z_main,
         R_main,
+        output_dir
 ):
     """
     This is to be updated when I think of a function.
@@ -161,6 +162,7 @@ def _get_likelihood_cache(
             yb,
             zb,
             rb,
+            output_dir=cache_dir,
         )
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(taus_now).flatten())
