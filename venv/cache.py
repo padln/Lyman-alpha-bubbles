@@ -167,46 +167,46 @@ def _get_likelihood_cache(
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
         spectrum_tot.append(spectrum_now)
-    try:
-        taus_tot_b = []
-        flux_tot_b = []
-        spectrum_tot_b = []
-        for ind_i_gal, (fi, li, speci) in enumerate(
-                zip(flux_tot, taus_tot, spectrum_tot)):
+#    try:
+    taus_tot_b = []
+    flux_tot_b = []
+    spectrum_tot_b = []
+    for ind_i_gal, (fi, li, speci) in enumerate(
+            zip(flux_tot, taus_tot, spectrum_tot)):
             #print(ind_i_gal, fi, li, speci)
             #if np.all(np.array(li) < 10000.0):  # maybe unnecessary
-            if constrained_prior:
-                taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-                flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-                spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
-            else:
-                taus_tot_b.append(li)
-                flux_tot_b.append(fi)
-                spectrum_tot_b.append(speci)
+        if constrained_prior:
+            taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
+            flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
+            spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+        else:
+            taus_tot_b.append(li)
+            flux_tot_b.append(fi)
+            spectrum_tot_b.append(speci)
 
         #print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
-        for ind_data, (flux_line, tau_line, spec_line) in enumerate(
-                zip(np.array(flux_tot_b), np.array(taus_tot_b),
-                    np.array(spectrum_tot_b))
-        ):
-            tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-            fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+    for ind_data, (flux_line, tau_line, spec_line) in enumerate(
+            zip(np.array(flux_tot_b), np.array(taus_tot_b),
+                np.array(spectrum_tot_b))
+    ):
+        tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
+        fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
-            if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
-                ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
-                ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+        if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
+            ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+            ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
                 #print("and actual problem:", fl_l[ind_nan], flush=True)
-                flux_line.pop(np.concatenate(ind_nan, ind_inf))
-                spec_line.pop(np.concatenate(ind_nan, ind_inf))
+            flux_line.pop(np.concatenate(ind_nan, ind_inf))
+            spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
-            flux_kde = gaussian_kde(
-                np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
-                bw_method=0.15
-            )
+        flux_kde = gaussian_kde(
+            np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+            bw_method=0.15
+        )
 
 
             # if like_on_tau_full:
@@ -227,55 +227,54 @@ def _get_likelihood_cache(
             #         likelihood_tau[:ind_data] += np.log(
             #             tau_kde.evaluate((tau_data[ind_data]))
             #         )
-            if like_on_flux is not False:
-                for bin_i in range(2, bins_tot):
-                    if bin_i < 4:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
-                        )
-                    else:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
-                        )
-
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
-
-                    if bin_i < 4:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:bin_i])
-                            ).reshape(bin_i - 1, 1)
-                        )
-                    else:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:4])
-                            ).reshape(3, 1)
-                        )
-                    likelihood_spec[:ind_data, bin_i - 1] += np.log(
-                        spec_kde.evaluate(
-                            data_to_eval
-                        )
+        if like_on_flux is not False:
+            for bin_i in range(2, bins_tot):
+                if bin_i < 4:
+                    data_to_get = np.log10(
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
-            if flux_int[ind_data] < flux_limit:
-                likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
-                                                                           np.log10(
-                                                                               1e19 * (
-                                                                                       3e-19 + flux_limit))))
+                else:
+                    data_to_get = np.log10(
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
+                    )
 
-            else:
-                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
-                    np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+                spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+                if bin_i < 4:
+                    data_to_eval = np.log10(
+                            (1e18 * (
+                                5e-19 + like_on_flux[ind_data][
+                                        bin_i - 1, 1:bin_i])
+                        ).reshape(bin_i - 1, 1)
+                    )
+                else:
+                    data_to_eval = np.log10(
+                        (1e18 * (
+                                5e-19 + like_on_flux[ind_data][
+                                        bin_i - 1, 1:4])
+                        ).reshape(3, 1)
+                    )
+                likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                    spec_kde.evaluate(
+                        data_to_eval
+                    )
                 )
+        if flux_int[ind_data] < flux_limit:
+            likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
+                                                                        np.log10(
+                                                                            1e19 * (
+                                                                                    3e-19 + flux_limit))))
 
-    except (LinAlgError, ValueError, TypeError):
-        likelihood_tau[:ind_data] += -np.inf
-        likelihood_spec[:ind_data] += -np.inf
-        likelihood_int[:ind_data] += -np.inf
+        else:
+            likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+                np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+            )
 
-        print("OOps there was value error, let's see why:", flush=True)
+    # except (LinAlgError, ValueError, TypeError):
+    #     likelihood_tau[:ind_data] += -np.inf
+    #     likelihood_spec[:ind_data] += -np.inf
+    #     likelihood_int[:ind_data] += -np.inf
+    #
+    #     print("OOps there was value error, let's see why:", flush=True)
 
     if hasattr(likelihood_tau[0], '__len__'):
         return ndex, (
