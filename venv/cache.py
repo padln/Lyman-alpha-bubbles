@@ -333,6 +333,7 @@ def cache_main(
     x_grid = np.linspace(-5.0, 5.0, 5)
     y_grid = np.linspace(-5.0, 5.0, 5)
     r_grid = np.linspace(r_min, r_max, n_grid)
+    print("Preparing for start", flush=True)
     like_calc = Parallel(
         n_jobs=25
     )(
