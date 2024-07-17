@@ -9,6 +9,7 @@ import h5py
 from venv.save import HdF5LoadMocks
 from venv.helpers import z_at_proper_distance
 from astropy import units as u
+from joblib import Parallel, delayed
 
 class HdF5CacheRead:
     def __init__(
