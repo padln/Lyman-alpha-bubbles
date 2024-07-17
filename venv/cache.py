@@ -297,7 +297,6 @@ def cache_main(
     redshift,
     bins_tot,
     constrained_prior,
-    cache_dir,
     n_grid
 ):
     if mock_file is None:
@@ -362,7 +361,7 @@ def cache_main(
             cache=use_cache,
             constrained_prior=constrained_prior,
             reds_of_galaxies=redshifts_of_mocks,
-            cache_dir=cache_dir,
+            cache_dir=use_cache,
         ) for index, (xb, yb, zb, rb) in enumerate(
             itertools.product(x_grid, y_grid, z_grid, r_grid)
         )
