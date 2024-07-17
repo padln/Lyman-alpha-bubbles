@@ -184,7 +184,7 @@ def _get_likelihood_cache(
                     flux_tot_b.append(fi)
                     spectrum_tot_b.append(speci)
             else:
-                with np.printoptions(threshold=numpy.inf):
+                with np.printoptions(threshold=np.inf):
                     print("OOps", li, flush=True)
                 raise ValueError
         print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
