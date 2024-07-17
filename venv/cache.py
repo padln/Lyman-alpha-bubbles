@@ -165,6 +165,7 @@ def _get_likelihood_cache(
             rb,
             output_dir=cache_dir,
         )
+        print(flux_now, spectrum_now, tau_now_full, flush=True)
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
         spectrum_tot.append(spectrum_now)
