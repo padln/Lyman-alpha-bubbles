@@ -304,7 +304,7 @@ def cache_main(
     yd = np.array(cl_load.f['y_gal_mock'])
     zd = np.array(cl_load.f['z_gal_mock'])
     Muv = np.array(cl_load.f['Muvs'])
-
+    n_gal = len(Muv)
     la_e = np.array(cl_load.f['Lyman_alpha_lums'])
     flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
     flux_tau = np.array(cl_load.f['flux_integrated'])
