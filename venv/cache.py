@@ -174,20 +174,17 @@ def _get_likelihood_cache(
         for ind_i_gal, (fi, li, speci) in enumerate(
                 zip(flux_tot, taus_tot, spectrum_tot)):
             #print(ind_i_gal, fi, li, speci)
-            if np.all(np.array(li) < 10000.0):  # maybe unnecessary
-                if constrained_prior:
-                    taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-                    flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-                    spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
-                else:
-                    taus_tot_b.append(li)
-                    flux_tot_b.append(fi)
-                    spectrum_tot_b.append(speci)
+            #if np.all(np.array(li) < 10000.0):  # maybe unnecessary
+            if constrained_prior:
+                taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
+                flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
+                spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
             else:
-                with np.printoptions(threshold=np.inf):
-                    print("OOps", li, flush=True)
-                raise ValueError
-        print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
+                taus_tot_b.append(li)
+                flux_tot_b.append(fi)
+                spectrum_tot_b.append(speci)
+
+        #print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b), np.array(taus_tot_b),
@@ -212,24 +209,24 @@ def _get_likelihood_cache(
             )
 
 
-            if like_on_tau_full:
-                if tau_data[ind_data] < 0.01:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.integrate_box(0.0, 0.01)
-                    )
-                else:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.evaluate((tau_data[ind_data]))
-                    )
-
-            else:
-                if flux_int[ind_data] < flux_limit:
-                    pass
-                    # likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
-                else:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.evaluate((tau_data[ind_data]))
-                    )
+            # if like_on_tau_full:
+            #     if tau_data[ind_data] < 0.01:
+            #         likelihood_tau[:ind_data] += np.log(
+            #             tau_kde.integrate_box(0.0, 0.01)
+            #         )
+            #     else:
+            #         likelihood_tau[:ind_data] += np.log(
+            #             tau_kde.evaluate((tau_data[ind_data]))
+            #         )
+            #
+            # else:
+            #     if flux_int[ind_data] < flux_limit:
+            #         pass
+            #         # likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
+            #     else:
+            #         likelihood_tau[:ind_data] += np.log(
+            #             tau_kde.evaluate((tau_data[ind_data]))
+            #         )
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
                     if bin_i < 4:
