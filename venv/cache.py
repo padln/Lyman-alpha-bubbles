@@ -33,6 +33,7 @@ class HdF5CacheRead:
         self.output_dir = output_dir
         pos_n = f"{x_main:.2f}" + "_" + f"{y_main:.2f}" + '_' + f"{z_main:.2f}"
         b_n = pos_n + '_' + f"{r_bub_main:.2f}" + '.hdf5'
+        self.f_group_name = pos_n + '_' + f"{r_bub_main:.2f}"
         self.f_name = (self.output_dir +
                       f"{self.x_gal:.8f}" + "_" +
                       f"{self.n_iter_bub}" + "_" +
@@ -105,9 +106,9 @@ def get_cache_likelihood(
         z_main,
         R_main
     )
-    tau_now_full = np.array(f_this.f['tau_full'])
-    flux_now = np.array(f_this.f['flux_integ'])
-    spectrum_now = np.array(f_this.f['mock_spectra'])
+    tau_now_full = np.array(f_this.f[f_this.f_group_name]['tau_full'])
+    flux_now = np.array(f_this.f[f_this.f_group_name]['flux_integ'])
+    spectrum_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
     f_this.close()
     return flux_now, spectrum_now, tau_now_full
 
