@@ -190,7 +190,7 @@ def _get_likelihood_cache(
             zip(np.array(flux_tot_b), np.array(taus_tot_b),
                 np.array(spectrum_tot_b))
     ):
-        tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
+        #tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
         fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
