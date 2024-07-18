@@ -492,7 +492,7 @@ def cache_main(
         dict_to_save_data['likelihoods_int'] = likelihood_grid_int
         dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
     cl_save = HdF5SaveCached(
-        len(Muv),
+        n_gal,
         n_iter_bub,
         n_inside_tau,
         save_dir
