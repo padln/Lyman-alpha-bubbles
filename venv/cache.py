@@ -47,6 +47,7 @@ class HdF5CacheRead:
     def close(self):
         self.f.close()
 
+
 class HdF5SaveCached:
     def __init__(
             self,
@@ -298,7 +299,8 @@ def cache_main(
     redshift,
     bins_tot,
     constrained_prior,
-    n_grid
+    n_grid,
+    mult_iter
 ):
     if mock_file is None:
         raise ValueError("You need to specify a mock that created this. For now")
@@ -312,17 +314,21 @@ def cache_main(
     yd = np.array(cl_load.f['y_gal_mock'])
     zd = np.array(cl_load.f['z_gal_mock'])
     Muv = np.array(cl_load.f['Muvs'])
-    n_gal = len(Muv)
+    if mult_iter is not None:
+        n_gal = np.shape(Muv)[1]
+    else:
+        n_gal = len(Muv)
     la_e = np.array(cl_load.f['Lyman_alpha_lums'])
     flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
     flux_tau = np.array(cl_load.f['flux_integrated'])
     cl_load.close_file()
-    redshifts_of_mocks = np.zeros(n_gal)
-    for i in range(n_gal):
+    redshifts_of_mocks = np.zeros(np.product(np.shape(Muv)))
+    for i in range(len(redshifts_of_mocks)):
         red_s = z_at_proper_distance(
-            - zd[i] / (1 + redshift) * u.Mpc, redshift
+            - zd.flatten()[i] / (1 + redshift) * u.Mpc, redshift
         )
         redshifts_of_mocks[i] = red_s
+    redshifts_of_mocks.reshape(np.shape(Muv))
     like_on_flux = flux_spectrum_mock
 
     z_min = -5.0
@@ -335,65 +341,156 @@ def cache_main(
     y_grid = np.linspace(-5.0, 5.0, 5)
     r_grid = np.linspace(r_min, r_max, n_grid)
     print("Preparing for start", flush=True)
-    like_calc = Parallel(
-        n_jobs=25
-    )(
-        delayed(
-            _get_likelihood_cache
+
+    if mult_iter:
+        like_grid_tau_top = np.zeros(
+            (
+                len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                np.shape(xd)[1],
+                multiple_iter)
+        )
+        like_grid_int_top = np.zeros(
+            (
+                len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                np.shape(xd)[1],
+                multiple_iter)
+        )
+        like_grid_spec_top = np.zeros(
+            (
+                len(x_grid),
+                len(y_grid),
+                len(z_grid),
+                len(r_grid),
+                np.shape(xd)[1],
+                bins_tot - 1,
+                multiple_iter
+            )
+        )
+        for ind_iter in range(multiple_iter):
+            like_calc = Parallel(
+                n_jobs=25
+            )(
+                delayed(
+                    _get_likelihood_cache
+                )(
+                    index,
+                    xb,
+                    yb,
+                    zb,
+                    rb,
+                    xd[ind_iter],
+                    yd[ind_iter],
+                    zd[ind_iter],
+                    data[ind_iter],
+                    n_iter_bub,
+                    redshift=redshift,
+                    muv=Muv[ind_iter],
+                    beta_data=-2.0 * np.ones(np.shape(Muv[ind_iter])),
+                    la_e_in=la_e[ind_iter],
+                    flux_int=flux_tau[ind_iter],
+                    flux_limit=flux_limit,
+                    like_on_flux=like_on_flux[ind_iter],
+                    n_inside_tau=n_inside_tau,
+                    bins_tot=bins_tot,
+                    cache=use_cache,
+                    constrained_prior=constrained_prior,
+                    reds_of_galaxies=redshifts_of_mocks[ind_iter],
+                    cache_dir=use_cache,
+                ) for index, (xb, yb, zb, rb) in enumerate(
+                    itertools.product(x_grid, y_grid, z_grid, r_grid)
+                )
+            )
+            like_calc.sort(key=lambda x: x[0])
+            likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
+            likelihood_grid_int = np.array([l[1][1] for l in like_calc])
+            likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+
+            likelihood_grid_tau = likelihood_grid_tau.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                 np.shape(xd)[1])
+            )
+            likelihood_grid_int = likelihood_grid_int.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                 np.shape(xd)[1])
+            )
+            likelihood_grid_spec = likelihood_grid_spec.reshape(
+                (
+                    len(x_grid),
+                    len(y_grid),
+                    len(z_grid),
+                    len(r_grid),
+                    np.shape(xd)[1],
+                    bins_tot - 1
+                )
+            )
+            like_grid_tau_top[:, :, :, :, :, ind_iter] = likelihood_grid_tau
+            like_grid_int_top[:, :, :, :, :, ind_iter] = likelihood_grid_int
+            like_grid_spec_top[:, :, :, :, :, :,
+                ind_iter] = likelihood_grid_spec
+    else:
+        like_calc = Parallel(
+            n_jobs=25
         )(
-            index,
-            xb,
-            yb,
-            zb,
-            rb,
-            xd,
-            yd,
-            zd,
-            data,
-            n_iter_bub,
-            redshift=redshift,
-            muv=Muv,
-            beta_data = -2.0 * np.ones(np.shape(Muv)),
-            la_e_in=la_e,
-            flux_int=flux_tau,
-            flux_limit=flux_limit,
-            like_on_flux=like_on_flux,
-            n_inside_tau=n_inside_tau,
-            bins_tot=bins_tot,
-            cache=use_cache,
-            constrained_prior=constrained_prior,
-            reds_of_galaxies=redshifts_of_mocks,
-            cache_dir=use_cache,
-        ) for index, (xb, yb, zb, rb) in enumerate(
-            itertools.product(x_grid, y_grid, z_grid, r_grid)
+            delayed(
+                _get_likelihood_cache
+            )(
+                index,
+                xb,
+                yb,
+                zb,
+                rb,
+                xd,
+                yd,
+                zd,
+                data,
+                n_iter_bub,
+                redshift=redshift,
+                muv=Muv,
+                beta_data = -2.0 * np.ones(np.shape(Muv)),
+                la_e_in=la_e,
+                flux_int=flux_tau,
+                flux_limit=flux_limit,
+                like_on_flux=like_on_flux,
+                n_inside_tau=n_inside_tau,
+                bins_tot=bins_tot,
+                cache=use_cache,
+                constrained_prior=constrained_prior,
+                reds_of_galaxies=redshifts_of_mocks,
+                cache_dir=use_cache,
+            ) for index, (xb, yb, zb, rb) in enumerate(
+                itertools.product(x_grid, y_grid, z_grid, r_grid)
+            )
         )
-    )
-    like_calc.sort(key=lambda x: x[0])
-    likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
-    likelihood_grid_tau = likelihood_grid_tau.reshape(
-        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
-    )
-    likelihood_grid_int = np.array([l[1][1] for l in like_calc])
-    likelihood_grid_int = likelihood_grid_int.reshape(
-        (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
-    )
-    likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
-    likelihood_grid_spec = likelihood_grid_spec.reshape(
-        (
-            len(x_grid),
-            len(y_grid),
-            len(z_grid),
-            len(r_grid),
-            len(xd),
-            bins_tot - 1
+        like_calc.sort(key=lambda x: x[0])
+        likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
+        likelihood_grid_tau = likelihood_grid_tau.reshape(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
         )
-    )
+        likelihood_grid_int = np.array([l[1][1] for l in like_calc])
+        likelihood_grid_int = likelihood_grid_int.reshape(
+            (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xd))
+        )
+        likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+        likelihood_grid_spec = likelihood_grid_spec.reshape(
+            (
+                len(x_grid),
+                len(y_grid),
+                len(z_grid),
+                len(r_grid),
+                len(xd),
+                bins_tot - 1
+            )
+        )
 
     dict_to_save_data = dict()
-
-    dict_to_save_data['likelihoods_tau'] = likelihood_grid_tau
-    dict_to_save_data['likelihoods_int'] = likelihood_grid_int
-    dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
+    if mult_iter:
+        dict_to_save_data['likelihoods_tau'] = like_grid_tau_top
+        dict_to_save_data['likelihoods_int'] = like_grid_int_top
+        dict_to_save_data['likelihoods_spec'] = like_grid_spec_top
+    else:
+        dict_to_save_data['likelihoods_tau'] = likelihood_grid_tau
+        dict_to_save_data['likelihoods_int'] = likelihood_grid_int
+        dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
     cl_save = HdF5SaveCached(
         len(Muv),
         n_iter_bub,

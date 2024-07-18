@@ -899,6 +899,7 @@ if __name__ == '__main__':
             inputs.bins_tot,
             inputs.constrained_prior,
             inputs.n_grid,
+            inputs.multiple_iter,
         )
         sys.exit(0)
 
