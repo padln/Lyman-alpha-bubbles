@@ -347,13 +347,13 @@ def cache_main(
             (
                 len(x_grid), len(y_grid), len(z_grid), len(r_grid),
                 np.shape(xd)[1],
-                multiple_iter)
+                mult_iter)
         )
         like_grid_int_top = np.zeros(
             (
                 len(x_grid), len(y_grid), len(z_grid), len(r_grid),
                 np.shape(xd)[1],
-                multiple_iter)
+                mult_iter)
         )
         like_grid_spec_top = np.zeros(
             (
@@ -363,10 +363,10 @@ def cache_main(
                 len(r_grid),
                 np.shape(xd)[1],
                 bins_tot - 1,
-                multiple_iter
+                mult_iter
             )
         )
-        for ind_iter in range(multiple_iter):
+        for ind_iter in range(mult_iter):
             like_calc = Parallel(
                 n_jobs=25
             )(
