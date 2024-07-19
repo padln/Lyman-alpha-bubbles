@@ -606,7 +606,7 @@ def _get_likelihood(
         print("OOps there was value error, let's see why:", flush=True)
         # print(tau_data, flush=True)
         # print(taus_tot_b, flush=True)
-        #raise TypeError
+        raise ValueError
 
     if not cache:
         names_used_this_iter = None
