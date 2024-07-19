@@ -435,8 +435,8 @@ def _get_likelihood(
                 flux_tot_b.append(fi)
                 spectrum_tot_b.append(speci)
         #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-        print(flux_tot_cp, "This is flux_tot_cp", flush=True)
-        print(flux_tot_b, "This is flux_tot_b", flush=True)
+        # print(flux_tot_cp, "This is flux_tot_cp", flush=True)
+        # print(flux_tot_b, "This is flux_tot_b", flush=True)
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b), np.array(taus_tot_b),
                     np.array(spectrum_tot_b))
@@ -445,6 +445,9 @@ def _get_likelihood(
             fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
             if constrained_prior:
                 fl_l_cp = np.log10(1e19 * (3e-19 + (np.array(flux_tot_cp[ind_data]))))
+            if len(fl_l_cp) == 0:
+                print("This is the problem", ind_data, flush=True)
+                print(la_e_in[ind_data], flux_int[ind_data], reds_of_galaxies_in[ind_data], flush=True)
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
