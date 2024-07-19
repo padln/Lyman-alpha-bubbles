@@ -435,7 +435,8 @@ def _get_likelihood(
                 flux_tot_b.append(fi)
                 spectrum_tot_b.append(speci)
         #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-
+        print(flux_tot_cp, "This is flux_tot_cp", flush=True)
+        print(flux_tot_b, "This is flux_tot_b", flush=True)
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b), np.array(taus_tot_b),
                     np.array(spectrum_tot_b))
