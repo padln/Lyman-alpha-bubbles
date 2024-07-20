@@ -307,7 +307,7 @@ def _get_likelihood(
                 raise ValueError
 
             if constrained_prior:
-                if flux_int[index_gal] > flux_limit:
+                if flux_int[index_gal] > 2 * flux_limit:
                     for index_tau_for, lae_i_for in enumerate(lae_now[
                         n * n_inside_tau:(n + 1) * n_inside_tau
                     ]):
