@@ -20,6 +20,7 @@ from venv.igm_prop import tau_wv
 from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks, HdF5LoadMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux, comoving_distance_from_source_Mpc
 from venv.speed_up import get_content, calculate_taus_post
+from venv.cache import cache_main
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -388,7 +389,7 @@ def _get_likelihood(
         if cache:
 
             dict_dat_aft = {
-                #'tau_full': tau_now_full,
+                'tau_full': np.array(taus_now),
                 'flux_integ': flux_now,
                 'mock_spectra': spectrum_now,
             }
@@ -870,6 +871,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_iter_bub", type=int, default=50)
     parser.add_argument("--bins_tot", type=int, default=20)
     parser.add_argument("--high_prob_emit", action="store_true")
+    parser.add_argument("--use_cache", type=str, default= None)
     parser.add_argument("--cache", action="store_false")
     parser.add_argument("--fwhm_true", action="store_true")
     parser.add_argument("--n_grid", type=int, default=5)
@@ -884,6 +886,22 @@ if __name__ == '__main__':
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
     inputs = parser.parse_args()
+
+    if inputs.use_cache is not None:
+        cache_main(
+            inputs.save_dir,
+            inputs.flux_limit,
+            inputs.n_inside_tau,
+            inputs.n_iter_bub,
+            inputs.use_cache,
+            inputs.mock_file,
+            inputs.redshift,
+            inputs.bins_tot,
+            inputs.constrained_prior,
+            inputs.n_grid,
+            inputs.multiple_iter,
+        )
+        sys.exit(0)
 
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
@@ -1078,7 +1096,6 @@ if __name__ == '__main__':
             )
             redshifts_of_mocks[i] = red_s
 
-
     if inputs.like_on_flux:
         bins_arr = [
             np.linspace(
@@ -1175,26 +1192,35 @@ if __name__ == '__main__':
                             inputs.bins_tot - 1,
                             inputs.bins_tot - 1)
                     )
-                    one_J = one_J_arr[0]
-                    continuum = (
-                            la_e[:, :, np.newaxis] * one_J * np.exp(-td) * tau_CGM(
-                        Muv, main_dir=inputs.main_dir) / (
-                                    4 * np.pi * Cosmo.luminosity_distance(
-                                7.5
-                            ).to(u.cm).value ** 2)
-                    )
-                    full_flux_res = full_res_flux(continuum, inputs.redshift)
-                    full_flux_res += np.random.normal(
-                        0,
-                        inputs.noise_on_the_spectrum,
-                        np.shape(full_flux_res)
-                    )
-                    for bin_i, wav_dig_i in zip(
-                            range(2, inputs.bins_tot - 1), wave_em_dig_arr
-                    ):
-                        flux_noise_mock[:,:, bin_i - 1, :bin_i] = perturb_flux(
-                            full_flux_res, bin_i
+                    for ind_iter in range(inputs.multiple_iter):
+                        continuum = (
+                                la_e[ind_iter, :, np.newaxis] * one_J_arr[
+                                                                ind_iter, :,
+                                                                :] * np.exp(
+                            -td[ind_iter]) * tau_CGM(
+                            Muv[ind_iter], main_dir=inputs.main_dir) / (
+                                                                               4 * np.pi * Cosmo.luminosity_distance(
+                                                                           redshifts_of_mocks[
+                                                                               ind_iter]
+                                                                       ).to(
+                                                                           u.cm).value ** 2)[
+                                                                       :,
+                                                                       np.newaxis]
                         )
+                        full_flux_res = full_res_flux(continuum,
+                                                      inputs.redshift)
+                        full_flux_res += np.random.normal(
+                            0,
+                            inputs.noise_on_the_spectrum,
+                            np.shape(full_flux_res)
+                        )
+                        for bin_i, wav_dig_i in zip(
+                                range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                        ):
+                            flux_noise_mock[ind_iter, :, bin_i - 1,
+                            :bin_i] = perturb_flux(
+                                full_flux_res, bin_i
+                            )
                 else:
                     flux_noise_mock = np.zeros(
                         (
