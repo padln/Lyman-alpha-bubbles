@@ -1221,6 +1221,7 @@ if __name__ == '__main__':
                             :bin_i] = perturb_flux(
                                 full_flux_res, bin_i
                             )
+
                 else:
                     flux_noise_mock = np.zeros(
                         (
