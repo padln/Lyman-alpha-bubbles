@@ -538,7 +538,7 @@ def _get_likelihood(
                         print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
                         print("Lengths")
 
-                        if bin_i < 4:
+                        if bin_i < 6:
                             data_to_get = np.log10(
                                 1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
                                                 1:bin_i]).T
