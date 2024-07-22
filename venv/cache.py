@@ -268,6 +268,7 @@ def _get_likelihood_cache(
             #         likelihood_tau[:ind_data] += np.log(
             #             tau_kde.evaluate((tau_data[ind_data]))
             #         )
+        print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
                 if bin_i < 4:
@@ -285,7 +286,8 @@ def _get_likelihood_cache(
                             (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
-                        ).reshape(bin_i - 1, 1)
+                        ).reshape(bin_i - 1, 1)                        ).reshape(bin_i - 1, 1)
+
                     )
                 else:
                     data_to_eval = np.log10(
