@@ -14,6 +14,11 @@ from scipy.stats import gaussian_kde
 import itertools
 from scipy.linalg import LinAlgError
 
+wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
+wave_Lya = 1215.67 * u.Angstrom
+freq_Lya = (const.c / wave_Lya).to(u.Hz)
+r_alpha = 6.25 * 1e8 / (4 * np.pi * freq_Lya.value)
+
 class HdF5CacheRead:
     def __init__(
             self,
