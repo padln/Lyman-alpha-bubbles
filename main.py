@@ -375,8 +375,10 @@ def _get_likelihood(
                             index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
-                flux_to_save[n * n_inside_tau:(n + 1) * n_inside_tau,
-                    ,:] = full_flux_res_i
+                flux_to_save[
+                    n * n_inside_tau:(n + 1) * n_inside_tau,
+                    :
+                ] = full_flux_res_i
                 full_flux_res_i += np.random.normal(
                     0,
                     noise_on_the_spectrum,
