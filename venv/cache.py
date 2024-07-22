@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 from scipy.stats import gaussian_kde
 import itertools
 from scipy.linalg import LinAlgError
+from astropy import constants as const
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
