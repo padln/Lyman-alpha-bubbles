@@ -376,7 +376,7 @@ def _get_likelihood(
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
                 flux_to_save[n * n_inside_tau:(n + 1) * n_inside_tau,
-                    bin_i - 1,:] = full_flux_res_i
+                    ,:] = full_flux_res_i
                 full_flux_res_i += np.random.normal(
                     0,
                     noise_on_the_spectrum,

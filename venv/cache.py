@@ -138,7 +138,7 @@ def get_cache_likelihood(
                 range(2, bins_tot), wave_em_dig_arr
         ):
             spectrum_now[:,
-            bin_i - 1,
+                bin_i - 1,
             :bin_i] = perturb_flux(
                 full_flux_res_i, bin_i
             )
