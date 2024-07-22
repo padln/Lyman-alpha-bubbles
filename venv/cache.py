@@ -116,7 +116,7 @@ def get_cache_likelihood(
     if consistent_noise:
         flux_saved_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
         spectrum_now = np.zeros((n_iter_bub*n_inside_tau, bins_tot - 1, bins_tot-1))
-        full_flux_res_i += np.random.normal(
+        full_flux_res_i = flux_saved_now + np.random.normal(
             0,
             noise_on_the_spectrum,
             np.shape(flux_saved_now)
