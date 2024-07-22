@@ -7,7 +7,7 @@
 import numpy as np
 import h5py
 from venv.save import HdF5LoadMocks
-from venv.helpers import z_at_proper_distance
+from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
 from astropy import units as u
 from joblib import Parallel, delayed
 from scipy.stats import gaussian_kde
@@ -89,7 +89,11 @@ def get_cache_likelihood(
         y_main,
         z_main,
         R_main,
-        output_dir
+        output_dir,
+        consistent_noise=True,
+        noise_on_the_spectrum=2e-20,
+        bins_tot=20,
+        redshift=7.5,
 ):
     """
     This is to be updated when I think of a function.
@@ -109,7 +113,37 @@ def get_cache_likelihood(
     )
     tau_now_full = np.array(f_this.f[f_this.f_group_name]['tau_full'])
     flux_now = np.array(f_this.f[f_this.f_group_name]['flux_integ'])
-    spectrum_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
+    if consistent_noise:
+        flux_saved_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
+        spectrum_now = np.zeros((n_iter_bub*n_inside_tau, bins_tot - 1, bins_tot-1))
+        full_flux_res_i += np.random.normal(
+            0,
+            noise_on_the_spectrum,
+            np.shape(flux_saved_now)
+        )
+        bins_arr = [
+            np.linspace(
+                wave_em.value[0] * (1 + redshift),
+                wave_em.value[-1] * (1 + redshift),
+                bin_i + 1
+            ) for bin_i in range(2, bins_tot)
+        ]
+        wave_em_dig_arr = [
+            np.digitize(
+                wave_em.value * (1 + redshift),
+                bin_i
+            ) for bin_i in bins_arr
+        ]
+        for bin_i, wav_dig_i in zip(
+                range(2, bins_tot), wave_em_dig_arr
+        ):
+            spectrum_now[:,
+            bin_i - 1,
+            :bin_i] = perturb_flux(
+                full_flux_res_i, bin_i
+            )
+    else:
+        spectrum_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
     f_this.close()
     return flux_now, spectrum_now, tau_now_full
 
@@ -139,6 +173,8 @@ def _get_likelihood_cache(
         cache=True,
         constrained_prior=False,
         reds_of_galaxies=None,
+        consistent_noise=True,
+        noise_on_the_spectrum=2e-20,
 ):
     if constrained_prior:
         width_conp = 0.2
@@ -164,6 +200,10 @@ def _get_likelihood_cache(
             zb,
             rb,
             output_dir=cache_dir,
+            consistent_noise=consistent_noise,
+            noise_on_the_spectrum=noise_on_the_spectrum,
+            bins_tot=bins_tot,
+            redshift=redshift,
         )
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
@@ -300,7 +340,9 @@ def cache_main(
     bins_tot,
     constrained_prior,
     n_grid,
-    mult_iter
+    mult_iter,
+    consistent_noise,
+    noise_on_the_spectrum
 ):
     if mock_file is None:
         raise ValueError("You need to specify a mock that created this. For now")
@@ -396,6 +438,8 @@ def cache_main(
                     constrained_prior=constrained_prior,
                     reds_of_galaxies=redshifts_of_mocks[ind_iter],
                     cache_dir=use_cache,
+                    consistent_noise=consistent_noise,
+                    noise_on_the_spectrum=noise_on_the_spectrum,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -457,6 +501,8 @@ def cache_main(
                 constrained_prior=constrained_prior,
                 reds_of_galaxies=redshifts_of_mocks,
                 cache_dir=use_cache,
+                consistent_noise=consistent_noise,
+                noise_on_the_spectrum=noise_on_the_spectrum,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
