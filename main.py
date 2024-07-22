@@ -375,15 +375,19 @@ def _get_likelihood(
                             index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
-                flux_to_save[
-                    n * n_inside_tau:(n + 1) * n_inside_tau,
-                    :
-                ] = full_flux_res_i
+                # flux_to_save[
+                #     n * n_inside_tau:(n + 1) * n_inside_tau,
+                #     :
+                # ] = full_flux_res_i
                 full_flux_res_i += np.random.normal(
                     0,
                     noise_on_the_spectrum,
                     np.shape(full_flux_res_i)
                 )
+                flux_to_save[
+                    n * n_inside_tau:(n + 1) * n_inside_tau,
+                    :
+                ] = full_flux_res_i
                 #del continuum_i
                 for bin_i, wav_dig_i in zip(
                         range(2, bins_tot), wave_em_dig_arr
