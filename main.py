@@ -291,10 +291,10 @@ def _get_likelihood(
             area_factor = np.array(
                 [
                     np.trapz(
-                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau][i_gal] * tau_cgm_in[i_gal],
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau] * tau_cgm_in,
                         wave_em.value
                     ) / np.trapz(
-                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau][i_gal],
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau],
                         wave_em.value
                     ) for i_inside_tau in range(n_inside_tau)
                 ]
