@@ -138,7 +138,12 @@ def _get_likelihood(
         if like_on_flux is not False:
             spectrum_now = np.zeros((n_iter_bub * n_inside_tau, bins_tot - 1,
                                      bins_tot - 1))  # bins_tot is the maximum number of bins
-
+            if consistent_noise:
+                spec_res = wave_Lya.value * (1 + redshift) / 2700
+                bins = np.arange(wave_em.value[0] * (1 + redshift),
+                                 wave_em.value[-1] * (1 + redshift), spec_res)
+                max_bins = len(bins)
+                flux_to_save = np.zeros((n_iter_bub * n_inside_tau,max_bins))
         tau_now_full = np.zeros((n_iter_bub * n_inside_tau, len(wave_em)))
         if reds_of_galaxies is None:
             red_s = z_at_proper_distance(
@@ -370,11 +375,19 @@ def _get_likelihood(
                             index_gal_eff]
                 )
                 full_flux_res_i = full_res_flux(continuum_i, redshift)
+                flux_to_save[
+                    n * n_inside_tau:(n + 1) * n_inside_tau,
+                    :
+                ] = full_flux_res_i
                 full_flux_res_i += np.random.normal(
                     0,
                     noise_on_the_spectrum,
                     np.shape(full_flux_res_i)
                 )
+                # flux_to_save[
+                #     n * n_inside_tau:(n + 1) * n_inside_tau,
+                #     :
+                # ] = full_flux_res_i
                 #del continuum_i
                 for bin_i, wav_dig_i in zip(
                         range(2, bins_tot), wave_em_dig_arr
@@ -387,12 +400,18 @@ def _get_likelihood(
                 #del full_flux_res_i
 
         if cache:
-
-            dict_dat_aft = {
-                'tau_full': np.array(taus_now),
-                'flux_integ': flux_now,
-                'mock_spectra': spectrum_now,
-            }
+            if consistent_noise:
+                dict_dat_aft = {
+                    'tau_full': np.array(taus_now),
+                    'flux_integ': flux_now,
+                    'mock_spectra': flux_to_save,
+                }
+            else:
+                dict_dat_aft = {
+                    'tau_full': np.array(taus_now),
+                    'flux_integ': flux_now,
+                    'mock_spectra': spectrum_now,
+                }
 
             save_cl.save_data_after(
                 xb,
@@ -900,6 +919,8 @@ if __name__ == '__main__':
             inputs.constrained_prior,
             inputs.n_grid,
             inputs.multiple_iter,
+            inputs.consistent_noise,
+            inputs.noise_on_the_spectrum,
         )
         sys.exit(0)
 
@@ -1174,6 +1195,7 @@ if __name__ == '__main__':
                                            )[wav_dig_i == i + 1]) for i in
                                     range(bin_i)
                                 ]
+                flux_nonoise_save = np.copy(flux_noise_mock)
                 flux_noise_mock = flux_noise_mock + np.random.normal(
                     0,
                     inputs.noise_on_the_spectrum,
@@ -1192,6 +1214,7 @@ if __name__ == '__main__':
                             inputs.bins_tot - 1,
                             inputs.bins_tot - 1)
                     )
+                    flux_nonoise_save = []
                     for ind_iter in range(inputs.multiple_iter):
                         continuum = (
                                 la_e[ind_iter, :, np.newaxis] * one_J_arr[
@@ -1209,6 +1232,8 @@ if __name__ == '__main__':
                         )
                         full_flux_res = full_res_flux(continuum,
                                                       inputs.redshift)
+                        flux_nonoise_save.append(np.copy(full_flux_res))
+
                         full_flux_res += np.random.normal(
                             0,
                             inputs.noise_on_the_spectrum,
@@ -1241,6 +1266,7 @@ if __name__ == '__main__':
                     )
 
                     full_flux_res = full_res_flux(continuum, inputs.redshift)
+                    flux_nonoise_save = np.copy(full_flux_res)
 
                     full_flux_res += np.random.normal(
                         0,
@@ -1440,7 +1466,7 @@ if __name__ == '__main__':
     dict_to_save_data['Muvs'] = np.array(Muv)
     dict_to_save_data['Lyman_alpha_lums'] = np.array(la_e)
     dict_to_save_data['full_tau'] = np.array(td)
-
+    dict_to_save_data['flux_no_noise'] = np.array(flux_nonoise_save)
     # flux_to_save = np.zeros(len(Muv.flatten()))
     # for i, (xdi, ydi, zdi, tdi, li) in enumerate(zip(
     #         xd.flatten(), yd.flatten(), zd.flatten(), data.flatten(),
