@@ -288,11 +288,21 @@ def _get_likelihood(
 
 
             taus_now.extend(res.tolist())
-
+            area_factor = np.array(
+                [
+                    np.trapz(
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau][i_gal] * tau_cgm_in[i_gal],
+                        wave_em.value
+                    ) / np.trapz(
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau][i_gal],
+                        wave_em.value
+                    ) for i_inside_tau in range(n_inside_tau)
+                ]
+            )
             lae_now[
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
-                n * n_inside_tau:(n + 1) * n_inside_tau]
+                n * n_inside_tau:(n + 1) * n_inside_tau] / area_factor
             flux_now_i = lae_now[
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] * np.array(
@@ -995,6 +1005,7 @@ if __name__ == '__main__':
             yd = np.zeros((inputs.multiple_iter, n_gal))
             zd = np.zeros((inputs.multiple_iter, n_gal))
             one_J_arr = np.zeros((inputs.multiple_iter, n_gal, len(wave_em)))
+            area_factor = np.zeros((inputs.multiple_iter, n_gal))
             x_b = []
             y_b = []
             z_b = []
@@ -1030,7 +1041,18 @@ if __name__ == '__main__':
                     fwhm_true=inputs.fwhm_true,
                 )
                 one_J_arr[index_iter, :, :] = np.array(one_J[0][:n_gal])
-
+                tau_cgm_gal = tau_CGM(Muv[index_iter], main_dir=inputs.main_dir)
+                area_factor[index_iter, :] = np.array(
+                    [
+                        np.trapz(
+                            one_J_arr[index_iter][i_gal] * tau_cgm_gal[i_gal],
+                            wave_em.value
+                        ) / np.trapz(
+                            one_J_arr[index_iter][i_gal],
+                            wave_em.value
+                        ) for i_gal in range(n_gal)
+                    ]
+                )
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal], main_dir=inputs.main_dir)
                     eit = np.exp(-tdi[i_gal])
@@ -1083,7 +1105,9 @@ if __name__ == '__main__':
                 gauss_distr=inputs.gauss_distr
             )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
+        ew_factor /= area_factor
         la_e = la_e.reshape((np.shape(Muv)))
+        la_e /= area_factor #new improvement
         data = np.array(tau_data_I)
 
     else:
