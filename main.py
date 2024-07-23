@@ -1084,6 +1084,17 @@ if __name__ == '__main__':
                 n_iter=len(Muv),
                 fwhm_true=inputs.fwhm_true
             )
+            area_factor = np.array(
+                [
+                    np.trapz(
+                        one_J[i_gal] * tau_CGM(Muv[i_gal]),
+                        wave_em.value
+                    ) / np.trapz(
+                        one_J[i_gal],
+                        wave_em.value
+                    ) for i_gal in range(n_gal)
+                ]
+            )
             for i in range(len(td)):
                 eit = np.exp(-td[i])
                 tau_cgm_gal = tau_CGM(Muv[i], main_dir=inputs.main_dir)
