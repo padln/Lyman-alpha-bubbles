@@ -1087,10 +1087,10 @@ if __name__ == '__main__':
             area_factor = np.array(
                 [
                     np.trapz(
-                        one_J[0][i_gal] * tau_CGM(Muv[i_gal]),
+                        one_J[0][i_gal] * tau_CGM(Muv[i_gal], main_dir=inputs.main_dir),
                         wave_em.value
                     ) / np.trapz(
-                        one_J[i_gal],
+                        one_J[0][i_gal],
                         wave_em.value
                     ) for i_gal in range(n_gal)
                 ]
