@@ -293,9 +293,9 @@ def _get_likelihood_cache(
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
-                    data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
-                    )
+                    # data_to_get = np.log10(
+                    #     1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
+                    # )
 
                 spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
                 if bin_i < 6:
