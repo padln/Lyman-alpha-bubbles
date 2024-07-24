@@ -376,9 +376,9 @@ def _get_likelihood(
                     #del spectrum_now_i
             else:
                 continuum_i = (
-                        cont_filled.la_flux_out_full[index_gal_eff][
+                        (cont_filled.la_flux_out_full[index_gal_eff][
                         n * n_inside_tau:(n + 1) * n_inside_tau
-                        ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
+                        ]/area_factor)[:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
                                            n * n_inside_tau: (
                                                 n + 1) * n_inside_tau
                                            ] * eit_l * tau_cgm_in[
