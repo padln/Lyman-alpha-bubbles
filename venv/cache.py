@@ -246,13 +246,19 @@ def _get_likelihood_cache(
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
             try:
                 ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                flux_line = np.array(flux_line_list)
+
             except ValueError:
                 ind_inf = np.array([])
-
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(ind_nan)
+                flux_line = np.array(flux_line_list)
+            print("and actual problem spec:", spec_line[ind_nan])
+            print("Tau: ", tau_line[ind_nan])
             print("and actual problem:", fl_l[ind_nan], flush=True)
-            flux_line_list=flux_line.tolist()
-            flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
-            flux_line = np.array(flux_line_list)
+
             spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
@@ -287,7 +293,6 @@ def _get_likelihood_cache(
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
-                else:
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
                     )
