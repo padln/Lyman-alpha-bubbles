@@ -317,6 +317,8 @@ def _get_likelihood(
                 print("Whoa, something bad happened and you have a nan or inf", flush=True)
                 print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
                 print("tau:", taus_now, flush=True)
+                print("area_factor", area_factor, flush=True)
+                print("area_factor nans", (area_factor==0).index(1), flush=True)
                 print("end result", flux_now, flush=True)
                 raise ValueError
 
