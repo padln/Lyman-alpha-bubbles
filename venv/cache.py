@@ -242,6 +242,8 @@ def _get_likelihood_cache(
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
         if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
+            print(fl_l.flatten())
+            print(np.isnan(fl_l.flatten()).tolist())
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
             ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
@@ -274,7 +276,7 @@ def _get_likelihood_cache(
             #         likelihood_tau[:ind_data] += np.log(
             #             tau_kde.evaluate((tau_data[ind_data]))
             #         )
-        print(spec_line, flush=True)
+        #print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
                 if bin_i < 6:
