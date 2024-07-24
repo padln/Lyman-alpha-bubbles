@@ -249,8 +249,10 @@ def _get_likelihood_cache(
             except ValueError:
                 ind_inf = np.array([])
 
-                #print("and actual problem:", fl_l[ind_nan], flush=True)
-            flux_line.pop(np.concatenate(ind_nan, ind_inf))
+            print("and actual problem:", fl_l[ind_nan], flush=True)
+            flux_line_list=flux_line.tolist()
+            flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
+            flux_line = np.array(flux_line_list)
             spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
