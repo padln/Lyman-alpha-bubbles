@@ -119,6 +119,7 @@ def get_cache_likelihood(
     )
     tau_now_full = np.array(f_this.f[f_this.f_group_name]['tau_full'])
     flux_now = np.array(f_this.f[f_this.f_group_name]['flux_integ'])
+    print(flux_now, flush=True)
     if consistent_noise:
         flux_saved_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
         spectrum_now = np.zeros((n_iter_bub*n_inside_tau, bins_tot - 1, bins_tot-1))
@@ -250,16 +251,24 @@ def _get_likelihood_cache(
                 flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
                 flux_line = np.array(flux_line_list)
 
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                spec_line = np.array(spec_line_list)
+
             except ValueError:
                 ind_inf = np.array([])
                 flux_line_list = flux_line.tolist()
                 flux_line_list.pop(ind_nan)
                 flux_line = np.array(flux_line_list)
+
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(ind_nan)
+                spec_line = np.array(spec_line_list)
             print("and actual problem spec:", spec_line[ind_nan])
             print("Tau: ", tau_line[ind_nan])
             print("and actual problem:", fl_l[ind_nan], flush=True)
 
-            spec_line.pop(np.concatenate(ind_nan, ind_inf))
+            # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
         flux_kde = gaussian_kde(
