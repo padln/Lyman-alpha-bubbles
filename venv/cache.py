@@ -320,7 +320,7 @@ def _get_likelihood_cache(
             for bin_i in range(2, bins_tot):
                 if bin_i < 6:
                     data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, :bin_i]).T
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
                     data_to_get = np.log10(
