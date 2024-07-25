@@ -100,6 +100,7 @@ def get_cache_likelihood(
         noise_on_the_spectrum=2e-20,
         bins_tot=20,
         redshift=7.5,
+        constrained_prior=False,
 ):
     """
     This is to be updated when I think of a function.
@@ -119,7 +120,9 @@ def get_cache_likelihood(
     )
     tau_now_full = np.array(f_this.f[f_this.f_group_name]['tau_full'])
     flux_now = np.array(f_this.f[f_this.f_group_name]['flux_integ'])
-    print(flux_now, flush=True)
+    #print(flux_now, flush=True)
+    if constrained_prior:
+        lae_now = np.array(f_this.f[f_this.f_group_name]['la_e_fwmodels'])
     if consistent_noise:
         flux_saved_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
         spectrum_now = np.zeros((n_iter_bub*n_inside_tau, bins_tot - 1, bins_tot-1))
@@ -152,6 +155,8 @@ def get_cache_likelihood(
     else:
         spectrum_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
     f_this.close()
+    if constrained_prior:
+        return flux_now, spectrum_now, tau_now_full, lae_now
     return flux_now, spectrum_now, tau_now_full
 
 #I'll also re-write the general structure of the code, but in a much simpler way
@@ -198,7 +203,8 @@ def _get_likelihood_cache(
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
     ):
-        flux_now, spectrum_now, tau_now_full = get_cache_likelihood(
+
+        full_pack = get_cache_likelihood(
             xg,
             n_iter_bub,
             n_inside_tau,
@@ -211,7 +217,21 @@ def _get_likelihood_cache(
             noise_on_the_spectrum=noise_on_the_spectrum,
             bins_tot=bins_tot,
             redshift=redshift,
+            constrained_prior=constrained_prior,
         )
+        if constrained_prior:
+            flux_now, spectrum_now, tau_now_full, lae_now = full_pack
+            if flux_int[index_gal] > flux_limit:
+                for index_tau_for, res_i_for in enumerate(res):
+                    if abs(res_i_for - tau_data[index_gal]) < width_conp:
+                        keep_conp[
+                            index_gal, n * n_inside_tau + index_tau_for] = 1
+                    else:
+                        keep_conp[
+                            index_gal, n * n_inside_tau + index_tau_for] = 0
+            #TBC when new updates with constrained prior will be made.
+        else:
+            flux_now, spectrum_now, tau_now_full = full_pack
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
         spectrum_tot.append(spectrum_now)
