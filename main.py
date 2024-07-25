@@ -405,12 +405,14 @@ def _get_likelihood(
                     'tau_full': np.array(taus_now),
                     'flux_integ': flux_now,
                     'mock_spectra': flux_to_save,
+                    'la_e_fwmodels': np.array(lae_now),
                 }
             else:
                 dict_dat_aft = {
                     'tau_full': np.array(taus_now),
                     'flux_integ': flux_now,
                     'mock_spectra': spectrum_now,
+                    'la_e_fwmodels': np.array(lae_now),
                 }
 
             save_cl.save_data_after(
