@@ -333,7 +333,7 @@ def _get_likelihood_cache(
                             (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
                                         bin_i - 1, :bin_i])
-                            ).reshape(bin_i - 1, 1)
+                            ).reshape(bin_i , 1)
                         )
                 else:
                     data_to_eval = np.log10(
