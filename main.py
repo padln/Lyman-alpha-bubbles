@@ -299,6 +299,11 @@ def _get_likelihood(
                     ) for i_inside_tau in range(n_inside_tau)
                 ]
             )
+            try:
+                ind_0 = np.where(area_factor == 0.0)
+                area_factor[ind_0] = 1e-5 #doesn't matter, it's going to be multiplied by zero
+            except ValueError:
+                pass
             lae_now[
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
@@ -318,10 +323,10 @@ def _get_likelihood(
                 print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
                 print("tau:", taus_now, flush=True)
                 print("area_factor", area_factor, flush=True)
-                ind_of_prob = (area_factor==0).tolist().index(1)
+                ind_of_prob = np.where(area_factor==0.0)
                 print("j for nan:", cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + ind_of_prob])
                 print("tau cgm", tau_cgm_in)
-                print("area_factor nans", (area_factor==0).tolist().index(1), flush=True)
+                print("area_factor nans", ind_of_prob, flush=True)
                 print("end result", flux_now, flush=True)
                 raise ValueError
 
