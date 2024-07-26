@@ -318,7 +318,10 @@ def _get_likelihood(
                 print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
                 print("tau:", taus_now, flush=True)
                 print("area_factor", area_factor, flush=True)
-                print("area_factor nans", (area_factor==0).index(1), flush=True)
+                ind_of_prob = (area_factor==0).tolist().index(1)
+                print("j for nan:", cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + ind_of_prob])
+                print("tau cgm", tau_cgm_in)
+                print("area_factor nans", (area_factor==0).tolist().index(1), flush=True)
                 print("end result", flux_now, flush=True)
                 raise ValueError
 
