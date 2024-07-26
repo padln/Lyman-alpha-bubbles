@@ -324,7 +324,7 @@ def _get_likelihood_cache(
                     )
                 else:
                     data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:5]).T
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:4]).T
                     )
 
                 spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
