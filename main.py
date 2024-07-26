@@ -96,11 +96,14 @@ def _get_likelihood(
     # calculation. The only thing to define is the width of the distribution
     # and the rejection criterion
     if constrained_prior:
-        width_conp = 0.2
+        width_conp = 0.3
 
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
     likelihood_tau = np.zeros((len(xs)))
+    if constrained_prior:
+        likelihood_spec_cp = np.zeros((len(xs), bins_tot - 1))
+        likelihood_int_cp = np.zeros((len(xs)))
     # from now on a likelihood is an array that stores cumulative likelihoods
     # for all galaxies up to a certain number
     taus_tot = []
@@ -114,11 +117,10 @@ def _get_likelihood(
         reds_of_galaxies_in = np.zeros(len(xs))
     else:
         reds_of_galaxies_in = reds_of_galaxies
-    print(len(xs), "this is the number of galaxies senor", flush=True)
 
     names_used_this_iter = []
 
-    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
+    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub), dtype=int)
 
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
@@ -311,9 +313,11 @@ def _get_likelihood(
                 raise ValueError
 
             if constrained_prior:
-                if flux_int[index_gal] > flux_limit:
-                    for index_tau_for, res_i_for in enumerate(res):
-                        if abs(res_i_for - tau_data[index_gal]) < width_conp:
+                if flux_int[index_gal] > 2 * flux_limit:
+                    for index_tau_for, lae_i_for in enumerate(lae_now[
+                        n * n_inside_tau:(n + 1) * n_inside_tau
+                    ]):
+                        if abs((lae_i_for - la_e_in[index_gal])/la_e_in[index_gal]) < width_conp:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
@@ -437,25 +441,35 @@ def _get_likelihood(
         taus_tot_b = []
         flux_tot_b = []
         spectrum_tot_b = []
+        if constrained_prior:
+            taus_tot_cp = []
+            flux_tot_cp = []
+            spec_tot_cp = []
         for ind_i_gal, (fi, li, speci) in enumerate(
                 zip(flux_tot, taus_tot, spectrum_tot)):
             if np.all(np.array(li) < 10000.0):  # maybe unnecessary
                 if constrained_prior:
-                    taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-                    flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-                    spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
-                else:
-                    taus_tot_b.append(li)
-                    flux_tot_b.append(fi)
-                    spectrum_tot_b.append(speci)
+                    taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                    flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                    spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                    print(keep_conp[ind_i_gal])
+                taus_tot_b.append(li)
+                flux_tot_b.append(fi)
+                spectrum_tot_b.append(speci)
         #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-
+        # print(flux_tot_cp, "This is flux_tot_cp", flush=True)
+        # print(flux_tot_b, "This is flux_tot_b", flush=True)
         for ind_data, (flux_line, tau_line, spec_line) in enumerate(
                 zip(np.array(flux_tot_b), np.array(taus_tot_b),
                     np.array(spectrum_tot_b))
         ):
             tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
             fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+            if constrained_prior:
+                fl_l_cp = np.log10(1e19 * (3e-19 + (np.array(flux_tot_cp[ind_data]))))
+            if len(fl_l_cp) == 0:
+                print("This is the problem", ind_data, flush=True)
+                print(la_e_in[ind_data], flux_int[ind_data], reds_of_galaxies_in[ind_data], flush=True)
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
@@ -476,7 +490,11 @@ def _get_likelihood(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
                 bw_method=0.15
             )
-
+            if constrained_prior:
+                flux_kde_cp = gaussian_kde(
+                    fl_l_cp,
+                    bw_method=0.15
+                )
             # print(len(spec_kde), flush=True)
             # print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
@@ -517,6 +535,7 @@ def _get_likelihood(
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
 
                     if bin_i < 6:
+
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
@@ -535,6 +554,41 @@ def _get_likelihood(
                             data_to_eval
                         )
                     )
+                if constrained_prior:
+                    for bin_i in range(2, bins_tot):
+                        print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
+                        print("Lengths")
+
+                        if bin_i < 6:
+                            data_to_get = np.log10(
+                                1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
+                                                1:bin_i]).T
+                            )
+                        else:
+                            data_to_get = np.log10(
+                                1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, 1:6]).T
+                            )
+                        spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+
+                        if bin_i < 6:
+                            data_to_eval = np.log10(
+                                (1e18 * (
+                                        5e-19 + like_on_flux[ind_data][
+                                                bin_i - 1, 1:bin_i])
+                                 ).reshape(bin_i - 1, 1)
+                            )
+                        else:
+                            data_to_eval = np.log10(
+                                (1e18 * (
+                                        5e-19 + like_on_flux[ind_data][
+                                                bin_i - 1, 1:6])
+                                 ).reshape(5, 1)
+                            )
+                        likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
+                            spec_kde.evaluate(
+                                data_to_eval
+                            )
+                        )
             #print("This is flux_int", flux_int)
             if flux_int[ind_data] < flux_limit:
                 print("This galaxy failed the tau test, it's flux is",
@@ -551,6 +605,18 @@ def _get_likelihood(
                 likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
                     np.log10(1e19 * (3e-19 + flux_int[ind_data])))
                 )
+            if constrained_prior:
+                if flux_int[ind_data] < flux_limit:
+
+                    likelihood_int_cp[:ind_data] += np.log(
+                        flux_kde_cp.integrate_box(0.05,
+                                               np.log10(
+                                                   1e19 * (
+                                                           3e-19 + flux_limit))))
+                else:
+                    likelihood_int_cp[:ind_data] += np.log(flux_kde_cp.evaluate(
+                        np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+                    )
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -566,14 +632,23 @@ def _get_likelihood(
         likelihood_int[:ind_data] += -np.inf
 
         print("OOps there was value error, let's see why:", flush=True)
-        # print(tau_data, flush=True)
+        print(spec_tot_cp[ind_data], flush=True)
         # print(taus_tot_b, flush=True)
-        raise ValueError
+        #raise ValueError
+
 
     if not cache:
         names_used_this_iter = None
 
     if hasattr(likelihood_tau[0], '__len__'):
+        if constrained_prior:
+            return ndex, (
+                likelihood_tau,
+                likelihood_int,
+                likelihood_spec,
+                likelihood_int_cp,
+                likelihood_spec_cp
+            ), names_used_this_iter
         return ndex, (
             likelihood_tau,
             likelihood_int,
@@ -585,6 +660,11 @@ def _get_likelihood(
         #     np.array([np.product(li) for li in likelihood_spec])
         # ), names_used_this_iter
     else:
+        if constrained_prior:
+            return ndex, (
+                likelihood_tau, likelihood_int,
+                likelihood_spec, likelihood_int_cp,
+            likelihood_spec_cp), names_used_this_iter
         return ndex, (
             likelihood_tau, likelihood_int, likelihood_spec), names_used_this_iter
 
@@ -708,6 +788,24 @@ def sample_bubbles_grid(
                 multiple_iter
             )
         )
+        if constrained_prior:
+            like_grid_int_cp_top = np.zeros(
+                (
+                    len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                    np.shape(xs)[1],
+                    multiple_iter)
+            )
+            like_grid_spec_cp_top = np.zeros(
+                (
+                    len(x_grid),
+                    len(y_grid),
+                    len(z_grid),
+                    len(r_grid),
+                    np.shape(xs)[1],
+                    bins_tot - 1,
+                    multiple_iter
+                )
+            )
         names_grid_top = []
         for ind_iter in range(multiple_iter):
             if like_on_flux is not False:
@@ -756,6 +854,9 @@ def sample_bubbles_grid(
             likelihood_grid_tau = np.array([l[1][0] for l in like_calc])
             likelihood_grid_int = np.array([l[1][1] for l in like_calc])
             likelihood_grid_spec = np.array([l[1][2] for l in like_calc])
+            if constrained_prior:
+                likelihood_grid_int_cp = np.array([l[1][3] for l in like_calc])
+                likelihood_grid_spec_cp = np.array([l[1][4] for l in like_calc])
 
             likelihood_grid_tau = likelihood_grid_tau.reshape(
                 (len(x_grid), len(y_grid), len(z_grid), len(r_grid),
@@ -775,15 +876,42 @@ def sample_bubbles_grid(
                     bins_tot - 1
                 )
             )
+            if constrained_prior:
+                likelihood_grid_int_cp = likelihood_grid_int_cp.reshape(
+                    (len(x_grid), len(y_grid), len(z_grid), len(r_grid),
+                     np.shape(xs)[1])
+                )
+                likelihood_grid_spec_cp = likelihood_grid_spec_cp.reshape(
+                    (
+                        len(x_grid),
+                        len(y_grid),
+                        len(z_grid),
+                        len(r_grid),
+                        np.shape(xs)[1],
+                        bins_tot - 1
+                    )
+                )
             like_grid_tau_top[:, :, :, :, :, ind_iter] = likelihood_grid_tau
             like_grid_int_top[:, :, :, :, :, ind_iter] = likelihood_grid_int
             like_grid_spec_top[:, :, :, :, :, :,
             ind_iter] = likelihood_grid_spec
-
+            if constrained_prior:
+                like_grid_int_cp_top[:, :, :, :, :, ind_iter] = likelihood_grid_int_cp
+                like_grid_spec_cp_top[:, :, :, :, :, :,
+                ind_iter] = likelihood_grid_spec_cp
             names_grid_top.append([l[2] for l in like_calc])
 
-        likelihood_grid = (
-            like_grid_tau_top, like_grid_int_top, like_grid_spec_top)
+        if constrained_prior:
+            likelihood_grid = (
+                like_grid_tau_top,
+                like_grid_int_top,
+                like_grid_spec_top,
+                like_grid_int_cp_top,
+                like_grid_spec_cp_top,
+            )
+        else:
+            likelihood_grid = (
+                like_grid_tau_top, like_grid_int_top, like_grid_spec_top)
         names_grid = names_grid_top
 
     else:
@@ -846,11 +974,37 @@ def sample_bubbles_grid(
                 bins_tot - 1
             )
         )
-        likelihood_grid = (
-            likelihood_grid_tau,
-            likelihood_grid_int,
-            likelihood_grid_spec
-        )
+
+        if constrained_prior:
+            likelihood_grid_int_cp = np.array([l[1][3] for l in like_calc])
+            likelihood_grid_int_cp = likelihood_grid_int_cp.reshape(
+                (len(x_grid), len(y_grid), len(z_grid), len(r_grid), len(xs))
+            )
+            likelihood_grid_spec_cp = np.array([l[1][4] for l in like_calc])
+            likelihood_grid_spec_cp = likelihood_grid_spec_cp.reshape(
+                (
+                    len(x_grid),
+                    len(y_grid),
+                    len(z_grid),
+                    len(r_grid),
+                    len(xs),
+                    bins_tot - 1
+                )
+            )
+        if constrained_prior:
+            likelihood_grid = (
+                likelihood_grid_tau,
+                likelihood_grid_int,
+                likelihood_grid_spec,
+                likelihood_grid_int_cp,
+                likelihood_grid_spec_cp
+            )
+        else:
+            likelihood_grid = (
+                likelihood_grid_tau,
+                likelihood_grid_int,
+                likelihood_grid_spec
+            )
 
         names_grid = [l[2] for l in like_calc]
 
@@ -1349,7 +1503,8 @@ if __name__ == '__main__':
         redshifts_of_mocks=redshifts_of_mocks,
         bins_tot=inputs.bins_tot,
         main_dir=inputs.main_dir,
-        cache_dir=inputs.cache_dir
+        cache_dir=inputs.cache_dir,
+        constrained_prior=inputs.constrained_prior
     )
 
     dict_to_save_data = dict()
@@ -1369,6 +1524,10 @@ if __name__ == '__main__':
         dict_to_save_data['likelihoods_tau'] = likelihoods[0]
         dict_to_save_data['likelihoods_int'] = likelihoods[1]
         dict_to_save_data['likelihoods_spec'] = likelihoods[2]
+        if inputs.constrained_prior:
+            dict_to_save_data['likelihoods_int_cp'] = likelihoods[3]
+            dict_to_save_data['likelihoods_spec_cp'] = likelihoods[4]
+
     else:
         # np.save(
         #     inputs.save_dir + '/likelihoods.npy',
