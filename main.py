@@ -912,7 +912,7 @@ if __name__ == '__main__':
     parser.add_argument("--high_prob_emit", action="store_true")
     parser.add_argument("--use_cache", type=str, default= None)
     parser.add_argument("--cache", action="store_false")
-    parser.add_argument("--fwhm_true", action="store_false")
+    parser.add_argument("--fwhm_true", action="store_true")
     parser.add_argument("--n_grid", type=int, default=5)
 
     parser.add_argument("--EW_fixed", action="store_true")
