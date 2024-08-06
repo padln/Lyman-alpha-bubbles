@@ -151,9 +151,9 @@ def _get_likelihood(
             red_s = z_at_proper_distance(
                 - zg / (1 + redshift) * u.Mpc, redshift
             )
-            reds_of_galaxies_in[index_gal] = red_s
+            reds_of_galaxies_in[index_gal_eff] = red_s
         else:
-            red_s = reds_of_galaxies_in[index_gal]
+            red_s = reds_of_galaxies_in[index_gal_eff]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
@@ -313,16 +313,16 @@ def _get_likelihood(
                 raise ValueError
 
             if constrained_prior:
-                if flux_int[index_gal] > 2 * flux_limit:
+                if flux_int[index_gal_eff] > 2 * flux_limit:
                     for index_tau_for, lae_i_for in enumerate(lae_now[
                         n * n_inside_tau:(n + 1) * n_inside_tau
                     ]):
-                        if abs((lae_i_for - la_e_in[index_gal])/la_e_in[index_gal]) < width_conp:
+                        if abs((lae_i_for - la_e_in[index_gal_eff])/la_e_in[index_gal_eff]) < width_conp:
                             keep_conp[
-                                index_gal, n * n_inside_tau + index_tau_for] = 1
+                                index_gal_eff, n * n_inside_tau + index_tau_for] = 1
                         else:
                             keep_conp[
-                                index_gal, n * n_inside_tau + index_tau_for] = 0
+                                index_gal_eff, n * n_inside_tau + index_tau_for] = 0
 
             #del res
             #del flux_now_i
