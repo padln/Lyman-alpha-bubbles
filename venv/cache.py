@@ -328,7 +328,7 @@ def _get_likelihood_cache(
                     )
 
                 spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                if bin_i < 5:
+                if bin_i < 6:
                     data_to_eval = np.log10(
                             (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
