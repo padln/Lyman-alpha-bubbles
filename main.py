@@ -151,9 +151,9 @@ def _get_likelihood(
             red_s = z_at_proper_distance(
                 - zg / (1 + redshift) * u.Mpc, redshift
             )
-            reds_of_galaxies_in[index_gal_eff] = red_s
+            reds_of_galaxies_in[index_gal] = red_s
         else:
-            red_s = reds_of_galaxies_in[index_gal_eff]
+            red_s = reds_of_galaxies_in[index_gal]
 
         if ((xg - xb) ** 2 + (yg - yb) ** 2
                 + (zg - zb) ** 2 < rb ** 2):
