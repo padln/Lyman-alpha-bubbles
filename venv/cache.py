@@ -253,9 +253,9 @@ def _get_likelihood_cache(
             #print(ind_i_gal, fi, li, speci)
             #if np.all(np.array(li) < 10000.0):  # maybe unnecessary
         if constrained_prior:
-            taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-            flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-            spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+            taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal].astype(np.bool)])
+            flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal].astype(np.bool)])
+            spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal].astype(np.bool)])
         else:
             taus_tot_b.append(li)
             flux_tot_b.append(fi)
