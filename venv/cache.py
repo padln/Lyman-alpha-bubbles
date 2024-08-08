@@ -199,7 +199,7 @@ def _get_likelihood_cache(
     if beta_data is None:
         beta_data = np.zeros(len(xs))
 
-    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
+    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub), dtype=int)
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
     ):
