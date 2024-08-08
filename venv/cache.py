@@ -231,16 +231,13 @@ def _get_likelihood_cache(
             #                 index_gal, n * n_inside_tau + index_tau_for] = 0
 
             if flux_int[index_gal] > 2 * flux_limit:
-                for index_tau_for, lae_i_for in enumerate(lae_now[
-                                                          n * n_inside_tau:(
-                                                            n + 1) * n_inside_tau
-                                                          ]):
+                for index_tau_for, lae_i_for in enumerate(lae_now):
                     if abs((lae_i_for - li) / li) < width_conp:
                         keep_conp[
-                            index_gal, n * n_inside_tau + index_tau_for] = 1
+                            index_gal, index_tau_for] = 1
                     else:
                         keep_conp[
-                            index_gal, n * n_inside_tau + index_tau_for] = 0
+                            index_gal, index_tau_for] = 0
             #TBC when new updates with constrained prior will be made.
         else:
             flux_now, spectrum_now, tau_now_full = full_pack
