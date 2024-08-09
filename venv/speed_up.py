@@ -522,7 +522,7 @@ def calculate_taus_post(
             dist = comoving_distance_from_source_Mpc(z_source, z_end_bubble)
             taus[index_iter, :] = tau_wv(
                 wave_em,
-                dist=dist,
+                dist=np.abs(dist),
                 zs=z_source,
                 z_end=5.3,
                 nf=0.8

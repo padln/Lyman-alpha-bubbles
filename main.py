@@ -270,7 +270,7 @@ def _get_likelihood(
                 dist = comoving_distance_from_source_Mpc(red_s, z_end_bub).value
                 tau_now_i[tau_now_i[:, -1] < 0.0] = tau_wv(
                     wave_em,
-                    dist=dist,
+                    dist=np.abs(dist),
                     zs=red_s,
                     z_end=5.3,
                     nf=0.8
