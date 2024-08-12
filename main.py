@@ -290,11 +290,26 @@ def _get_likelihood(
 
 
             taus_now.extend(res.tolist())
-
+            area_factor = np.array(
+                [
+                    np.trapz(
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau] * tau_cgm_in,
+                        wave_em.value
+                    ) / np.trapz(
+                        cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + i_inside_tau],
+                        wave_em.value
+                    ) for i_inside_tau in range(n_inside_tau)
+                ]
+            )
+            try:
+                ind_0 = np.where(area_factor == 0.0)
+                area_factor[ind_0] = 1e-5 #doesn't matter, it's going to be multiplied by zero
+            except ValueError:
+                pass
             lae_now[
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] = cont_filled.la_flux_out_full[index_gal_eff][
-                n * n_inside_tau:(n + 1) * n_inside_tau]
+                n * n_inside_tau:(n + 1) * n_inside_tau] / area_factor
             flux_now_i = lae_now[
                 n * n_inside_tau:(n + 1) * n_inside_tau
             ] * np.array(
@@ -309,6 +324,11 @@ def _get_likelihood(
                 print("Whoa, something bad happened and you have a nan or inf", flush=True)
                 print("Ingredients: Lyman-alpha luminosity:",lae_now, flush=True)
                 print("tau:", taus_now, flush=True)
+                print("area_factor", area_factor, flush=True)
+                ind_of_prob = np.where(area_factor==0.0)
+                print("j for nan:", cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + ind_of_prob])
+                print("tau cgm", tau_cgm_in)
+                print("area_factor nans", ind_of_prob, flush=True)
                 print("end result", flux_now, flush=True)
                 raise ValueError
 
@@ -368,9 +388,9 @@ def _get_likelihood(
                     #del spectrum_now_i
             else:
                 continuum_i = (
-                        cont_filled.la_flux_out_full[index_gal_eff][
+                        (cont_filled.la_flux_out_full[index_gal_eff][
                         n * n_inside_tau:(n + 1) * n_inside_tau
-                        ][:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
+                        ]/area_factor)[:, np.newaxis] * cont_filled.j_s_full[index_gal_eff][
                                            n * n_inside_tau: (
                                                 n + 1) * n_inside_tau
                                            ] * eit_l * tau_cgm_in[
@@ -520,33 +540,32 @@ def _get_likelihood(
                     )
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
-                    if bin_i < 6:
+                    if bin_i < 5:
                         data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, :bin_i]).T
                         )
                     else:
                         data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
+                            1e18 * (5e-19 + spec_line[:, bin_i - 1, :5]).T
                         )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
 
-                    if bin_i < 6:
-
+                    if bin_i < 5:
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:bin_i])
-                            ).reshape(bin_i - 1, 1)
+                                            bin_i - 1, :bin_i])
+                            ).reshape(bin_i, 1)
                         )
                     else:
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:6])
+                                            bin_i - 1, :5])
                             ).reshape(5, 1)
                         )
                     likelihood_spec[:ind_data, bin_i - 1] += np.log(
@@ -559,29 +578,29 @@ def _get_likelihood(
                         print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
                         print("Lengths")
 
-                        if bin_i < 6:
+                        if bin_i < 5:
                             data_to_get = np.log10(
                                 1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
                                                 1:bin_i]).T
                             )
                         else:
                             data_to_get = np.log10(
-                                1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, 1:6]).T
+                                1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
                             )
-                        spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
+                        spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
 
-                        if bin_i < 6:
+                        if bin_i < 5:
                             data_to_eval = np.log10(
                                 (1e18 * (
                                         5e-19 + like_on_flux[ind_data][
-                                                bin_i - 1, 1:bin_i])
-                                 ).reshape(bin_i - 1, 1)
+                                                bin_i - 1, :bin_i])
+                                 ).reshape(bin_i , 1)
                             )
                         else:
                             data_to_eval = np.log10(
                                 (1e18 * (
                                         5e-19 + like_on_flux[ind_data][
-                                                bin_i - 1, 1:6])
+                                                bin_i - 1, :5])
                                  ).reshape(5, 1)
                             )
                         likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
@@ -633,9 +652,9 @@ def _get_likelihood(
 
         print("OOps there was value error, let's see why:", flush=True)
         print(spec_tot_cp[ind_data], flush=True)
-        # print(taus_tot_b, flush=True)
-        #raise ValueError
-
+        print(tau_data, flush=True)
+        print(taus_tot_b, flush=True)
+        raise TypeError
 
     if not cache:
         names_used_this_iter = None
@@ -1048,7 +1067,7 @@ if __name__ == '__main__':
     parser.add_argument("--high_prob_emit", action="store_true")
     parser.add_argument("--use_cache", type=str, default= None)
     parser.add_argument("--cache", action="store_false")
-    parser.add_argument("--fwhm_true", action="store_true")
+    parser.add_argument("--fwhm_true", action="store_false")
     parser.add_argument("--n_grid", type=int, default=5)
 
     parser.add_argument("--EW_fixed", action="store_true")
@@ -1151,6 +1170,7 @@ if __name__ == '__main__':
             yd = np.zeros((inputs.multiple_iter, n_gal))
             zd = np.zeros((inputs.multiple_iter, n_gal))
             one_J_arr = np.zeros((inputs.multiple_iter, n_gal, len(wave_em)))
+            area_factor = np.zeros((inputs.multiple_iter, n_gal))
             x_b = []
             y_b = []
             z_b = []
@@ -1186,7 +1206,18 @@ if __name__ == '__main__':
                     fwhm_true=inputs.fwhm_true,
                 )
                 one_J_arr[index_iter, :, :] = np.array(one_J[0][:n_gal])
-
+                tau_cgm_gal = tau_CGM(Muv[index_iter], main_dir=inputs.main_dir)
+                area_factor[index_iter, :] = np.array(
+                    [
+                        np.trapz(
+                            one_J_arr[index_iter][i_gal] * tau_cgm_gal[i_gal],
+                            wave_em.value
+                        ) / np.trapz(
+                            one_J_arr[index_iter][i_gal],
+                            wave_em.value
+                        ) for i_gal in range(n_gal)
+                    ]
+                )
                 for i_gal in range(len(tdi)):
                     tau_cgm_gal = tau_CGM(Muv[index_iter][i_gal], main_dir=inputs.main_dir)
                     eit = np.exp(-tdi[i_gal])
@@ -1218,6 +1249,17 @@ if __name__ == '__main__':
                 n_iter=len(Muv),
                 fwhm_true=inputs.fwhm_true
             )
+            area_factor = np.array(
+                [
+                    np.trapz(
+                        one_J[0][i_gal] * tau_CGM(Muv[i_gal], main_dir=inputs.main_dir),
+                        wave_em.value
+                    ) / np.trapz(
+                        one_J[0][i_gal],
+                        wave_em.value
+                    ) for i_gal in range(n_gal)
+                ]
+            )
             for i in range(len(td)):
                 eit = np.exp(-td[i])
                 tau_cgm_gal = tau_CGM(Muv[i], main_dir=inputs.main_dir)
@@ -1239,7 +1281,9 @@ if __name__ == '__main__':
                 gauss_distr=inputs.gauss_distr
             )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
+        ew_factor /= area_factor
         la_e = la_e.reshape((np.shape(Muv)))
+        la_e /= area_factor #new improvement
         data = np.array(tau_data_I)
 
     else:
