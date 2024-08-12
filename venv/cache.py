@@ -100,6 +100,7 @@ def get_cache_likelihood(
         noise_on_the_spectrum=2e-20,
         bins_tot=20,
         redshift=7.5,
+        constrained_prior=False,
 ):
     """
     This is to be updated when I think of a function.
@@ -119,6 +120,9 @@ def get_cache_likelihood(
     )
     tau_now_full = np.array(f_this.f[f_this.f_group_name]['tau_full'])
     flux_now = np.array(f_this.f[f_this.f_group_name]['flux_integ'])
+    #print(flux_now, flush=True)
+    if constrained_prior:
+        lae_now = np.array(f_this.f[f_this.f_group_name]['la_e_fwmodels'])
     if consistent_noise:
         flux_saved_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
         spectrum_now = np.zeros((n_iter_bub*n_inside_tau, bins_tot - 1, bins_tot-1))
@@ -151,6 +155,8 @@ def get_cache_likelihood(
     else:
         spectrum_now = np.array(f_this.f[f_this.f_group_name]['mock_spectra'])
     f_this.close()
+    if constrained_prior:
+        return flux_now, spectrum_now, tau_now_full, lae_now
     return flux_now, spectrum_now, tau_now_full
 
 #I'll also re-write the general structure of the code, but in a much simpler way
@@ -193,11 +199,12 @@ def _get_likelihood_cache(
     if beta_data is None:
         beta_data = np.zeros(len(xs))
 
-    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub))
+    keep_conp = np.ones((len(xs), n_inside_tau * n_iter_bub), dtype=int)
     for index_gal, (xg, yg, zg, muvi, beti, li) in enumerate(
             zip(xs, ys, zs, muv, beta_data, la_e_in)
     ):
-        flux_now, spectrum_now, tau_now_full = get_cache_likelihood(
+
+        full_pack = get_cache_likelihood(
             xg,
             n_iter_bub,
             n_inside_tau,
@@ -210,7 +217,30 @@ def _get_likelihood_cache(
             noise_on_the_spectrum=noise_on_the_spectrum,
             bins_tot=bins_tot,
             redshift=redshift,
+            constrained_prior=constrained_prior,
         )
+        if constrained_prior:
+            flux_now, spectrum_now, tau_now_full, lae_now = full_pack
+            # if flux_int[index_gal] > flux_limit:
+            #     for index_tau_for, res_i_for in enumerate(res):
+            #         if abs(res_i_for - tau_data[index_gal]) < width_conp:
+            #             keep_conp[
+            #                 index_gal, n * n_inside_tau + index_tau_for] = 1
+            #         else:
+            #             keep_conp[
+            #                 index_gal, n * n_inside_tau + index_tau_for] = 0
+
+            if flux_int[index_gal] > 2 * flux_limit:
+                for index_tau_for, lae_i_for in enumerate(lae_now):
+                    if abs((lae_i_for - li) / li) < width_conp:
+                        keep_conp[
+                            index_gal, index_tau_for] = 1
+                    else:
+                        keep_conp[
+                            index_gal, index_tau_for] = 0
+            #TBC when new updates with constrained prior will be made.
+        else:
+            flux_now, spectrum_now, tau_now_full = full_pack
         flux_tot.append(np.array(flux_now).flatten())
         taus_tot.append(np.array(tau_now_full).flatten())
         spectrum_tot.append(spectrum_now)
@@ -223,9 +253,9 @@ def _get_likelihood_cache(
             #print(ind_i_gal, fi, li, speci)
             #if np.all(np.array(li) < 10000.0):  # maybe unnecessary
         if constrained_prior:
-            taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal]])
-            flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal]])
-            spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal]])
+            taus_tot_b.append(np.array(li)[keep_conp[ind_i_gal].astype(np.bool)])
+            flux_tot_b.append(np.array(fi)[keep_conp[ind_i_gal].astype(np.bool)])
+            spectrum_tot_b.append(np.array(speci)[keep_conp[ind_i_gal].astype(np.bool)])
         else:
             taus_tot_b.append(li)
             flux_tot_b.append(fi)
@@ -247,9 +277,31 @@ def _get_likelihood_cache(
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
             ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
-                #print("and actual problem:", fl_l[ind_nan], flush=True)
-            flux_line.pop(np.concatenate(ind_nan, ind_inf))
-            spec_line.pop(np.concatenate(ind_nan, ind_inf))
+            ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+            try:
+                ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                flux_line = np.array(flux_line_list)
+
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                spec_line = np.array(spec_line_list)
+
+            except ValueError:
+                ind_inf = np.array([])
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(ind_nan)
+                flux_line = np.array(flux_line_list)
+
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(ind_nan)
+                spec_line = np.array(spec_line_list)
+            print("and actual problem spec:", spec_line[ind_nan])
+            print("Tau: ", tau_line[ind_nan])
+            print("and actual problem:", fl_l[ind_nan], flush=True)
+
+            # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
         flux_kde = gaussian_kde(
@@ -279,31 +331,29 @@ def _get_likelihood_cache(
         #print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
-                if bin_i < 6:
+                if bin_i < 7:
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
                     data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:7]).T
                     )
 
-                spec_kde = gaussian_kde(data_to_get, bw_method=0.2)
-                if bin_i < 6:
+                spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                if bin_i < 7:
                     data_to_eval = np.log10(
                             (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
-                        ).reshape(bin_i - 1, 1)
-                    ).reshape(bin_i - 1, 1)
-
-
+                            ).reshape(bin_i -1, 1)
+                        )
                 else:
                     data_to_eval = np.log10(
                         (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
-                                        bin_i - 1, 1:6])
-                        ).reshape(5, 1)
+                                        bin_i - 1, 1:7])
+                        ).reshape(6, 1)
                     )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(
                     spec_kde.evaluate(
