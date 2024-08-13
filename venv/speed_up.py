@@ -540,8 +540,9 @@ def calculate_taus_post(
                     # already taken into account
                     pass
                 elif red_lo_i > z_end_bubble:
-                    print("Some big problem, small bubble completely inside big")
-                    print(red_lo_i, red_up_i, z_lo_i, z_up_i, z_end_bubble)
+                    pass
+                    #print("Some big problem, small bubble completely inside big")
+                    #print(red_lo_i, red_up_i, z_lo_i, z_up_i, z_end_bubble)
                     # raise ValueError(
                     #     "Some big problem, small bubble completely inside big?!"
                     # )
