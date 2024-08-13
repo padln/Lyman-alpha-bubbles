@@ -582,7 +582,7 @@ def _get_likelihood(
                         if bin_i < 5:
                             data_to_get = np.log10(
                                 1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
-                                                1:bin_i]).T
+                                                :bin_i]).T
                             )
                         else:
                             data_to_get = np.log10(
