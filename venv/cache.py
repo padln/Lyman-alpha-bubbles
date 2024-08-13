@@ -274,8 +274,8 @@ def _get_likelihood_cache(
         if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
             print(fl_l.flatten())
             print(np.isnan(fl_l.flatten()).tolist())
-            ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
-            ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+            # ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+            # ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
             try:
