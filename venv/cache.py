@@ -331,17 +331,17 @@ def _get_likelihood_cache(
         #print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
-                if bin_i < 7:
+                if bin_i < 6:
                     data_to_get = np.log10(
                         1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
                     data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:7]).T
+                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
                     )
 
-                spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                if bin_i < 7:
+                spec_kde = gaussian_kde(data_to_get, bw_method='scott')
+                if bin_i < 6:
                     data_to_eval = np.log10(
                             (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
@@ -352,8 +352,8 @@ def _get_likelihood_cache(
                     data_to_eval = np.log10(
                         (1e18 * (
                                 5e-19 + like_on_flux[ind_data][
-                                        bin_i - 1, 1:7])
-                        ).reshape(6, 1)
+                                        bin_i - 1, 1:6])
+                        ).reshape(5, 1)
                     )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(
                     spec_kde.evaluate(
