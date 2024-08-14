@@ -301,7 +301,7 @@ def _get_likelihood(
                     ) for i_inside_tau in range(n_inside_tau)
                 ]
             )
-            print(area_factor)
+            #print(area_factor)
             try:
                 ind_0 = np.where(area_factor == 0.0)
                 area_factor[ind_0] = 1e-5 #doesn't matter, it's going to be multiplied by zero
@@ -553,8 +553,13 @@ def _get_likelihood(
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-
+                    try:
+                        spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                    except TypeError:
+                        print("this is the type error", data_to_get, flush=True)
+                        print("where=?", np.where(np.isnan(data_to_get)), flush=True)
+                        print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
+                        raise TypeError
                     if bin_i < 6:
                         data_to_eval = np.log10(
                             (1e18 * (
@@ -1286,7 +1291,7 @@ if __name__ == '__main__':
         la_e = la_e.reshape((np.shape(Muv)))
         la_e /= area_factor #new improvement
         data = np.array(tau_data_I)
-        print(area_factor, "This is area factor of mocks")
+        #print(area_factor, "This is area factor of mocks")
 
     else:
 
