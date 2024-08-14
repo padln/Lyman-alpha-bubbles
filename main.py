@@ -327,7 +327,9 @@ def _get_likelihood(
                 print("tau:", taus_now, flush=True)
                 print("area_factor", area_factor, flush=True)
                 ind_of_prob = np.where(area_factor==0.0)
-                print("j for nan:", cont_filled.j_s_full[index_gal_eff][n * n_inside_tau + ind_of_prob])
+                print("j for nan:", cont_filled.j_s_full[index_gal_eff][n * n_inside_tau: (
+                                            n + 1) * n_inside_tau
+                                         ][ind_of_prob])
                 print("tau cgm", tau_cgm_in)
                 print("area_factor nans", ind_of_prob, flush=True)
                 print("end result", flux_now, flush=True)
