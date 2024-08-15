@@ -332,6 +332,12 @@ def _get_likelihood(
                                          ][ind_of_prob])
                 print("tau cgm", tau_cgm_in)
                 print("area_factor nans", ind_of_prob, flush=True)
+                try:
+                    print("indices:", np.where(np.isnan(flux_now)), np.where(np.isinf(flux_now)))
+                except ValueError:
+                    print("indices:", np.where(np.isnan(flux_now)))
+                print("end result", flux_now[np.isnan(flux_now)], flush=True)
+                print("end result", flux_now[np.isinf(flux_now)], flush=True)
                 print("end result", flux_now, flush=True)
                 raise ValueError
 
