@@ -303,7 +303,7 @@ def _get_likelihood(
             )
             #print(area_factor)
             try:
-                ind_0 = np.where(area_factor == 0.0)
+                ind_0 = np.where(area_factor < 1e-10)
                 area_factor[ind_0] = 1e-5 #doesn't matter, it's going to be multiplied by zero
             except ValueError:
                 pass
@@ -335,7 +335,7 @@ def _get_likelihood(
                 try:
                     print("indices:", np.where(np.isnan(flux_now)), np.where(np.isinf(flux_now)))
                 except ValueError:
-                    print("indices:", np.where(np.isnan(flux_now)))
+                    print("indices:", np.where(np.isinf(flux_now)))
                 print("end result", flux_now[np.isnan(flux_now)], flush=True)
                 print("end result", flux_now[np.isinf(flux_now)], flush=True)
                 print("end result", flux_now, flush=True)
