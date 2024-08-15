@@ -543,14 +543,9 @@ def _get_likelihood(
                     )
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
-                    if bin_i < 6:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
-                        )
-                    else:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
-                        )
+                    data_to_get = 5 * np.log10(
+                        10**18.7 * (2e-19 + spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i])]).T
+                    )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
@@ -562,20 +557,13 @@ def _get_likelihood(
                         print("where=?", np.where(np.isnan(data_to_get)), flush=True)
                         print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
                         raise TypeError
-                    if bin_i < 6:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:bin_i])
-                            ).reshape(bin_i-1, 1)
-                        )
-                    else:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:6])
-                            ).reshape(5, 1)
-                        )
+                    len_bin = len(np.array(bins_likelihood[bin_i]))
+                    data_to_eval = 5 * np.log10(
+                        (10**18.7 * (
+                                2e-19 + like_on_flux[ind_data][
+                                        bin_i - 1, np.array(bins_likelihood[bin_i])])
+                        ).reshape(len_bin, 1)
+                    )
                     likelihood_spec[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
                             data_to_eval
@@ -1507,6 +1495,25 @@ if __name__ == '__main__':
         flux_tau = flux_mock * tau_data_I
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
+    #Next part of the code calculates bins for likelihoods
+    bins_likelihood = []
+    for bin_i_choice in range(2,inputs.bins_tot):
+        list_of_indices = [
+            np.where(
+                flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice] > 3 * inputs.noise_on_the_spectrum
+            )[0] for i in range(n_gal)
+        ]
+        bins_likelihood.append(
+            np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+            )
+        )
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
     #calculating whatever can be calculated beforehand
