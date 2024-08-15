@@ -1531,25 +1531,6 @@ if __name__ == '__main__':
         flux_tau = flux_mock * tau_data_I
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
-    #Next part of the code calculates bins for likelihoods
-    bins_likelihood = []
-    for bin_i_choice in range(2,inputs.bins_tot):
-        list_of_indices = [
-            np.where(
-                flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice] > 3 * inputs.noise_on_the_spectrum
-            )[0] for i in range(n_gal)
-        ]
-        bins_likelihood.append(
-            np.where(
-                np.array(
-                    [
-                        list(
-                            np.concatenate(list_of_indices).ravel()
-                        ).count(i) for i in range(bin_i_choice)
-                    ]
-                ) > 7
-            )
-        )
 
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
