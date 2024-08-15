@@ -1161,6 +1161,8 @@ if __name__ == '__main__':
                     muv_cut=inputs.muv_cut,
                 )
     else:
+        print("Okay, for now it's not acceptable!")
+        raise ValueError
         if inputs.multiple_iter:
             Muv = -22.0 * np.ones((inputs.multiple_iter, n_gal))
         else:
