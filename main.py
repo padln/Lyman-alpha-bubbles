@@ -1498,11 +1498,19 @@ if __name__ == '__main__':
     #Next part of the code calculates bins for likelihoods
     bins_likelihood = []
     for bin_i_choice in range(2,inputs.bins_tot):
-        list_of_indices = [
-            np.where(
-                flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice] > 3 * inputs.noise_on_the_spectrum
-            )[0] for i in range(n_gal)
-        ]
+        try:
+            list_of_indices = [
+                np.where(
+                    flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice] > 3 * inputs.noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
+        except IndexError:
+            list_of_indices = [
+                np.where(
+                    flux_noise_mock[i][bin_i_choice - 1][
+                    :bin_i_choice] > 3 * inputs.noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
         bins_likelihood.append(
             np.where(
                 np.array(
