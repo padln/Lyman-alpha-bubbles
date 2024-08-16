@@ -1526,7 +1526,7 @@ if __name__ == '__main__':
                         ).count(i) for i in range(bin_i_choice)
                     ]
                 ) > 7
-            )
+            )[0]#because it's a tuple
         )
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
