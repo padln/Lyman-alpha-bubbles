@@ -558,7 +558,8 @@ def _get_likelihood(
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     try:
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                    except TypeError:
+                    except (TypeError, ValueError):
+                        print(np.array(bins_likelihood[bin_i]))
                         print("this is the type error", data_to_get, flush=True)
                         print("where=?", np.where(np.isnan(data_to_get)), flush=True)
                         print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
@@ -652,10 +653,10 @@ def _get_likelihood(
         likelihood_spec[:ind_data] += -np.inf
         likelihood_int[:ind_data] += -np.inf
 
-        print("OOps there was value error, let's see why:", flush=True)
-        print(spec_tot_cp[ind_data], flush=True)
-        print(tau_data, flush=True)
-        print(taus_tot_b, flush=True)
+        #print("OOps there was value error, let's see why:", flush=True)
+        #print(spec_tot_cp[ind_data], flush=True)
+        #print(tau_data, flush=True)
+        #print(taus_tot_b, flush=True)
         raise TypeError
 
     if not cache:
