@@ -558,7 +558,7 @@ def _get_likelihood(
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                     try:
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                    except (TypeError, ValueError):
+                    except (TypeError, ValueError, LinAlgError):
                         print(np.array(bins_likelihood[bin_i]))
                         print("this is the type error", data_to_get, flush=True)
                         print("where=?", np.where(np.isnan(data_to_get)), flush=True)
