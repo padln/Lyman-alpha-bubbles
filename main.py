@@ -550,7 +550,7 @@ def _get_likelihood(
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
                     data_to_get = 5 * np.log10(
-                        10**18.7 * (2e-19 + spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i])]).T
+                        10**18.7 * (3e-19 + spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i])]).T
                     )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
@@ -567,7 +567,7 @@ def _get_likelihood(
                     len_bin = len(np.array(bins_likelihood[bin_i]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
-                                2e-19 + like_on_flux[ind_data][
+                                3e-19 + like_on_flux[ind_data][
                                         bin_i - 1, np.array(bins_likelihood[bin_i])])
                         ).reshape(len_bin, 1)
                     )
