@@ -593,7 +593,7 @@ def _get_likelihood(
                                                 :bin_i]).T
                             )
                         else:
-                            data_to_get = np.log10(
+                            data_to_get = 5 * np.log10(
                                 1e18 * (8e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
                             )
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
@@ -612,11 +612,16 @@ def _get_likelihood(
                                                 bin_i - 1, :5])
                                  ).reshape(5, 1)
                             )
-                        likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
-                            spec_kde.evaluate(
-                                data_to_eval
+                        try:
+                            likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
+                                spec_kde.evaluate(
+                                    data_to_eval
+                                )
                             )
-                        )
+                        except LinAlgError:
+                            print("Lin Alg Error for bin", bin_i)
+                            print(data_to_get)
+                            raise ValueError
             #print("This is flux_int", flux_int)
             if flux_int[ind_data] < flux_limit:
                 #print("This galaxy failed the tau test, it's flux is",
