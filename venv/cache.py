@@ -333,25 +333,25 @@ def _get_likelihood_cache(
             for bin_i in range(2, bins_tot):
                 if bin_i < 6:
                     data_to_get = 5*np.log10(
-                        10**18.7 * (2e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
+                        10**18.7 * (6e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
                     data_to_get = 5*np.log10(
-                        10**18.7 * (2e-19 + spec_line[:, bin_i - 1, 1:6]).T
+                        10**18.7 * (6e-19 + 2*spec_line[:, bin_i - 1, 1:6]).T
                     )
 
                 spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
                 if bin_i < 6:
                     data_to_eval = 5*np.log10(
                             (10**18.7 * (
-                                2e-19 + like_on_flux[ind_data][
+                                6e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
                             ).reshape(bin_i -1, 1)
                         )
                 else:
                     data_to_eval = 5*np.log10(
                         (10**18.7 * (
-                                2e-19 + like_on_flux[ind_data][
+                                6e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 1:6])
                         ).reshape(5, 1)
                     )
