@@ -340,7 +340,10 @@ def _get_likelihood_cache(
                         10**18.7 * (7e-19 + 2*spec_line[:, bin_i - 1, 1:6]).T
                     )
                 if np.any(np.isnan(data_to_get.flatten())):
-                    print("For this galaxy a nan:",(spec_line[:, bin_i - 1, 1:6].T)[np.isnan(data_to_get)] )
+                    print(np.shape(data_to_get))
+                    print(np.shape(np.isnan(data_to_get)))
+                    print(np.shape(spec_line[:, bin_i - 1, 1:6].T))
+                    print("For this galaxy a nan:",(spec_line[:, bin_i - 1, 1:6].T.reshape(np.isnan(data_to_get)))[np.isnan(data_to_get)] )
                     print("There was a nan:", data_to_get[np.isnan(data_to_get)])
                 if np.any(np.isinf(data_to_get.flatten())):
                     print("There was infinity:", data_to_get[np.isinf(data_to_get)])
