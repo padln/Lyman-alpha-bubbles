@@ -608,14 +608,14 @@ def _get_likelihood(
                     print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
                     print("Lengths")
 
-                    if bin_i < 5:
+                    if bin_i < 6:
                         data_to_get = np.log10(
                             1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
-                                            np.array(bins_likelihood[bin_i])]).T
+                                            1:bin_i]).T
                         )
                     else:
                         data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
+                            1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, 2:6]).T
                         )
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
 
@@ -623,15 +623,15 @@ def _get_likelihood(
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, :bin_i])
-                             ).reshape(bin_i , 1)
+                                            bin_i - 1, 1:bin_i])
+                             ).reshape(bin_i-1 , 1)
                         )
                     else:
                         data_to_eval = np.log10(
                             (1e18 * (
                                     5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, :5])
-                             ).reshape(5, 1)
+                                            bin_i - 1, 2:6])
+                             ).reshape(4, 1)
                         )
                     likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
