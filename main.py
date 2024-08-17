@@ -1524,6 +1524,23 @@ if __name__ == '__main__':
                     :bin_i_choice] > 3 * inputs.noise_on_the_spectrum
                 )[0] for i in range(n_gal)
             ]
+        if len(np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+            )[0]) == 0:
+            print("For some reason, no bins were selected, check this out:", np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ))
+            raise ValueError
         bins_likelihood.append(
             np.where(
                 np.array(
