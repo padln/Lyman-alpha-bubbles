@@ -551,7 +551,7 @@ def _get_likelihood(
                 for bin_i in range(2, bins_tot):
                     try:
                         data_to_get = 5 * np.log10(
-                            10**18.7 * (7e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
+                            10**18.7 * (8e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                         )
                     except IndexError:
                         print("This is bin_i", bin_i)
@@ -573,7 +573,7 @@ def _get_likelihood(
                     len_bin = len(np.array(bins_likelihood[bin_i-2]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
-                                7e-19 + 2*like_on_flux[ind_data][
+                                8e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(len_bin, 1)
                     )
@@ -589,26 +589,26 @@ def _get_likelihood(
 
                         if bin_i < 5:
                             data_to_get = 5 * np.log10(
-                                1e18 * (7e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1,
+                                1e18 * (8e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1,
                                                 :bin_i]).T
                             )
                         else:
                             data_to_get = np.log10(
-                                1e18 * (7e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
+                                1e18 * (8e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
                             )
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
 
                         if bin_i < 5:
                             data_to_eval = 5 * np.log10(
                                 (1e18 * (
-                                        7e-19 + 2*like_on_flux[ind_data][
+                                        8e-19 + 2*like_on_flux[ind_data][
                                                 bin_i - 1, :bin_i])
                                  ).reshape(bin_i , 1)
                             )
                         else:
                             data_to_eval = 5 * np.log10(
                                 (1e18 * (
-                                        7e-19 + 2*like_on_flux[ind_data][
+                                        8e-19 + 2*like_on_flux[ind_data][
                                                 bin_i - 1, :5])
                                  ).reshape(5, 1)
                             )
