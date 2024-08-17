@@ -567,11 +567,11 @@ def _get_likelihood(
             for bin_i in range(2, bins_tot):
                 if bin_i < 6:
                     data_to_get = 5*np.log10(
-                        10**18.7 * (6e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
+                        10**18.7 * (8e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
                     data_to_get = 5*np.log10(
-                        10**18-7 * (6e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
+                        10**18-7 * (8e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
                     )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
@@ -579,7 +579,7 @@ def _get_likelihood(
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                 try:
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
-                except TypeError:
+                except (TypeError, LinAlgError):
                     print("this is the type error", data_to_get, flush=True)
                     print("where=?", np.where(np.isnan(data_to_get)), flush=True)
                     print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
@@ -587,14 +587,14 @@ def _get_likelihood(
                 if bin_i < 6:
                     data_to_eval = 5*np.log10(
                         (10**18.7 * (
-                                6e-19 + 2*like_on_flux[ind_data][
+                                8e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
                         ).reshape(bin_i-1, 1)
                     )
                 else:
                     data_to_eval = 5*np.log10(
                         (10**18.7 * (
-                                6e-19 + 2*like_on_flux[ind_data][
+                                8e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 2:6])
                         ).reshape(4, 1)
                     )
