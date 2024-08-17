@@ -548,7 +548,7 @@ def _get_likelihood(
                         tau_kde.evaluate((tau_data[ind_data]))
                     )
             if like_on_flux is not False:
-                for bin_i in range(2, bins_tot):
+                for bin_i in range(2, bins_tot-1):
                     try:
                         data_to_get = 5 * np.log10(
                             10**18.7 * (8e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
@@ -1510,7 +1510,7 @@ if __name__ == '__main__':
 
     #Next part of the code calculates bins for likelihoods
     bins_likelihood = []
-    for bin_i_choice in range(2,inputs.bins_tot):
+    for bin_i_choice in range(2,inputs.bins_tot-1):
         try:
             list_of_indices = [
                 np.where(
