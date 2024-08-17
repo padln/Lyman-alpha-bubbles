@@ -567,6 +567,8 @@ def _get_likelihood(
                         print("this is the type error", data_to_get, flush=True)
                         print("where=?", np.where(np.isinf(data_to_get)), flush=True)
                         print("problematic values", spec_line[np.where(np.isinf(data_to_get))], flush=True)
+                        print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
+                        print("problematic values nans", spec_line[np.where(np.isnan(data_to_get))], flush=True)
                         raise TypeError
                     len_bin = len(np.array(bins_likelihood[bin_i-2]))
                     data_to_eval = 5 * np.log10(
