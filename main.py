@@ -549,9 +549,13 @@ def _get_likelihood(
                     )
             if like_on_flux is not False:
                 for bin_i in range(2, bins_tot):
-                    data_to_get = 5 * np.log10(
-                        10**18.7 * (7e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i])]).T
-                    )
+                    try:
+                        data_to_get = 5 * np.log10(
+                            10**18.7 * (7e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i])]).T
+                        )
+                    except IndexError:
+                        print("This is bin_i", bin_i)
+                        print("There was an Index error for some reason:",np.array(bins_likelihood[bin_i]) )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
