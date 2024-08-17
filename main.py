@@ -1540,6 +1540,7 @@ if __name__ == '__main__':
                         ).count(i) for i in range(bin_i_choice)
                     ]
                 ))
+            print("for bin choice,", bin_i_choice, "and indices", list_of_indices)
             raise ValueError
         bins_likelihood.append(
             np.where(
