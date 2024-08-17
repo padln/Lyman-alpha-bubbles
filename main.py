@@ -584,8 +584,6 @@ def _get_likelihood(
                     )
                 if constrained_prior:
                     for bin_i in range(2, bins_tot):
-                        print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
-                        print("Lengths")
 
                         if bin_i < 5:
                             data_to_get = 5 * np.log10(
@@ -619,6 +617,9 @@ def _get_likelihood(
                                 )
                             )
                         except LinAlgError:
+                            print(len(spec_line), len(spec_tot_cp[ind_data]),
+                                  flush=True)
+                            print("Lengths")
                             print("Lin Alg Error for bin", bin_i)
                             print(data_to_get)
                             raise ValueError
