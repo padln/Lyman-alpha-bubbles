@@ -350,7 +350,7 @@ def _get_likelihood_cache(
                         raise TypeError
                 if np.any(np.isinf(data_to_get.flatten())):
                     print("There was infinity:", data_to_get[np.isinf(data_to_get)])
-                spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
                 if bin_i < 7:
                     data_to_eval = 5*np.log10(
                             (10**18.7 * (
