@@ -571,7 +571,7 @@ def _get_likelihood(
                     )
                 else:
                     data_to_get = 5*np.log10(
-                        10**18-7 * (8e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
+                        10**18.7 * (8e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
                     )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
