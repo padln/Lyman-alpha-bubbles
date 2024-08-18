@@ -481,7 +481,7 @@ def _get_likelihood(
                 taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
                 flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
                 spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
-                print(keep_conp[ind_i_gal])
+                #print(keep_conp[ind_i_gal])
             taus_tot_b.append(li)
             flux_tot_b.append(fi)
             spectrum_tot_b.append(speci)
@@ -581,6 +581,7 @@ def _get_likelihood(
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
                 except (TypeError, LinAlgError):
                     print("this is the type error", data_to_get, flush=True)
+                    print("spec_line:", spec_line[:,bin_-1,1:bin_i],"for bin:", bin_i, flush=True)
                     print("where=?", np.where(np.isnan(data_to_get)), flush=True)
                     print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
                     raise TypeError
