@@ -581,7 +581,7 @@ def _get_likelihood(
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
                 except (TypeError, LinAlgError):
                     print("this is the type error", data_to_get, flush=True)
-                    print("spec_line:", spec_line[:,bin_-1,1:bin_i],"for bin:", bin_i, flush=True)
+                    print("spec_line:", spec_line[:,bin_i-1,1:bin_i],"for bin:", bin_i, flush=True)
                     print("where=?", np.where(np.isnan(data_to_get)), flush=True)
                     print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
                     raise TypeError
