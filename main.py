@@ -521,10 +521,15 @@ def _get_likelihood(
                 bw_method=0.15
             )
             if constrained_prior:
-                flux_kde_cp = gaussian_kde(
-                    fl_l_cp,
-                    bw_method=0.15
-                )
+                try:
+                    flux_kde_cp = gaussian_kde(
+                        fl_l_cp,
+                        bw_method=0.15
+                    )
+                except ValueError:
+                    print("What is the fl_l_cp:", fl_l_cp)
+                    print("This is the length", len(fl_l_cp))
+                    raise ValueError
             # print(len(spec_kde), flush=True)
             # print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
