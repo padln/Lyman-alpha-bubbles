@@ -299,7 +299,7 @@ def _get_likelihood_cache(
                 spec_line = np.array(spec_line_list)
             print("and actual problem spec:", spec_line[ind_nan])
             print("Tau: ", tau_line[ind_nan])
-            print("and actual problem:", fl_l[ind_nan], flush=True)
+            print("and actual problem:", np.array(flux_line)[ind_nan], flush=True)
 
             # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
