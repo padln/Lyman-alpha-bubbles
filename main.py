@@ -56,7 +56,8 @@ def _get_likelihood(
         constrained_prior=False,
         reds_of_galaxies=None,
         dir_name=None,
-        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles'
+        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
+        la_e_orig=None,
 ):
     """
 
@@ -346,7 +347,7 @@ def _get_likelihood(
                     for index_tau_for, lae_i_for in enumerate(lae_now[
                         n * n_inside_tau:(n + 1) * n_inside_tau
                     ]):
-                        if abs((lae_i_for - la_e_in[index_gal])/la_e_in[index_gal]) < width_conp:
+                        if abs((lae_i_for - la_e_orig[index_gal])/la_e_orig[index_gal]) < width_conp:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
@@ -745,6 +746,7 @@ def sample_bubbles_grid(
         redshifts_of_mocks=None,
         main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/',
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        la_e_orig=None,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -896,6 +898,7 @@ def sample_bubbles_grid(
                     dir_name=dir_name,
                     main_dir=main_dir,
                     cache_dir=cache_dir,
+                    la_e_orig=la_e_orig[ind_iter],
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -1000,6 +1003,7 @@ def sample_bubbles_grid(
                 dir_name=dir_name,
                 main_dir=main_dir,
                 cache_dir=cache_dir,
+                la_e_orig=la_e_orig,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -1314,8 +1318,10 @@ if __name__ == '__main__':
                 gauss_distr=inputs.gauss_distr
             )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
+        ew_factor_orig = np.copy(ew_factor)
         ew_factor /= area_factor
         la_e = la_e.reshape((np.shape(Muv)))
+        la_e_orig = np.copy(la_e)
         la_e /= area_factor #new improvement
         data = np.array(tau_data_I)
         #print(area_factor, "This is area factor of mocks")
@@ -1585,7 +1591,8 @@ if __name__ == '__main__':
         bins_tot=inputs.bins_tot,
         main_dir=inputs.main_dir,
         cache_dir=inputs.cache_dir,
-        constrained_prior=inputs.constrained_prior
+        constrained_prior=inputs.constrained_prior,
+        la_e_orig = la_e_orig,
     )
 
     dict_to_save_data = dict()
