@@ -347,7 +347,7 @@ def _get_likelihood(
                     for index_tau_for, lae_i_for in enumerate(lae_now[
                         n * n_inside_tau:(n + 1) * n_inside_tau
                     ]):
-                        if abs((lae_i_for - la_e_orig[index_gal])/la_e_in[index_gal]) < width_conp:
+                        if abs((lae_i_for - la_e_orig[index_gal])/la_e_orig[index_gal]) < width_conp:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
