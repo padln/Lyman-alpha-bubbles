@@ -278,6 +278,11 @@ def _get_likelihood_cache(
             # ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+
+            print("and actual problem spec:", spec_line[ind_nan])
+            print("Tau: ", tau_line[ind_nan])
+            print("and actual problem:", np.array(flux_line)[ind_nan], flush=True)
+
             try:
                 ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
                 flux_line_list = flux_line.tolist()
@@ -297,9 +302,6 @@ def _get_likelihood_cache(
                 spec_line_list = spec_line.tolist()
                 spec_line_list.pop(ind_nan)
                 spec_line = np.array(spec_line_list)
-            print("and actual problem spec:", spec_line[ind_nan])
-            print("Tau: ", tau_line[ind_nan])
-            print("and actual problem:", np.array(flux_line)[ind_nan], flush=True)
 
             # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
@@ -350,7 +352,7 @@ def _get_likelihood_cache(
                         raise TypeError
                 if np.any(np.isinf(data_to_get.flatten())):
                     print("There was infinity:", data_to_get[np.isinf(data_to_get)])
-                spec_kde = gaussian_kde(data_to_get, bw_method=0.10)
+                spec_kde = gaussian_kde(data_to_get, bw_method=0.11)
                 if bin_i < 7:
                     data_to_eval = 5*np.log10(
                             (10**18.7 * (
