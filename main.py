@@ -557,7 +557,7 @@ def _get_likelihood(
                 for bin_i in range(2, bins_tot-1):
                     try:
                         data_to_get = 5 * np.log10(
-                            10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
+                            10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                         )
                     except IndexError:
                         print("This is bin_i", bin_i)
@@ -579,7 +579,7 @@ def _get_likelihood(
                     len_bin = len(np.array(bins_likelihood[bin_i-2]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
-                                9e-19 + 2*like_on_flux[ind_data][
+                                additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                         bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(len_bin, 1)
                     )
@@ -593,26 +593,26 @@ def _get_likelihood(
 
                         if bin_i < 5:
                             data_to_get = 5 * np.log10(
-                                1e18 * (9e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1,
+                                1e18 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
                                                 :bin_i]).T
                             )
                         else:
                             data_to_get = 5 * np.log10(
-                                1e18 * (9e-19 + 2*spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
+                                1e18 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1, :5]).T
                             )
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
 
                         if bin_i < 5:
                             data_to_eval = 5 * np.log10(
                                 (1e18 * (
-                                        9e-19 + 2*like_on_flux[ind_data][
+                                        additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                                 bin_i - 1, :bin_i])
                                  ).reshape(bin_i , 1)
                             )
                         else:
                             data_to_eval = 5 * np.log10(
                                 (1e18 * (
-                                        9e-19 + 2*like_on_flux[ind_data][
+                                        additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                                 bin_i - 1, :5])
                                  ).reshape(5, 1)
                             )
@@ -1527,6 +1527,7 @@ if __name__ == '__main__':
 
     #Next part of the code calculates bins for likelihoods
     bins_likelihood = []
+    additive_factors = []
     for bin_i_choice in range(2,inputs.bins_tot-1):
         try:
             list_of_indices = [
@@ -1570,6 +1571,20 @@ if __name__ == '__main__':
                 ) > 7
             )[0]#because it's a tuple
         )
+        try:
+            additive_factors.append(
+                5 * np.abs(
+                    np.min(flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice])
+                )
+            )
+        except IndexError:
+            additive_factors.append(
+                5 * np.abs(
+                    np.min(flux_noise_mock[i][bin_i_choice - 1][
+                    :bin_i_choice])
+                )
+            )
+
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
     #calculating whatever can be calculated beforehand
