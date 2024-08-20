@@ -589,7 +589,7 @@ def _get_likelihood(
                         print("this is the type error", data_to_get, flush=True)
                         print("where=?", np.where(np.isinf(data_to_get)), flush=True)
                         print("problematic values", spec_line.T[np.where(np.isinf(data_to_get))], flush=True)
-                        print("Additive factor:", additive_factors[bin_i-1], flush=True)
+                        print("Additive factor:", additive_factors[bin_i-2], flush=True)
                         print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
                         print("problematic values nans", spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True)
                         raise TypeError
@@ -1585,17 +1585,17 @@ if __name__ == '__main__':
         )
         try:
             additive_factors.append(
-                5 * np.abs(
+                10 * np.abs(
                     np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
                 )
             )
         except IndexError:
             additive_factors.append(
-                5 * np.abs(
+                10 * np.abs(
                     np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
                 )
-            )
-
+            ) #5 is probably not enough for the noise since I'm multiplying it by 2.
+    print("additive factors:", additive_factors)
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
     #calculating whatever can be calculated beforehand
