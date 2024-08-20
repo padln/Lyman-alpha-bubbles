@@ -605,7 +605,7 @@ def _get_likelihood(
                         )
                     )
                 if constrained_prior:
-                    for bin_i in range(2, bins_tot):
+                    for bin_i in range(2, bins_tot-1):
                         data_to_get = 5 * np.log10(
                             10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
                                             np.array(bins_likelihood[bin_i-2])]).T
