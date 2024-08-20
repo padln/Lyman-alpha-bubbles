@@ -589,7 +589,7 @@ def _get_likelihood(
                         print("this is the type error", data_to_get, flush=True)
                         print("where=?", np.where(np.isinf(data_to_get)), flush=True)
                         print("problematic values", spec_line.T[np.where(np.isinf(data_to_get))], flush=True)
-                        print("Additive factor:", additivie_factors[bin_i-1], flush=True)
+                        print("Additive factor:", additive_factors[bin_i-1], flush=True)
                         print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
                         print("problematic values nans", spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True)
                         raise TypeError
@@ -607,10 +607,19 @@ def _get_likelihood(
                     )
                 if constrained_prior:
                     for bin_i in range(2, bins_tot-1):
-                        data_to_get = 5 * np.log10(
-                            10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
+                        try:
+                            data_to_get = 5 * np.log10(
+                                10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
                                             np.array(bins_likelihood[bin_i-2])]).T
-                        )
+                            )
+                        except IndexError:
+                            print("This is bin_i", bin_i)
+                            print("There was an Index error for some reason:",
+                                  np.array(bins_likelihood[bin_i - 2]))
+                            print("all of them:", additive_factors)
+                            print("additive factor", additive_factors[bin_i-2])
+                            print(spec_tot_cp[ind_data][:, bin_i - 1,
+                                            np.array(bins_likelihood[bin_i-2])])
                         spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
                         len_bin = len(np.array(bins_likelihood[bin_i - 2]))
                         data_to_eval = 5 * np.log10(
