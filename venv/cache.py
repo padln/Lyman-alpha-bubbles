@@ -268,7 +268,7 @@ def _get_likelihood_cache(
                 np.array(spectrum_tot_b))
     ):
         #tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-        fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+        fl_l = np.log10(1e19 * (4e-19 + (np.array(flux_line))))
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
         if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
@@ -307,7 +307,7 @@ def _get_likelihood_cache(
                 #raise ValueError
 
         flux_kde = gaussian_kde(
-            np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+            np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
             bw_method=0.15
         )
 
@@ -339,7 +339,7 @@ def _get_likelihood_cache(
                     )
                 else:
                     data_to_get = 5*np.log10(
-                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
+                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 2:7]).T
                     )
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
@@ -364,8 +364,8 @@ def _get_likelihood_cache(
                     data_to_eval = 5*np.log10(
                         (10**18.7 * (
                                 9e-19 + 2*like_on_flux[ind_data][
-                                        bin_i - 1, 2:6])
-                        ).reshape(4, 1)
+                                        bin_i - 1, 2:7])
+                        ).reshape(5, 1)
                     )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(
                     spec_kde.evaluate(
