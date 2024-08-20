@@ -1574,14 +1574,13 @@ if __name__ == '__main__':
         try:
             additive_factors.append(
                 5 * np.abs(
-                    np.min(flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice])
+                    np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
                 )
             )
         except IndexError:
             additive_factors.append(
                 5 * np.abs(
-                    np.min(flux_noise_mock[i][bin_i_choice - 1][
-                    :bin_i_choice])
+                    np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
                 )
             )
 
