@@ -504,17 +504,33 @@ def _get_likelihood(
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
             if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
                 ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
-                ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
                 print("Oops maybe zeros?")
                 if ind_nan is not None:
                     print(flux_line[ind_nan], flush=True)
-                if ind_inf is not None:
-                    print(flux_line[ind_inf], flush=True)
-                print("This happens for galaxy with index:", ind_data, flush=True)
-                #print("and actual problem:", fl_l[ind_nan], flush=True)
-                flux_line.pop(np.concatenate(ind_nan, ind_inf))
-                spec_line.pop(np.concatenate(ind_nan, ind_inf))
-                #raise ValueError
+
+                print("This happens for galaxy with index:", ind_data,
+                      flush=True)
+                # print("and actual problem:", fl_l[ind_nan], flush=True)
+                try:
+                    ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+                    flux_line_list = flux_line.tolist()
+                    flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                    flux_line = np.array(flux_line_list)
+                    if ind_inf is not None:
+                        print(flux_line[ind_inf], flush=True)
+                    spec_line_list = spec_line.tolist()
+                    spec_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                    spec_line = np.array(spec_line_list)
+
+                except ValueError:
+                    ind_inf = np.array([])
+                    flux_line_list = flux_line.tolist()
+                    flux_line_list.pop(ind_nan)
+                    flux_line = np.array(flux_line_list)
+
+                    spec_line_list = spec_line.tolist()
+                    spec_line_list.pop(ind_nan)
+                    spec_line = np.array(spec_line_list)
 
             flux_kde = gaussian_kde(
                 np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
