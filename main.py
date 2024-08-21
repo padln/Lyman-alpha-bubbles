@@ -479,10 +479,10 @@ def _get_likelihood(
                 zip(flux_tot, taus_tot, spectrum_tot)):
             if np.all(np.array(li) < 10000.0):  # maybe unnecessary
                 if constrained_prior:
-                    taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
-                    flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
-                    spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
-                    print(keep_conp[ind_i_gal])
+                    taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(bool)])
+                    flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(bool)])
+                    spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(bool)])
+                    #print(keep_conp[ind_i_gal])
                 taus_tot_b.append(li)
                 flux_tot_b.append(fi)
                 spectrum_tot_b.append(speci)
@@ -628,19 +628,18 @@ def _get_likelihood(
                                             bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                              ).reshape(len_bin , 1)
                         )
-                        try:
-                            likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
-                                spec_kde.evaluate(
-                                    data_to_eval
-                                )
+                        likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
+                            spec_kde.evaluate(
+                                data_to_eval
                             )
-                        except LinAlgError:
-                            print(len(spec_line), len(spec_tot_cp[ind_data]),
-                                  flush=True)
-                            print("Lengths")
-                            print("Lin Alg Error for bin", bin_i)
-                            print(data_to_get)
-                            raise ValueError
+                        )
+                        # except LinAlgError:
+                        #     print(len(spec_line), len(spec_tot_cp[ind_data]),
+                        #           flush=True)
+                        #     print("Lengths")
+                        #     print("Lin Alg Error for bin", bin_i)
+                        #     print(data_to_get)
+                        #     raise ValueError
             #print("This is flux_int", flux_int)
             if flux_int[ind_data] < flux_limit:
                 #print("This galaxy failed the tau test, it's flux is",
@@ -1584,17 +1583,20 @@ if __name__ == '__main__':
             )[0]#because it's a tuple
         )
         try:
-            additive_factors.append(
-                10 * np.abs(
-                    np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
-                )
-            )
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # )
+            additive_factors.append(9e-19)
         except IndexError:
-            additive_factors.append(
-                10 * np.abs(
-                    np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
-                )
-            ) #5 is probably not enough for the noise since I'm multiplying it by 2.
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
+            additive_factors.append(9e-19)
+
     print("additive factors:", additive_factors)
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
