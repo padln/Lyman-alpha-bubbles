@@ -262,7 +262,8 @@ def _get_likelihood_cache(
             spectrum_tot_b.append(speci)
 
         #print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-
+    if xb==0.0 and yb==0.0 and zb==0.0 and rb==10.0:
+        print(xb,yb,zb,rb, flux_tot_b[0][0],flush=True)
     for ind_data, (flux_line, tau_line, spec_line) in enumerate(
             zip(np.array(flux_tot_b), np.array(taus_tot_b),
                 np.array(spectrum_tot_b))

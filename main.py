@@ -607,8 +607,8 @@ def _get_likelihood(
                 )
             if constrained_prior:
                 for bin_i in range(2, bins_tot):
-                    print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
-                    print("Lengths")
+                    # print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
+                    # print("Lengths")
 
                     if bin_i < 6:
                         data_to_get = np.log10(
