@@ -262,13 +262,14 @@ def _get_likelihood_cache(
             spectrum_tot_b.append(speci)
 
         #print("Inside likelihoods", np.shape(taus_tot_b), np.shape(tau_data), flush=True)
-
+    if xb==0.0 and yb==0.0 and zb==0.0 and rb==10.0:
+        print(xb,yb,zb,rb, flux_tot_b[0][0],flush=True)
     for ind_data, (flux_line, tau_line, spec_line) in enumerate(
             zip(np.array(flux_tot_b), np.array(taus_tot_b),
                 np.array(spectrum_tot_b))
     ):
         #tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-        fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+        fl_l = np.log10(1e19 * (4e-19 + (np.array(flux_line))))
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
         if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
@@ -278,6 +279,11 @@ def _get_likelihood_cache(
             # ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
 
             ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+
+            print("and actual problem spec:", spec_line[ind_nan])
+            print("Tau: ", tau_line[ind_nan])
+            print("and actual problem:", np.array(flux_line)[ind_nan], flush=True)
+
             try:
                 ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
                 flux_line_list = flux_line.tolist()
@@ -297,15 +303,12 @@ def _get_likelihood_cache(
                 spec_line_list = spec_line.tolist()
                 spec_line_list.pop(ind_nan)
                 spec_line = np.array(spec_line_list)
-            print("and actual problem spec:", spec_line[ind_nan])
-            print("Tau: ", tau_line[ind_nan])
-            print("and actual problem:", fl_l[ind_nan], flush=True)
 
             # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
         flux_kde = gaussian_kde(
-            np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+            np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
             bw_method=0.15
         )
 
@@ -331,28 +334,38 @@ def _get_likelihood_cache(
         #print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
-                if bin_i < 6:
-                    data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:bin_i]).T
+                if bin_i < 7:
+                    data_to_get = 5*np.log10(
+                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
                     )
                 else:
-                    data_to_get = np.log10(
-                        1e18 * (5e-19 + spec_line[:, bin_i - 1, 1:6]).T
+                    data_to_get = 5*np.log10(
+                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 2:7]).T
                     )
-
-                spec_kde = gaussian_kde(data_to_get, bw_method='scott')
-                if bin_i < 6:
-                    data_to_eval = np.log10(
-                            (1e18 * (
-                                5e-19 + like_on_flux[ind_data][
+                if np.any(np.isnan(data_to_get.flatten())):
+                    print(np.shape(data_to_get), flush=True)
+                    print(np.shape(np.isnan(data_to_get)), flush=True)
+                    print(np.shape(spec_line[:, bin_i - 1, 1:6].T), flush=True)
+                    try:
+                        print("For this galaxy a nan:",spec_line[:, bin_i - 1, 1:bin_i].T[:,np.isnan(data_to_get).flatten()], flush=True )
+                        print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
+                    except TypeError:
+                        raise TypeError
+                if np.any(np.isinf(data_to_get.flatten())):
+                    print("There was infinity:", data_to_get[np.isinf(data_to_get)])
+                spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
+                if bin_i < 7:
+                    data_to_eval = 5*np.log10(
+                            (10**18.7 * (
+                                9e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
                             ).reshape(bin_i -1, 1)
                         )
                 else:
-                    data_to_eval = np.log10(
-                        (1e18 * (
-                                5e-19 + like_on_flux[ind_data][
-                                        bin_i - 1, 1:6])
+                    data_to_eval = 5*np.log10(
+                        (10**18.7 * (
+                                9e-19 + 2*like_on_flux[ind_data][
+                                        bin_i - 1, 2:7])
                         ).reshape(5, 1)
                     )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(

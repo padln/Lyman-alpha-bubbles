@@ -304,7 +304,7 @@ def _get_likelihood(
             )
             #print(area_factor)
             try:
-                ind_0 = np.where(area_factor < 1e-10)
+                ind_0 = np.where(area_factor < 1e-20)
                 area_factor[ind_0] = 1e-5 #doesn't matter, it's going to be multiplied by zero
             except ValueError:
                 pass
@@ -467,172 +467,176 @@ def _get_likelihood(
     # assert False
     # print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
 
-    try:
-        taus_tot_b = []
-        flux_tot_b = []
-        spectrum_tot_b = []
-        if constrained_prior:
-            taus_tot_cp = []
-            flux_tot_cp = []
-            spec_tot_cp = []
-        for ind_i_gal, (fi, li, speci) in enumerate(
-                zip(flux_tot, taus_tot, spectrum_tot)):
-            if np.all(np.array(li) < 10000.0):  # maybe unnecessary
-                if constrained_prior:
-                    taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(bool)])
-                    flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(bool)])
-                    spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(bool)])
-                    #print(keep_conp[ind_i_gal])
-                taus_tot_b.append(li)
-                flux_tot_b.append(fi)
-                spectrum_tot_b.append(speci)
+    # try:
+    taus_tot_b = []
+    flux_tot_b = []
+    spectrum_tot_b = []
+    if constrained_prior:
+        taus_tot_cp = []
+        flux_tot_cp = []
+        spec_tot_cp = []
+    for ind_i_gal, (fi, li, speci) in enumerate(
+            zip(flux_tot, taus_tot, spectrum_tot)):
+        if np.all(np.array(li) < 10000.0):  # maybe unnecessary
+            if constrained_prior:
+                taus_tot_cp.append(np.array(li)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                flux_tot_cp.append(np.array(fi)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                spec_tot_cp.append(np.array(speci)[(keep_conp[ind_i_gal]).astype(np.bool)])
+                #print(keep_conp[ind_i_gal])
+            taus_tot_b.append(li)
+            flux_tot_b.append(fi)
+            spectrum_tot_b.append(speci)
+
         #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
         # print(flux_tot_cp, "This is flux_tot_cp", flush=True)
         # print(flux_tot_b, "This is flux_tot_b", flush=True)
-        for ind_data, (flux_line, tau_line, spec_line) in enumerate(
-                zip(np.array(flux_tot_b), np.array(taus_tot_b),
-                    np.array(spectrum_tot_b))
-        ):
-            tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-            fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
-            if constrained_prior:
-                fl_l_cp = np.log10(1e19 * (3e-19 + (np.array(flux_tot_cp[ind_data]))))
-                if len(fl_l_cp) == 0:
-                    print("This is the problem", ind_data, flush=True)
-                    print(la_e_in[ind_data], flux_int[ind_data], reds_of_galaxies_in[ind_data], flush=True)
+    for ind_data, (flux_line, tau_line, spec_line) in enumerate(
+            zip(np.array(flux_tot_b), np.array(taus_tot_b),
+                np.array(spectrum_tot_b))
+    ):
+        tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
+        fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+        if constrained_prior:
+            fl_l_cp = np.log10(1e19 * (3e-19 + (np.array(flux_tot_cp[ind_data]))))
+            if len(fl_l_cp) == 0:
+                print("This is the problem", ind_data, flush=True)
+                print(la_e_in[ind_data], flux_int[ind_data], reds_of_galaxies_in[ind_data], flush=True)
             #if ind_data==0:
                 #print("Just in case, this is fl_l", fl_l, flux_line, "flux_line as well", flush=True)
-            if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
-                ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
-                print("Oops maybe zeros?")
-                if ind_nan is not None:
-                    print(flux_line[ind_nan], flush=True)
+        if np.any(np.isnan(fl_l.flatten())) or np.any(np.isinf(fl_l.flatten())):
+            ind_nan = np.isnan(fl_l.flatten()).tolist().index(1)
+            print("Oops maybe zeros?")
+            if ind_nan is not None:
+                print(flux_line[ind_nan], flush=True)
 
-                print("This happens for galaxy with index:", ind_data,
-                      flush=True)
-                # print("and actual problem:", fl_l[ind_nan], flush=True)
-                try:
-                    ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
-                    flux_line_list = flux_line.tolist()
-                    flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
-                    flux_line = np.array(flux_line_list)
-                    if ind_inf is not None:
-                        print(flux_line[ind_inf], flush=True)
-                    spec_line_list = spec_line.tolist()
-                    spec_line_list.pop(np.concatenate(ind_nan, ind_inf))
-                    spec_line = np.array(spec_line_list)
+            print("This happens for galaxy with index:", ind_data, flush=True)
+                #print("and actual problem:", fl_l[ind_nan], flush=True)
+            try:
+                ind_inf = np.isinf(fl_l.flatten()).tolist().index(1)
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                flux_line = np.array(flux_line_list)
+                if ind_inf is not None:
+                    print(flux_line[ind_inf], flush=True)
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(np.concatenate(ind_nan, ind_inf))
+                spec_line = np.array(spec_line_list)
 
-                except ValueError:
-                    ind_inf = np.array([])
-                    flux_line_list = flux_line.tolist()
-                    flux_line_list.pop(ind_nan)
-                    flux_line = np.array(flux_line_list)
+            except ValueError:
+                ind_inf = np.array([])
+                flux_line_list = flux_line.tolist()
+                flux_line_list.pop(ind_nan)
+                flux_line = np.array(flux_line_list)
 
-                    spec_line_list = spec_line.tolist()
-                    spec_line_list.pop(ind_nan)
-                    spec_line = np.array(spec_line_list)
+                spec_line_list = spec_line.tolist()
+                spec_line_list.pop(ind_nan)
+                spec_line = np.array(spec_line_list)
+                #raise ValueError
 
-            flux_kde = gaussian_kde(
-                np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
-                bw_method=0.15
-            )
-            if constrained_prior:
-                try:
-                    flux_kde_cp = gaussian_kde(
-                        fl_l_cp,
-                        bw_method=0.15
-                    )
-                except ValueError:
-                    print("What is the fl_l_cp:", fl_l_cp)
-                    print("This is the length", len(fl_l_cp))
-                    raise ValueError
+        flux_kde = gaussian_kde(
+            np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+            bw_method=0.15
+        )
+
+        if constrained_prior:
+            try:
+                flux_kde_cp = gaussian_kde(
+                    fl_l_cp,
+                    bw_method=0.15
+                )
+            except ValueError:
+                print("What is the fl_l_cp:", fl_l_cp)
+                print("This is the length", len(fl_l_cp))
+                raise ValueError
             # print(len(spec_kde), flush=True)
             # print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
             # print(np.shape(like_on_flux), flush=True)
             # print(ind_data, "index_data", flush=True)
-            if like_on_tau_full:
-                if tau_data[ind_data] < 0.01:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.integrate_box(0.0, 0.01)
-                    )
-                else:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.evaluate((tau_data[ind_data]))
-                    )
-
+        if like_on_tau_full:
+            if tau_data[ind_data] < 0.01:
+                likelihood_tau[:ind_data] += np.log(
+                    tau_kde.integrate_box(0.0, 0.01)
+                )
             else:
-                if flux_int[ind_data] < flux_limit:
-                    pass
+                likelihood_tau[:ind_data] += np.log(
+                    tau_kde.evaluate((tau_data[ind_data]))
+                )
+
+        else:
+            if flux_int[ind_data] < flux_limit:
+                pass
                     # likelihood_tau[:ind_data] += np.log(tau_kde.integrate_box(0, 1))
-                else:
-                    likelihood_tau[:ind_data] += np.log(
-                        tau_kde.evaluate((tau_data[ind_data]))
+            else:
+                likelihood_tau[:ind_data] += np.log(
+                    tau_kde.evaluate((tau_data[ind_data]))
+                )
+
+        if like_on_flux is not False:
+            for bin_i in range(2, bins_tot-1):
+                try:
+                    data_to_get = 5 * np.log10(
+                        10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                     )
-            if like_on_flux is not False:
-                for bin_i in range(2, bins_tot-1):
-                    try:
-                        data_to_get = 5 * np.log10(
-                            10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
-                        )
-                    except IndexError:
-                        print("This is bin_i", bin_i)
-                        print("There was an Index error for some reason:",np.array(bins_likelihood[bin_i-2]) )
+                except IndexError:
+                    print("This is bin_i", bin_i)
+                    print("There was an Index error for some reason:",np.array(bins_likelihood[bin_i-2]) )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
+                try:
+                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                except (TypeError, ValueError, LinAlgError):
+                    print(np.array(bins_likelihood[bin_i-2]))
+                    print("this is the type error", data_to_get, flush=True)
+                    print("where=?", np.where(np.isinf(data_to_get)), flush=True)
+                    print("problematic values", spec_line.T[np.where(np.isinf(data_to_get))], flush=True)
+                    print("Additive factor:", additive_factors[bin_i-2], flush=True)
+                    print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
+                    print("problematic values nans", spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True)
+                    raise TypeError
+                len_bin = len(np.array(bins_likelihood[bin_i-2]))
+                data_to_eval = 5 * np.log10(
+                    (10**18.7 * (
+                            additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
+                                    bin_i - 1, np.array(bins_likelihood[bin_i-2])])
+                    ).reshape(len_bin, 1)
+                )
+                likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                    spec_kde.evaluate(
+                        data_to_eval
+                    )
+                )
+
+            if constrained_prior:
+                for bin_i in range(2, bins_tot-1):
                     try:
-                        spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                    except (TypeError, ValueError, LinAlgError):
-                        print(np.array(bins_likelihood[bin_i-2]))
-                        print("this is the type error", data_to_get, flush=True)
-                        print("where=?", np.where(np.isinf(data_to_get)), flush=True)
-                        print("problematic values", spec_line.T[np.where(np.isinf(data_to_get))], flush=True)
-                        print("Additive factor:", additive_factors[bin_i-2], flush=True)
-                        print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
-                        print("problematic values nans", spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True)
-                        raise TypeError
-                    len_bin = len(np.array(bins_likelihood[bin_i-2]))
+                        data_to_get = 5 * np.log10(
+                            10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
+                                        np.array(bins_likelihood[bin_i-2])]).T
+                        )
+                    except IndexError:
+                        print("This is bin_i", bin_i)
+                        print("There was an Index error for some reason:",
+                            np.array(bins_likelihood[bin_i - 2]))
+                        print("all of them:", additive_factors)
+                        print("additive factor", additive_factors[bin_i-2])
+                        print(spec_tot_cp[ind_data][:, bin_i - 1,
+                                        np.array(bins_likelihood[bin_i-2])])
+                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                    len_bin = len(np.array(bins_likelihood[bin_i - 2]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
                                 additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                         bin_i - 1, np.array(bins_likelihood[bin_i-2])])
-                        ).reshape(len_bin, 1)
+                        ).reshape(len_bin , 1)
                     )
-                    likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                    likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
                             data_to_eval
                         )
                     )
-                if constrained_prior:
-                    for bin_i in range(2, bins_tot-1):
-                        try:
-                            data_to_get = 5 * np.log10(
-                                10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
-                                            np.array(bins_likelihood[bin_i-2])]).T
-                            )
-                        except IndexError:
-                            print("This is bin_i", bin_i)
-                            print("There was an Index error for some reason:",
-                                  np.array(bins_likelihood[bin_i - 2]))
-                            print("all of them:", additive_factors)
-                            print("additive factor", additive_factors[bin_i-2])
-                            print(spec_tot_cp[ind_data][:, bin_i - 1,
-                                            np.array(bins_likelihood[bin_i-2])])
-                        spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-                        len_bin = len(np.array(bins_likelihood[bin_i - 2]))
-                        data_to_eval = 5 * np.log10(
-                            (10**18.7 * (
-                                    additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
-                                            bin_i - 1, np.array(bins_likelihood[bin_i-2])])
-                             ).reshape(len_bin , 1)
-                        )
-                        likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
-                            spec_kde.evaluate(
-                                data_to_eval
-                            )
-                        )
                         # except LinAlgError:
                         #     print(len(spec_line), len(spec_tot_cp[ind_data]),
                         #           flush=True)
@@ -641,33 +645,33 @@ def _get_likelihood(
                         #     print(data_to_get)
                         #     raise ValueError
             #print("This is flux_int", flux_int)
-            if flux_int[ind_data] < flux_limit:
+        if flux_int[ind_data] < flux_limit:
                 #print("This galaxy failed the tau test, it's flux is",
                 #      flux_int[ind_data])
 
-                likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
-                                                                           np.log10(
-                                                                               1e19 * (
-                                                                                       3e-19 + flux_limit))))
+            likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
+                                                                       np.log10(
+                                                                            1e19 * (
+                                                                                   3e-19 + flux_limit))))
                 #print("It's integrate likelihood is",
                 #      flux_kde.integrate_box(0, flux_limit))
+        else:
+            #print("all good", flux_int[ind_data])
+            likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+                np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+            )
+        if constrained_prior:
+            if flux_int[ind_data] < flux_limit:
+
+                likelihood_int_cp[:ind_data] += np.log(
+                    flux_kde_cp.integrate_box(0.05,
+                                           np.log10(
+                                               1e19 * (
+                                                       3e-19 + flux_limit))))
             else:
-                #print("all good", flux_int[ind_data])
-                likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+                likelihood_int_cp[:ind_data] += np.log(flux_kde_cp.evaluate(
                     np.log10(1e19 * (3e-19 + flux_int[ind_data])))
                 )
-            if constrained_prior:
-                if flux_int[ind_data] < flux_limit:
-
-                    likelihood_int_cp[:ind_data] += np.log(
-                        flux_kde_cp.integrate_box(0.05,
-                                               np.log10(
-                                                   1e19 * (
-                                                           3e-19 + flux_limit))))
-                else:
-                    likelihood_int_cp[:ind_data] += np.log(flux_kde_cp.evaluate(
-                        np.log10(1e19 * (3e-19 + flux_int[ind_data])))
-                    )
         # print(
         #     np.array(taus_tot),
         #     np.array(tau_data),
@@ -677,16 +681,17 @@ def _get_likelihood(
         #     "This is what evaluate does for this params",
         #     xb, yb, zb, rb  , flush=True
         # )
-    except (LinAlgError, ValueError, TypeError):
-        likelihood_tau[:ind_data] += -np.inf
-        likelihood_spec[:ind_data] += -np.inf
-        likelihood_int[:ind_data] += -np.inf
+    # except (LinAlgError, ValueError, TypeError):
+    #     likelihood_tau[:ind_data] += -np.inf
+    #     likelihood_spec[:ind_data] += -np.inf
+    #     likelihood_int[:ind_data] += -np.inf
+    #
+    #     print("OOps there was value error, let's see why:", flush=True)
+    #     print(spec_tot_cp[ind_data], flush=True)
+    #     print(tau_data, flush=True)
+    #     print(taus_tot_b, flush=True)
+    #     raise TypeError
 
-        #print("OOps there was value error, let's see why:", flush=True)
-        #print(spec_tot_cp[ind_data], flush=True)
-        #print(tau_data, flush=True)
-        #print(taus_tot_b, flush=True)
-        raise TypeError
 
     if not cache:
         names_used_this_iter = None
@@ -1172,6 +1177,8 @@ if __name__ == '__main__':
                     muv_cut=inputs.muv_cut,
                 )
     else:
+        print("Okay, for now it's not acceptable!")
+        raise ValueError
         if inputs.multiple_iter:
             Muv = -22.0 * np.ones((inputs.multiple_iter, n_gal))
         else:
@@ -1601,6 +1608,8 @@ if __name__ == '__main__':
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
     #calculating whatever can be calculated beforehand
+
+
 
     cont_filled = get_content(
         Muv.flatten(),
