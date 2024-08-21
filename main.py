@@ -336,10 +336,10 @@ def _get_likelihood(
                 try:
                     print("indices:", np.where(np.isnan(flux_now)), np.where(np.isinf(flux_now)))
                 except ValueError:
-                    print("indices:", np.where(np.isnan(flux_now)))
+                    print("indices:", np.where(np.isinf(flux_now)))
                 print("end result", flux_now[np.isnan(flux_now)], flush=True)
                 print("end result", flux_now[np.isinf(flux_now)], flush=True)
-
+                print("end result", flux_now, flush=True)
                 raise ValueError
 
             if constrained_prior:
@@ -486,6 +486,7 @@ def _get_likelihood(
             taus_tot_b.append(li)
             flux_tot_b.append(fi)
             spectrum_tot_b.append(speci)
+
         #        print(np.shape(taus_tot_b), np.shape(tau_data), flush=True)
         # print(flux_tot_cp, "This is flux_tot_cp", flush=True)
         # print(flux_tot_b, "This is flux_tot_b", flush=True)
@@ -536,11 +537,17 @@ def _get_likelihood(
             np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
             bw_method=0.15
         )
+
         if constrained_prior:
-            flux_kde_cp = gaussian_kde(
-                fl_l_cp,
-                bw_method=0.15
-            )
+            try:
+                flux_kde_cp = gaussian_kde(
+                    fl_l_cp,
+                    bw_method=0.15
+                )
+            except ValueError:
+                print("What is the fl_l_cp:", fl_l_cp)
+                print("This is the length", len(fl_l_cp))
+                raise ValueError
             # print(len(spec_kde), flush=True)
             # print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
@@ -564,82 +571,79 @@ def _get_likelihood(
                 likelihood_tau[:ind_data] += np.log(
                     tau_kde.evaluate((tau_data[ind_data]))
                 )
+
         if like_on_flux is not False:
-            for bin_i in range(2, bins_tot):
-                if bin_i < 6:
-                    data_to_get = 5*np.log10(
-                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
+            for bin_i in range(2, bins_tot-1):
+                try:
+                    data_to_get = 5 * np.log10(
+                        10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                     )
-                else:
-                    data_to_get = 5*np.log10(
-                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 2:6]).T
-                    )
+                except IndexError:
+                    print("This is bin_i", bin_i)
+                    print("There was an Index error for some reason:",np.array(bins_likelihood[bin_i-2]) )
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                 try:
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.15)
-                except (TypeError, LinAlgError, ValueError):
+                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                except (TypeError, ValueError, LinAlgError):
+                    print(np.array(bins_likelihood[bin_i-2]))
                     print("this is the type error", data_to_get, flush=True)
-                    print("spec_line:", spec_line[:,bin_i-1,1:bin_i],"for bin:", bin_i, flush=True)
-                    print("where=?", np.where(np.isnan(data_to_get)), flush=True)
-                    print("problematic values", spec_line[np.where(np.isnan(data_to_get))], flush=True)
+                    print("where=?", np.where(np.isinf(data_to_get)), flush=True)
+                    print("problematic values", spec_line.T[np.where(np.isinf(data_to_get))], flush=True)
+                    print("Additive factor:", additive_factors[bin_i-2], flush=True)
+                    print("where=nan?", np.where(np.isnan(data_to_get)), flush=True)
+                    print("problematic values nans", spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True)
                     raise TypeError
-                if bin_i < 6:
-                    data_to_eval = 5*np.log10(
-                        (10**18.7 * (
-                                9e-19 + 2*like_on_flux[ind_data][
-                                        bin_i - 1, 1:bin_i])
-                        ).reshape(bin_i-1, 1)
-                    )
-                else:
-                    data_to_eval = 5*np.log10(
-                        (10**18.7 * (
-                                9e-19 + 2*like_on_flux[ind_data][
-                                        bin_i - 1, 2:6])
-                        ).reshape(4, 1)
-                    )
+                len_bin = len(np.array(bins_likelihood[bin_i-2]))
+                data_to_eval = 5 * np.log10(
+                    (10**18.7 * (
+                            additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
+                                    bin_i - 1, np.array(bins_likelihood[bin_i-2])])
+                    ).reshape(len_bin, 1)
+                )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(
                     spec_kde.evaluate(
                         data_to_eval
                     )
                 )
+
             if constrained_prior:
-                for bin_i in range(2, bins_tot):
-                    # print(len(spec_line), len(spec_tot_cp[ind_data]), flush=True)
-                    # print("Lengths")
-
-                    if bin_i < 6:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1,
-                                            1:bin_i]).T
+                for bin_i in range(2, bins_tot-1):
+                    try:
+                        data_to_get = 5 * np.log10(
+                            10**18.7 * (additive_factors[bin_i-2] + 2*spec_tot_cp[ind_data][:, bin_i - 1,
+                                        np.array(bins_likelihood[bin_i-2])]).T
                         )
-                    else:
-                        data_to_get = np.log10(
-                            1e18 * (5e-19 + spec_tot_cp[ind_data][:, bin_i - 1, 2:6]).T
-                        )
+                    except IndexError:
+                        print("This is bin_i", bin_i)
+                        print("There was an Index error for some reason:",
+                            np.array(bins_likelihood[bin_i - 2]))
+                        print("all of them:", additive_factors)
+                        print("additive factor", additive_factors[bin_i-2])
+                        print(spec_tot_cp[ind_data][:, bin_i - 1,
+                                        np.array(bins_likelihood[bin_i-2])])
                     spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
-
-                    if bin_i < 5:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 1:bin_i])
-                             ).reshape(bin_i-1 , 1)
-                        )
-                    else:
-                        data_to_eval = np.log10(
-                            (1e18 * (
-                                    5e-19 + like_on_flux[ind_data][
-                                            bin_i - 1, 2:6])
-                             ).reshape(4, 1)
-                        )
+                    len_bin = len(np.array(bins_likelihood[bin_i - 2]))
+                    data_to_eval = 5 * np.log10(
+                        (10**18.7 * (
+                                additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
+                                        bin_i - 1, np.array(bins_likelihood[bin_i-2])])
+                        ).reshape(len_bin , 1)
+                    )
                     likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
                         spec_kde.evaluate(
                             data_to_eval
                         )
                     )
+                        # except LinAlgError:
+                        #     print(len(spec_line), len(spec_tot_cp[ind_data]),
+                        #           flush=True)
+                        #     print("Lengths")
+                        #     print("Lin Alg Error for bin", bin_i)
+                        #     print(data_to_get)
+                        #     raise ValueError
             #print("This is flux_int", flux_int)
         if flux_int[ind_data] < flux_limit:
                 #print("This galaxy failed the tau test, it's flux is",
@@ -687,6 +691,7 @@ def _get_likelihood(
     #     print(tau_data, flush=True)
     #     print(taus_tot_b, flush=True)
     #     raise TypeError
+
 
     if not cache:
         names_used_this_iter = None
@@ -1538,7 +1543,68 @@ if __name__ == '__main__':
         flux_tau = flux_mock * tau_data_I
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
+    #Next part of the code calculates bins for likelihoods
+    bins_likelihood = []
+    additive_factors = []
+    for bin_i_choice in range(2,inputs.bins_tot-1):
+        try:
+            list_of_indices = [
+                np.where(
+                    flux_noise_mock[0][i][bin_i_choice-1][:bin_i_choice] > 3 * inputs.noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
+        except IndexError:
+            list_of_indices = [
+                np.where(
+                    flux_noise_mock[i][bin_i_choice - 1][
+                    :bin_i_choice] > 3 * inputs.noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
+        if len(np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+            )[0]) == 0:
+            print("For some reason, no bins were selected, check this out:", np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ))
+            print("for bin choice,", bin_i_choice, "and indices", list_of_indices)
+            raise ValueError
+        bins_likelihood.append(
+            np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+            )[0]#because it's a tuple
+        )
+        try:
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # )
+            additive_factors.append(9e-19)
+        except IndexError:
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
+            additive_factors.append(9e-19)
 
+    print("additive factors:", additive_factors)
     #Next part sets up mocks that are going to be necessary for the likelihood
     #calculation. This is the new idea on how to speed up the calculation,
     #calculating whatever can be calculated beforehand
