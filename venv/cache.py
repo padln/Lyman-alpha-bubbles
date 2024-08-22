@@ -14,6 +14,7 @@ from scipy.stats import gaussian_kde
 import itertools
 from scipy.linalg import LinAlgError
 from astropy import constants as const
+from sklearn.neighbors import KernelDensity
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -353,7 +354,13 @@ def _get_likelihood_cache(
                         raise TypeError
                 if np.any(np.isinf(data_to_get.flatten())):
                     print("There was infinity:", data_to_get[np.isinf(data_to_get)])
-                spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
+                #spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
+                spec_kde = KernelDensity(
+                    kernel='exponential',
+                    bandwidth=0.12
+                ).fit(
+                    data_to_get
+                )
                 if bin_i < 7:
                     data_to_eval = 5*np.log10(
                             (10**18.7 * (
@@ -368,8 +375,13 @@ def _get_likelihood_cache(
                                         bin_i - 1, 2:7])
                         ).reshape(5, 1)
                     )
+                # likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                #     spec_kde.evaluate(
+                #         data_to_eval
+                #     )
+                # )
                 likelihood_spec[:ind_data, bin_i - 1] += np.log(
-                    spec_kde.evaluate(
+                    spec_kde.score_samples(
                         data_to_eval
                     )
                 )
