@@ -359,7 +359,7 @@ def _get_likelihood_cache(
                     kernel='exponential',
                     bandwidth=0.12
                 ).fit(
-                    data_to_get
+                    data_to_get.T
                 )
                 if bin_i < 7:
                     data_to_eval = 5*np.log10(
