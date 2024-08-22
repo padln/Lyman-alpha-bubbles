@@ -366,14 +366,14 @@ def _get_likelihood_cache(
                             (10**18.7 * (
                                 9e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 1:bin_i])
-                            )#.reshape(bin_i -1, 1)
+                            ).reshape(1,bin_i -1)
                         )
                 else:
                     data_to_eval = 5*np.log10(
                         (10**18.7 * (
                                 9e-19 + 2*like_on_flux[ind_data][
                                         bin_i - 1, 2:7])
-                        )#.reshape(5, 1)
+                        ).reshape(1,5)
                     )
                 # likelihood_spec[:ind_data, bin_i - 1] += np.log(
                 #     spec_kde.evaluate(
