@@ -495,9 +495,9 @@ def _get_likelihood(
                 np.array(spectrum_tot_b))
     ):
         tau_kde = gaussian_kde((np.array(tau_line)), bw_method=0.15)
-        fl_l = np.log10(1e19 * (3e-19 + (np.array(flux_line))))
+        fl_l = np.log10(1e19 * (4e-19 + (np.array(flux_line))))
         if constrained_prior:
-            fl_l_cp = np.log10(1e19 * (3e-19 + (np.array(flux_tot_cp[ind_data]))))
+            fl_l_cp = np.log10(1e19 * (4e-19 + (np.array(flux_tot_cp[ind_data]))))
             if len(fl_l_cp) == 0:
                 print("This is the problem", ind_data, flush=True)
                 print(la_e_in[ind_data], flux_int[ind_data], reds_of_galaxies_in[ind_data], flush=True)
@@ -534,7 +534,7 @@ def _get_likelihood(
                 #raise ValueError
 
         flux_kde = gaussian_kde(
-            np.log10(1e19 * (3e-19 + (np.array(flux_line)))),
+            np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
             bw_method=0.15
         )
 
@@ -652,13 +652,13 @@ def _get_likelihood(
             likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
                                                                        np.log10(
                                                                             1e19 * (
-                                                                                   3e-19 + flux_limit))))
+                                                                                   4e-19 + flux_limit))))
                 #print("It's integrate likelihood is",
                 #      flux_kde.integrate_box(0, flux_limit))
         else:
             #print("all good", flux_int[ind_data])
             likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
-                np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+                np.log10(1e19 * (4e-19 + flux_int[ind_data])))
             )
         if constrained_prior:
             if flux_int[ind_data] < flux_limit:
@@ -667,10 +667,10 @@ def _get_likelihood(
                     flux_kde_cp.integrate_box(0.05,
                                            np.log10(
                                                1e19 * (
-                                                       3e-19 + flux_limit))))
+                                                       4e-19 + flux_limit))))
             else:
                 likelihood_int_cp[:ind_data] += np.log(flux_kde_cp.evaluate(
-                    np.log10(1e19 * (3e-19 + flux_int[ind_data])))
+                    np.log10(1e19 * (4e-19 + flux_int[ind_data])))
                 )
         # print(
         #     np.array(taus_tot),
@@ -1595,14 +1595,14 @@ if __name__ == '__main__':
             #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
             #     )
             # )
-            additive_factors.append(9e-19)
+            additive_factors.append(1e-18)
         except IndexError:
             # additive_factors.append(
             #     10 * np.abs(
             #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
             #     )
             # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
-            additive_factors.append(9e-19)
+            additive_factors.append(1e-18)
 
     print("additive factors:", additive_factors)
     #Next part sets up mocks that are going to be necessary for the likelihood

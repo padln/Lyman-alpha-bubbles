@@ -48,7 +48,7 @@ class HdF5Saver:
             self.open()
 
     def create_file(self):
-        print(str(self.n_iter_bub))
+        #print(str(self.n_iter_bub))
         if hasattr(self.n_inside_tau, '__len__'):
             nit = self.n_inside_tau[0]
         else:
