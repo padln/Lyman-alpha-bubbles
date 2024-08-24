@@ -1328,6 +1328,8 @@ if __name__ == '__main__':
         la_e = la_e.reshape((np.shape(Muv)))
         la_e_orig = np.copy(la_e)
         la_e /= area_factor #new improvement
+        print(la_e, la_e_orig, flush=True)
+        assert 0==1
         data = np.array(tau_data_I)
         #print(area_factor, "This is area factor of mocks")
 
