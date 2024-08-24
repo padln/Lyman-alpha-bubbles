@@ -344,9 +344,13 @@ def _get_likelihood(
 
             if constrained_prior:
                 if flux_int[index_gal] > 2 * flux_limit:
-                    for index_tau_for, lae_i_for in enumerate(lae_now[
-                        n * n_inside_tau:(n + 1) * n_inside_tau
-                    ]):
+                    for index_tau_for, lae_i_for in enumerate(
+                            cont_filled.la_flux_out_full[
+                                index_gal_eff
+                            ][
+                            n * n_inside_tau:(n + 1) * n_inside_tau
+                            ]
+                    ):
                         if abs((lae_i_for - la_e_orig[index_gal])/la_e_orig[index_gal]) < width_conp:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
@@ -1328,8 +1332,6 @@ if __name__ == '__main__':
         la_e = la_e.reshape((np.shape(Muv)))
         la_e_orig = np.copy(la_e)
         la_e /= area_factor #new improvement
-        print(la_e, la_e_orig, flush=True)
-        assert 0==1
         data = np.array(tau_data_I)
         #print(area_factor, "This is area factor of mocks")
 
