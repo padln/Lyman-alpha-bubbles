@@ -443,14 +443,14 @@ def _get_likelihood(
                     'tau_full': np.array(taus_now),
                     'flux_integ': flux_now,
                     'mock_spectra': flux_to_save,
-                    'la_e_fwmodels': np.array(lae_now),
+                    'la_e_fwmodels': np.array(cont_filled.la_flux_out_full[index_gal_eff]),
                 }
             else:
                 dict_dat_aft = {
                     'tau_full': np.array(taus_now),
                     'flux_integ': flux_now,
                     'mock_spectra': spectrum_now,
-                    'la_e_fwmodels': np.array(lae_now),
+                    'la_e_fwmodels': np.array(cont_filled.la_flux_out_full[index_gal_eff]),
                 }
 
             save_cl.save_data_after(
@@ -1784,6 +1784,8 @@ if __name__ == '__main__':
     # )
     dict_to_save_data['Muvs'] = np.array(Muv)
     dict_to_save_data['Lyman_alpha_lums'] = np.array(la_e)
+    dict_to_save_data['Lyman_alpha_lums_orig'] = np.array(la_e_orig)
+
     dict_to_save_data['full_tau'] = np.array(td)
     dict_to_save_data['flux_no_noise'] = np.array(flux_nonoise_save)
     # flux_to_save = np.zeros(len(Muv.flatten()))
