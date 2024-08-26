@@ -335,14 +335,14 @@ def _get_likelihood_cache(
         #print(spec_line, flush=True)
         if like_on_flux is not False:
             for bin_i in range(2, bins_tot):
-                if bin_i < 7:
-                    data_to_get = 5*np.log10(
-                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
-                    )
-                else:
-                    data_to_get = 5*np.log10(
-                        10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 2:7]).T
-                    )
+                # if bin_i < 7:
+                #     data_to_get = 5*np.log10(
+                #         10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
+                #     )
+                # else:
+                data_to_get = 5*np.log10(
+                    10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
+                )
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
                     print(np.shape(np.isnan(data_to_get)), flush=True)
@@ -361,20 +361,22 @@ def _get_likelihood_cache(
                 ).fit(
                     data_to_get.T
                 )
-                if bin_i < 7:
-                    data_to_eval = 5*np.log10(
-                            (10**18.7 * (
-                                9e-19 + 2*like_on_flux[ind_data][
-                                        bin_i - 1, 1:bin_i])
-                            ).reshape(1,bin_i -1)
-                        )
-                else:
-                    data_to_eval = 5*np.log10(
+                len_bin = len(np.array(bins_likelihood[bin_i-2]))
+
+                # if bin_i < 7:
+                data_to_eval = 5*np.log10(
                         (10**18.7 * (
-                                9e-19 + 2*like_on_flux[ind_data][
-                                        bin_i - 1, 2:7])
-                        ).reshape(1,5)
-                    )
+                            additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
+                                    bin_i - 1, np.array(bins_likelihood[bin_i-2])])
+                        ).reshape(1,len_bin)
+                )
+                # else:
+                #     data_to_eval = 5*np.log10(
+                #         (10**18.7 * (
+                #                 9e-19 + 2*like_on_flux[ind_data][
+                #                         bin_i - 1, 2:7])
+                #         ).reshape(1,5)
+                #     )
                 # likelihood_spec[:ind_data, bin_i - 1] += np.log(
                 #     spec_kde.evaluate(
                 #         data_to_eval
@@ -457,7 +459,68 @@ def cache_main(
         redshifts_of_mocks[i] = red_s
     redshifts_of_mocks.reshape(np.shape(Muv))
     like_on_flux = flux_spectrum_mock
-
+    bins_likelihood = []
+    additive_factors = []
+    for bin_i_choice in range(2, bins_tot - 1):
+        try:
+            list_of_indices = [
+                np.where(
+                    flux_spectrum_mock[0][i][bin_i_choice - 1][
+                    :bin_i_choice] > 3 * noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
+        except IndexError:
+            list_of_indices = [
+                np.where(
+                    flux_spectrum_mock[i][bin_i_choice - 1][
+                    :bin_i_choice] > 3 * noise_on_the_spectrum
+                )[0] for i in range(n_gal)
+            ]
+        if len(np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+        )[0]) == 0:
+            print("For some reason, no bins were selected, check this out:",
+                  np.array(
+                      [
+                          list(
+                              np.concatenate(list_of_indices).ravel()
+                          ).count(i) for i in range(bin_i_choice)
+                      ]
+                  ))
+            print("for bin choice,", bin_i_choice, "and indices",
+                  list_of_indices)
+            raise ValueError
+        bins_likelihood.append(
+            np.where(
+                np.array(
+                    [
+                        list(
+                            np.concatenate(list_of_indices).ravel()
+                        ).count(i) for i in range(bin_i_choice)
+                    ]
+                ) > 7
+            )[0]  # because it's a tuple
+        )
+        try:
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # )
+            additive_factors.append(1e-18)
+        except IndexError:
+            # additive_factors.append(
+            #     10 * np.abs(
+            #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
+            #     )
+            # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
+            additive_factors.append(1e-18)
     z_min = -5.0
     z_max = 5.0
     r_min = 5.0
