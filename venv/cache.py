@@ -188,6 +188,8 @@ def _get_likelihood_cache(
         reds_of_galaxies=None,
         consistent_noise=True,
         noise_on_the_spectrum=2e-20,
+        additive_factors=None,
+        bins_likelihood=None,
 ):
     if constrained_prior:
         width_conp = 0.2
@@ -588,6 +590,8 @@ def cache_main(
                     cache_dir=use_cache,
                     consistent_noise=consistent_noise,
                     noise_on_the_spectrum=noise_on_the_spectrum,
+                    additive_factors=additive_factors,
+                    bins_likelihood=bins_likelihood,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -651,6 +655,8 @@ def cache_main(
                 cache_dir=use_cache,
                 consistent_noise=consistent_noise,
                 noise_on_the_spectrum=noise_on_the_spectrum,
+                additive_factors=additive_factors,
+                bins_likelihood=bins_likelihood,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
