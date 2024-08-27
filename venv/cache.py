@@ -192,7 +192,7 @@ def _get_likelihood_cache(
         bins_likelihood=None,
 ):
     if constrained_prior:
-        width_conp = 0.2
+        width_conp = 0.3
     likelihood_spec = np.zeros((len(xs), bins_tot - 1))
     likelihood_int = np.zeros((len(xs)))
     likelihood_tau = np.zeros((len(xs)))
@@ -523,6 +523,12 @@ def cache_main(
             #     )
             # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
             additive_factors.append(1e-18)
+    print(
+        additiv_factors,
+        bins_likelihood,
+        flush=True
+    )
+
     z_min = -5.0
     z_max = 5.0
     r_min = 5.0
