@@ -524,7 +524,7 @@ def cache_main(
             # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
             additive_factors.append(1e-18)
     print(
-        additiv_factors,
+        additive_factors,
         bins_likelihood,
         flush=True
     )
