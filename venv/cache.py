@@ -336,7 +336,7 @@ def _get_likelihood_cache(
             #         )
         #print(spec_line, flush=True)
         if like_on_flux is not False:
-            for bin_i in range(2, bins_tot):
+            for bin_i in range(2, bins_tot-1):
                 # if bin_i < 7:
                 #     data_to_get = 5*np.log10(
                 #         10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
