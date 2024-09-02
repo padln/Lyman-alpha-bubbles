@@ -166,20 +166,21 @@ def get_content(
             y_out_gal_i.append(y_outs)
             z_out_gal_i.append(z_outs)
             r_out_gal_i.append(r_bubs)
-            if not AH22_model:
-                lae_now_i = np.array(
-                    [p_EW(
-                        muv_i,
-                        beti,
-                        high_prob_emit=high_prob_emit,
-                        EW_fixed=EW_fixed,
-                        gauss_distr=gauss_distr,
-                    )[1] for blah in range(n_inside_tau)]
-                )
-            else:
-                lae_now_i = np.array(
-                    [L_intr_AH22(muv_i) for blah in range(n_inside_tau)]
-                )
+            #if not AH22_model:
+            lae_now_i = np.array(
+                [p_EW(
+                    muv_i,
+                    beti,
+                    high_prob_emit=high_prob_emit,
+                    EW_fixed=EW_fixed,
+                    #gauss_distr=gauss_distr,
+                )[1] for blah in range(n_inside_tau)]
+            ) #this is changed, no more gaussian distribution here so that I
+            # can succesfully perform an out-of-distribution check.
+            #else:
+            #    lae_now_i = np.array(
+            #        [L_intr_AH22(muv_i) for blah in range(n_inside_tau)]
+            #    )
 
             la_flux_gal_i[
             bubble_iter * n_inside_tau: (bubble_iter + 1) * n_inside_tau
