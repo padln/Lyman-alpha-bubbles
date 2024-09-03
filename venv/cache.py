@@ -496,6 +496,7 @@ def cache_main(
         la_e_comp = la_e_orig / area_factor.flatten()
         la_e_comp = la_e_comp.reshape((np.shape(Muv)))
         la_e_orig = la_e_orig.reshape((np.shape(Muv)))
+        la_e = np.copy(la_e_orig)
     redshifts_of_mocks = np.zeros(np.product(np.shape(Muv)))
     for i in range(len(redshifts_of_mocks)):
         red_s = z_at_proper_distance(
