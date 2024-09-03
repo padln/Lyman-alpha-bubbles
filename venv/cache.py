@@ -8,6 +8,7 @@ import numpy as np
 import h5py
 from venv.save import HdF5LoadMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux
+from venv.galaxy_prop import tau_CGM, p_EW
 from astropy import units as u
 from joblib import Parallel, delayed
 from scipy.stats import gaussian_kde
@@ -431,7 +432,8 @@ def cache_main(
     n_grid,
     mult_iter,
     consistent_noise,
-    noise_on_the_spectrum
+    noise_on_the_spectrum,
+    gauss_distr=False,
 ):
     if mock_file is None:
         raise ValueError("You need to specify a mock that created this. For now")
@@ -449,10 +451,50 @@ def cache_main(
         n_gal = np.shape(Muv)[1]
     else:
         n_gal = len(Muv)
-    la_e = np.array(cl_load.f['Lyman_alpha_lums'])
-    flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
-    flux_tau = np.array(cl_load.f['flux_integrated'])
-    cl_load.close_file()
+
+    if not gauss_distr:
+        la_e = np.array(cl_load.f['Lyman_alpha_lums_orig'])
+    else:
+        one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
+        td = np.array(cl_load.f['full_tau'])
+        int_tau = np.array(cl_load.f['integrated_tau'])
+        ew_factor, la_e_orig = p_EW(
+            Muv.flatten(),
+            beta.flatten(),
+            gauss_distr=gauss_distr
+        )
+        if mult_iter:
+            area_factor = np.zeros((mult_iter, n_gal))
+
+            for index_iter in range(mult_iter):
+                tau_cgm_gal = tau_CGM(Muv[index_iter], main_dir=inputs.main_dir)
+                area_factor[index_iter, :] = np.array(
+                    [
+                        np.trapz(
+                            one_J_arr[index_iter][i_gal] * tau_cgm_gal[i_gal],
+                            wave_em.value
+                        ) / np.trapz(
+                            one_J_arr[index_iter][i_gal],
+                            wave_em.value
+                        ) for i_gal in range(n_gal)
+                    ]
+                )
+        else:
+            area_factor = np.array(
+                [
+                    np.trapz(
+                        one_J_arr[0][i_gal] * tau_CGM(Muv[i_gal],
+                                                  main_dir=inputs.main_dir),
+                        wave_em.value
+                    ) / np.trapz(
+                        one_J_arr[0][i_gal],
+                        wave_em.value
+                    ) for i_gal in range(n_gal)
+                ]
+            )
+        la_e_comp = la_e_orig / area_factor.flatten()
+        la_e_comp.reshape((np.shape(Muv)))
+        la_e_orig.reshape((np.shape(Muv)))
     redshifts_of_mocks = np.zeros(np.product(np.shape(Muv)))
     for i in range(len(redshifts_of_mocks)):
         red_s = z_at_proper_distance(
@@ -460,6 +502,92 @@ def cache_main(
         )
         redshifts_of_mocks[i] = red_s
     redshifts_of_mocks.reshape(np.shape(Muv))
+    if not gauss_distr:
+        flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
+        flux_tau = np.array(cl_load.f['flux_integrated'])
+    else:
+        if inputs.multiple_iter:
+            flux_spectrum_mock = np.zeros(
+                (
+                    mult_iter,
+                    n_gal,
+                    bins_tot - 1,
+                    bins_tot - 1)
+            )
+            flux_nonoise_save = []
+            for ind_iter in range(mult_iter):
+                continuum = (
+                        la_e_comp[ind_iter, :, np.newaxis] * one_J_arr[
+                                                        ind_iter, :,
+                                                        :] * np.exp(
+                    -td[ind_iter]) * tau_CGM(
+                    Muv[ind_iter], main_dir=inputs.main_dir) / (
+                                                                       4 * np.pi * Cosmo.luminosity_distance(
+                                                                   redshifts_of_mocks[
+                                                                       ind_iter]
+                                                               ).to(
+                                                                   u.cm).value ** 2)[
+                                                               :,
+                                                               np.newaxis]
+                )
+                full_flux_res = full_res_flux(continuum,
+                                              redshift)
+                flux_nonoise_save.append(np.copy(full_flux_res))
+
+                full_flux_res += np.random.normal(
+                    0,
+                    noise_on_the_spectrum,
+                    np.shape(full_flux_res)
+                )
+                for bin_i, wav_dig_i in zip(
+                        range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                ):
+                    flux_spectrum_mock[ind_iter, :, bin_i - 1,
+                    :bin_i] = perturb_flux(
+                        full_flux_res, bin_i
+                    )
+
+        else:
+            flux_spectrum_mock = np.zeros(
+                (
+                    n_gal,
+                    bins_tot - 1,
+                    bins_tot - 1)
+            )
+            one_J = one_J_arr[0]
+            # print(np.shape(la_e[:, np.newaxis] * one_J[:n_gal,:]), np.shape(td), np.shape(tau_CGM(
+            #     Muv)))
+            continuum = (
+                    la_e_comp[:, np.newaxis] * one_J[:n_gal, :] * np.exp(
+                -td) * tau_CGM(
+                Muv, main_dir=inputs.main_dir) / (
+                            4 * np.pi * Cosmo.luminosity_distance(
+                        7.5
+                    ).to(u.cm).value ** 2)
+            )
+
+            full_flux_res = full_res_flux(continuum, redshift)
+            flux_nonoise_save = np.copy(full_flux_res)
+
+            full_flux_res += np.random.normal(
+                0,
+                inputs.noise_on_the_spectrum,
+                np.shape(full_flux_res)
+            )
+            for bin_i, wav_dig_i in zip(
+                    range(2, bins_tot), wave_em_dig_arr
+            ):
+                flux_spectrum_mock[:, bin_i - 1, :bin_i] = perturb_flux(
+                    full_flux_res, bin_i
+                )
+        flux_mock = la_e_comp / (
+                4 * np.pi * Cosmo.luminosity_distance(
+            redshifts_of_mocks).to(u.cm).value ** 2
+        )
+        flux_tau = flux_mock * int_tau
+        flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
+    cl_load.close_file()
+
     like_on_flux = flux_spectrum_mock
     bins_likelihood = []
     additive_factors = []
@@ -697,6 +825,13 @@ def cache_main(
         dict_to_save_data['likelihoods_tau'] = likelihood_grid_tau
         dict_to_save_data['likelihoods_int'] = likelihood_grid_int
         dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
+
+    if gauss_distr:
+        dict_to_save_data['la_e_comp'] = la_e_comp
+        dict_to_save_data['la_e_orig'] = la_e_orig
+        dict_to_save_data['area_factor'] = area_factor
+        dict_to_save_data['flux_spectrum'] = flux_spectrum_mock
+        dict_to_save_data['flux_integrated'] = flux_tau
     cl_save = HdF5SaveCached(
         n_gal,
         n_iter_bub,
