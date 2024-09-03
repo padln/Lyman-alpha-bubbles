@@ -468,7 +468,7 @@ def cache_main(
             area_factor = np.zeros((mult_iter, n_gal))
 
             for index_iter in range(mult_iter):
-                tau_cgm_gal = tau_CGM(Muv[index_iter], main_dir=inputs.main_dir)
+                tau_cgm_gal = tau_CGM(Muv[index_iter])
                 area_factor[index_iter, :] = np.array(
                     [
                         np.trapz(
@@ -484,8 +484,7 @@ def cache_main(
             area_factor = np.array(
                 [
                     np.trapz(
-                        one_J_arr[0][i_gal] * tau_CGM(Muv[i_gal],
-                                                  main_dir=inputs.main_dir),
+                        one_J_arr[0][i_gal] * tau_CGM(Muv[i_gal]),
                         wave_em.value
                     ) / np.trapz(
                         one_J_arr[0][i_gal],
@@ -507,7 +506,7 @@ def cache_main(
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
     else:
-        if inputs.multiple_iter:
+        if mult_iter:
             flux_spectrum_mock = np.zeros(
                 (
                     mult_iter,
@@ -522,7 +521,7 @@ def cache_main(
                                                         ind_iter, :,
                                                         :] * np.exp(
                     -td[ind_iter]) * tau_CGM(
-                    Muv[ind_iter], main_dir=inputs.main_dir) / (
+                    Muv[ind_iter]) / (
                                                                        4 * np.pi * Cosmo.luminosity_distance(
                                                                    redshifts_of_mocks[
                                                                        ind_iter]
@@ -541,7 +540,7 @@ def cache_main(
                     np.shape(full_flux_res)
                 )
                 for bin_i, wav_dig_i in zip(
-                        range(2, inputs.bins_tot - 1), wave_em_dig_arr
+                        range(2, bins_tot - 1), wave_em_dig_arr
                 ):
                     flux_spectrum_mock[ind_iter, :, bin_i - 1,
                     :bin_i] = perturb_flux(
@@ -561,7 +560,7 @@ def cache_main(
             continuum = (
                     la_e_comp[:, np.newaxis] * one_J[:n_gal, :] * np.exp(
                 -td) * tau_CGM(
-                Muv, main_dir=inputs.main_dir) / (
+                Muv) / (
                             4 * np.pi * Cosmo.luminosity_distance(
                         7.5
                     ).to(u.cm).value ** 2)
@@ -572,7 +571,7 @@ def cache_main(
 
             full_flux_res += np.random.normal(
                 0,
-                inputs.noise_on_the_spectrum,
+                noise_on_the_spectrum,
                 np.shape(full_flux_res)
             )
             for bin_i, wav_dig_i in zip(
