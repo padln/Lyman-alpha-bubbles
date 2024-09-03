@@ -16,6 +16,7 @@ import itertools
 from scipy.linalg import LinAlgError
 from astropy import constants as const
 from sklearn.neighbors import KernelDensity
+from astropy.cosmology import Planck18 as Cosmo
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
