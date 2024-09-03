@@ -501,7 +501,7 @@ def cache_main(
             - zd.flatten()[i] / (1 + redshift) * u.Mpc, redshift
         )
         redshifts_of_mocks[i] = red_s
-    redshifts_of_mocks.reshape(np.shape(Muv))
+    redshifts_of_mocks = redshifts_of_mocks.reshape(np.shape(Muv))
     if not gauss_distr:
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
