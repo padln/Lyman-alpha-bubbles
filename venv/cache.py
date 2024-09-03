@@ -507,6 +507,19 @@ def cache_main(
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
     else:
+        bins_arr = [
+            np.linspace(
+                wave_em.value[0] * (1 + redshift),
+                wave_em.value[-1] * (1 + redshift),
+                bin_i + 1
+            ) for bin_i in range(2, bins_tot)
+        ]
+        wave_em_dig_arr = [
+            np.digitize(
+                wave_em.value * (1 + redshift),
+                bin_i
+            ) for bin_i in bins_arr
+        ]
         if mult_iter:
             flux_spectrum_mock = np.zeros(
                 (
