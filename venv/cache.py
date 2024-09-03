@@ -458,6 +458,7 @@ def cache_main(
         one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
         td = np.array(cl_load.f['full_tau'])
         int_tau = np.array(cl_load.f['integrated_tau'])
+        beta = -2.0 * np.ones(np.shape(Muv))
         ew_factor, la_e_orig = p_EW(
             Muv.flatten(),
             beta.flatten(),
