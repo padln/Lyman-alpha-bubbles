@@ -352,7 +352,7 @@ def _get_likelihood_cache(
                     print(np.shape(np.isnan(data_to_get)), flush=True)
                     print(np.shape(spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T), flush=True)
                     try:
-                        print("For this galaxy a nan:",spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T].T[:,np.isnan(data_to_get).flatten()], flush=True )
+                        print("For this galaxy a nan:",spec_line[:, bin_i - 1,np.array(bins_likelihood[bin_i-2])].T[:,np.isnan(data_to_get).flatten()], flush=True )
                         print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
                     except TypeError:
                         raise TypeError
