@@ -1145,6 +1145,8 @@ if __name__ == '__main__':
             inputs.consistent_noise,
             inputs.noise_on_the_spectrum,
             inputs.gauss_distr,
+            r_min = inputs.r_min,
+            r_max = inputs.r_max
         )
         sys.exit(0)
 

@@ -435,6 +435,8 @@ def cache_main(
     consistent_noise,
     noise_on_the_spectrum,
     gauss_distr=False,
+    r_min=5.0,
+    r_max=15.0,
 ):
     if mock_file is None:
         raise ValueError("You need to specify a mock that created this. For now")
@@ -674,8 +676,6 @@ def cache_main(
 
     z_min = -5.0
     z_max = 5.0
-    r_min = 5.0
-    r_max = 15.0
     z_grid = np.linspace(z_min, z_max, n_grid)
 
     x_grid = np.linspace(-5.0, 5.0, 5)
