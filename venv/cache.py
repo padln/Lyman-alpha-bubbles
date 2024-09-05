@@ -756,14 +756,14 @@ def cache_main(
             #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
             #     )
             # )
-            additive_factors.append(1e-18)
+            additive_factors.append(1e-18 * (noise_on_the_spectrum/2e-20))
         except IndexError:
             # additive_factors.append(
             #     10 * np.abs(
             #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
             #     )
             # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
-            additive_factors.append(1e-18)
+            additive_factors.append(1e-18 * (noise_on_the_spectrum/2e-20))
     print(
         additive_factors,
         bins_likelihood,
