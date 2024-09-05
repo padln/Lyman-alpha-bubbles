@@ -350,7 +350,7 @@ def _get_likelihood_cache(
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
                     print(np.shape(np.isnan(data_to_get)), flush=True)
-                    print(np.shape(spec_line[:, bin_i - 1, 1:6].T), flush=True)
+                    print(np.shape(spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T), flush=True)
                     try:
                         print("For this galaxy a nan:",spec_line[:, bin_i - 1, 1:bin_i].T[:,np.isnan(data_to_get).flatten()], flush=True )
                         print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
@@ -695,6 +695,7 @@ def cache_main(
                 flux_spectrum_mock[:, bin_i - 1, :bin_i] = perturb_flux(
                     full_flux_res, bin_i
                 )
+            print(flux_spectrum_mock)
 
     cl_load.close_file()
 
