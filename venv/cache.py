@@ -352,7 +352,7 @@ def _get_likelihood_cache(
                     print(np.shape(np.isnan(data_to_get)), flush=True)
                     print(np.shape(spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T), flush=True)
                     try:
-                        print("For this galaxy a nan:",spec_line[:, bin_i - 1, 1:bin_i].T[:,np.isnan(data_to_get).flatten()], flush=True )
+                        print("For this galaxy a nan:",spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T].T[:,np.isnan(data_to_get).flatten()], flush=True )
                         print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
                     except TypeError:
                         raise TypeError
@@ -661,6 +661,8 @@ def cache_main(
                     :bin_i] = perturb_flux(
                         full_flux_res, bin_i
                     )
+                print(flux_spectrum_mock)
+
 
         else:
             flux_spectrum_mock = np.zeros(
