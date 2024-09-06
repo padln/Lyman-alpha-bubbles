@@ -350,9 +350,9 @@ def _get_likelihood_cache(
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
                     print(np.shape(np.isnan(data_to_get)), flush=True)
-                    print(np.shape(spec_line[:, bin_i - 1, 1:6].T), flush=True)
+                    print(np.shape(spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T), flush=True)
                     try:
-                        print("For this galaxy a nan:",spec_line[:, bin_i - 1, 1:bin_i].T[:,np.isnan(data_to_get).flatten()], flush=True )
+                        print("For this galaxy a nan:",spec_line[:, bin_i - 1,np.array(bins_likelihood[bin_i-2])].T[:,np.isnan(data_to_get).flatten()], flush=True )
                         print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
                     except TypeError:
                         raise TypeError
@@ -603,6 +603,104 @@ def cache_main(
         )
         flux_tau = flux_mock * int_tau
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
+
+    #this part of code calculates flux if noise is different
+    if not gauss_distr and noise_on_the_spectrum is not 2e-20:
+        la_e_comp = np.array(cl_load.f['Lyman_alpha_lums'])
+        one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
+        td = np.array(cl_load.f['full_tau'])
+        int_tau = np.array(cl_load.f['integrated_tau'])
+        bins_arr = [
+            np.linspace(
+                wave_em.value[0] * (1 + redshift),
+                wave_em.value[-1] * (1 + redshift),
+                bin_i + 1
+            ) for bin_i in range(2, bins_tot)
+        ]
+        wave_em_dig_arr = [
+            np.digitize(
+                wave_em.value * (1 + redshift),
+                bin_i
+            ) for bin_i in bins_arr
+        ]
+        if mult_iter:
+            flux_spectrum_mock = np.zeros(
+                (
+                    mult_iter,
+                    n_gal,
+                    bins_tot - 1,
+                    bins_tot - 1)
+            )
+            flux_nonoise_save = []
+            for ind_iter in range(mult_iter):
+                continuum = (
+                        la_e_comp[ind_iter, :, np.newaxis] * one_J_arr[
+                                                        ind_iter, :,
+                                                        :] * np.exp(
+                    -td[ind_iter]) * tau_CGM(
+                    Muv[ind_iter]) / (
+                                                                       4 * np.pi * Cosmo.luminosity_distance(
+                                                                   redshifts_of_mocks[
+                                                                       ind_iter]
+                                                               ).to(
+                                                                   u.cm).value ** 2)[
+                                                               :,
+                                                               np.newaxis]
+                )
+                full_flux_res = full_res_flux(continuum,
+                                              redshift)
+                flux_nonoise_save.append(np.copy(full_flux_res))
+
+                full_flux_res += np.random.normal(
+                    0,
+                    noise_on_the_spectrum,
+                    np.shape(full_flux_res)
+                )
+                for bin_i, wav_dig_i in zip(
+                        range(2, bins_tot - 1), wave_em_dig_arr
+                ):
+                    flux_spectrum_mock[ind_iter, :, bin_i - 1,
+                    :bin_i] = perturb_flux(
+                        full_flux_res, bin_i
+                    )
+                print(flux_spectrum_mock)
+
+
+        else:
+            flux_spectrum_mock = np.zeros(
+                (
+                    n_gal,
+                    bins_tot - 1,
+                    bins_tot - 1)
+            )
+            one_J = one_J_arr[0]
+            # print(np.shape(la_e[:, np.newaxis] * one_J[:n_gal,:]), np.shape(td), np.shape(tau_CGM(
+            #     Muv)))
+            continuum = (
+                    la_e_comp[:, np.newaxis] * one_J[:n_gal, :] * np.exp(
+                -td) * tau_CGM(
+                Muv) / (
+                            4 * np.pi * Cosmo.luminosity_distance(
+                        7.5
+                    ).to(u.cm).value ** 2)
+            )
+
+            full_flux_res = full_res_flux(continuum, redshift)
+            flux_nonoise_save = np.copy(full_flux_res)
+
+            full_flux_res += np.random.normal(
+                0,
+                noise_on_the_spectrum,
+                np.shape(full_flux_res)
+            )
+            for bin_i, wav_dig_i in zip(
+                    range(2, bins_tot), wave_em_dig_arr
+            ):
+                flux_spectrum_mock[:, bin_i - 1, :bin_i] = perturb_flux(
+                    full_flux_res, bin_i
+                )
+            print(flux_spectrum_mock)
+
     cl_load.close_file()
 
     like_on_flux = flux_spectrum_mock
@@ -660,14 +758,14 @@ def cache_main(
             #         np.min(flux_noise_mock[0,:,bin_i_choice-1,:bin_i_choice])
             #     )
             # )
-            additive_factors.append(1e-18)
+            additive_factors.append(1e-18 * (noise_on_the_spectrum/2e-20))
         except IndexError:
             # additive_factors.append(
             #     10 * np.abs(
             #         np.min(flux_noise_mock[:,bin_i_choice-1,:bin_i_choice])
             #     )
             # ) #5 is probably not enough for the noise since I'm multiplying it by 2.
-            additive_factors.append(1e-18)
+            additive_factors.append(1e-18 * (noise_on_the_spectrum/2e-20))
     print(
         additive_factors,
         bins_likelihood,
