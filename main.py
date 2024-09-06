@@ -13,6 +13,7 @@ from astropy.cosmology import Planck18 as Cosmo
 import datetime
 import itertools
 from joblib import Parallel, delayed
+from sklearn.neighbors import KernelDensity
 
 from venv.galaxy_prop import get_js, get_mock_data, p_EW, L_intr_AH22
 from venv.galaxy_prop import get_muv, tau_CGM, calculate_number
@@ -628,7 +629,15 @@ def _get_likelihood(
                         print("additive factor", additive_factors[bin_i-2])
                         print(spec_tot_cp[ind_data][:, bin_i - 1,
                                         np.array(bins_likelihood[bin_i-2])])
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                    #spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+
+                    spec_kde = KernelDensity(
+                        kernel='exponential',
+                        bandwidth=0.10
+                    ).fit(
+                        data_to_get.T
+                    )
+
                     len_bin = len(np.array(bins_likelihood[bin_i - 2]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
@@ -636,10 +645,13 @@ def _get_likelihood(
                                         bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(len_bin , 1)
                     )
-                    likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
-                        spec_kde.evaluate(
-                            data_to_eval
-                        )
+                    # likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
+                    #     spec_kde.evaluate(
+                    #         data_to_eval
+                    #     )
+                    # )
+                    likelihood_spec_cp[:ind_data, bin_i - 1] += spec_kde.score_samples(
+                        data_to_eval
                     )
                         # except LinAlgError:
                         #     print(len(spec_line), len(spec_tot_cp[ind_data]),
