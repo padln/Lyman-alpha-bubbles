@@ -249,6 +249,10 @@ def _get_likelihood_cache(
                             index_gal, index_tau_for] = 0
                 if np.all(keep_conp[index_gal] == 0):
                     print("This is the case", lae_now, li, flush=True)
+                    print(
+                        "mean, min, and max",
+                        np.min(lae_now[lae_now > 0]),
+                        np.max(lae_now), np.mean(lae_now), flush=True)
                     raise ValueError
             #TBC when new updates with constrained prior will be made.
         else:
