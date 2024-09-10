@@ -315,10 +315,20 @@ def _get_likelihood_cache(
             # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
-        flux_kde = gaussian_kde(
-            np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
-            bw_method=0.15
-        )
+        try:
+            flux_kde = gaussian_kde(
+                np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
+                bw_method=0.15
+            )
+        except ValueError:
+            if constrained_prior:
+                print("What is the fl_l_cp:", flux_line, flush=True)
+                print("This is the length", len(flux_line), flush=True)
+                print("This is the luminosity", la_e_in[ind_data], flush=True)
+                raise ValueError
+            else:
+                print("Don't know why")
+                raise ValueError
 
 
             # if like_on_tau_full:
