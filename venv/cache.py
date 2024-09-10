@@ -241,7 +241,7 @@ def _get_likelihood_cache(
                     li_pert = li
                     #print(li, li_pert)
 
-                    if abs(np.log10((lae_i_for - li_pert) / li_pert)) < width_conp:
+                    if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
                         keep_conp[
                             index_gal, index_tau_for] = 1
                     else:
