@@ -614,7 +614,7 @@ def _get_likelihood(
                     (10**18.7 * (
                             additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                     bin_i - 1, np.array(bins_likelihood[bin_i-2])])
-                    ).reshape(len_bin, 1)
+                    ).reshape(1,len_bin)
                 )
                 # likelihood_spec[:ind_data, bin_i - 1] += np.log(
                 #     spec_kde.evaluate(
@@ -654,7 +654,7 @@ def _get_likelihood(
                         (10**18.7 * (
                                 additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
                                         bin_i - 1, np.array(bins_likelihood[bin_i-2])])
-                        ).reshape(len_bin , 1)
+                        ).reshape(1,len_bin)
                     )
                     # likelihood_spec_cp[:ind_data, bin_i - 1] += np.log(
                     #     spec_kde.evaluate(
