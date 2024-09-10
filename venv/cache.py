@@ -240,12 +240,16 @@ def _get_likelihood_cache(
                     #li_pert = 10**(np.log10(li) + np.random.normal(0.0, 0.2))
                     li_pert = li
                     #print(li, li_pert)
+
                     if abs(np.log10((lae_i_for - li_pert) / li_pert)) < width_conp:
                         keep_conp[
                             index_gal, index_tau_for] = 1
                     else:
                         keep_conp[
                             index_gal, index_tau_for] = 0
+                if np.all(keep_conp[index_gal] == 0):
+                    print("This is the case", lae_now, li, flush=True)
+                    raise ValueError
             #TBC when new updates with constrained prior will be made.
         else:
             flux_now, spectrum_now, tau_now_full = full_pack
