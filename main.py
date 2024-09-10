@@ -586,12 +586,20 @@ def _get_likelihood(
                 except IndexError:
                     print("This is bin_i", bin_i)
                     print("There was an Index error for some reason:",np.array(bins_likelihood[bin_i-2]) )
+                    raise IndexError
                     #print(data_to_get, flush=True)
                     #print("just in case, print", data_to_get[0], flush=True)
                     #print("also", data_to_get[-1], flush=True)
                     # print(spec_line[:,bin_i-1, 1:bin_i], np.shape(spec_line[:,bin_i-1, 1:bin_i]))
                 try:
-                    spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                    #spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
+                    spec_kde = KernelDensity(
+                        kernel='exponential',
+                        bandwidth=0.10
+                    ).fit(
+                        data_to_get.T
+                    )
+
                 except (TypeError, ValueError, LinAlgError):
                     print(np.array(bins_likelihood[bin_i-2]))
                     print("this is the type error", data_to_get, flush=True)
@@ -608,10 +616,13 @@ def _get_likelihood(
                                     bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                     ).reshape(len_bin, 1)
                 )
-                likelihood_spec[:ind_data, bin_i - 1] += np.log(
-                    spec_kde.evaluate(
-                        data_to_eval
-                    )
+                # likelihood_spec[:ind_data, bin_i - 1] += np.log(
+                #     spec_kde.evaluate(
+                #         data_to_eval
+                #     )
+                # )
+                likelihood_spec[:ind_data, bin_i - 1] += spec_kde.score_samples(
+                    data_to_eval
                 )
 
             if constrained_prior:
