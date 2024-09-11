@@ -382,7 +382,7 @@ def _get_likelihood_cache(
                 #spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
                 spec_kde = KernelDensity(
                     kernel='exponential',
-                    bandwidth=0.10
+                    bandwidth=0.15
                 ).fit(
                     data_to_get.T
                 )
@@ -410,6 +410,11 @@ def _get_likelihood_cache(
                 likelihood_spec[:ind_data, bin_i - 1] += spec_kde.score_samples(
                     data_to_eval
                 )
+                if spec_kde.score_samples(
+                    data_to_eval
+                ) == -np.inf:
+                    print("There was an inf", data_to_eval, flush=True)
+                    print("This is the data to get", data_to_get, flush=True)
 
         if flux_int[ind_data] < flux_limit:
             likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
