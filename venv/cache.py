@@ -237,8 +237,8 @@ def _get_likelihood_cache(
 
             if flux_int[index_gal] > 2 * flux_limit:
                 for index_tau_for, lae_i_for in enumerate(lae_now):
-                    #li_pert = 10**(np.log10(li) + np.random.normal(0.0, 0.2))
-                    li_pert = li
+                    li_pert = 10**(np.log10(li) + np.random.normal(0.0, 0.2))
+                    #li_pert = li
                     #print(li, li_pert)
 
                     if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
