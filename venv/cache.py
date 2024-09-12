@@ -381,8 +381,8 @@ def _get_likelihood_cache(
                     print("There was infinity:", data_to_get[np.isinf(data_to_get)])
                 #spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
                 spec_kde = KernelDensity(
-                    kernel='exponential',
-                    bandwidth=0.15
+                    kernel='epanechnikov',
+                    bandwidth=0.20
                 ).fit(
                     data_to_get.T
                 )
