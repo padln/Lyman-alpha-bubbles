@@ -237,12 +237,23 @@ def _get_likelihood_cache(
 
             if flux_int[index_gal] > 2 * flux_limit:
                 for index_tau_for, lae_i_for in enumerate(lae_now):
-                    if abs((lae_i_for - li) / li) < width_conp:
+                    li_pert = 10**(np.log10(li) + np.random.normal(0.0, 0.2))
+                    #li_pert = li
+                    #print(li, li_pert)
+
+                    if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
                         keep_conp[
                             index_gal, index_tau_for] = 1
                     else:
                         keep_conp[
                             index_gal, index_tau_for] = 0
+                if np.all(keep_conp[index_gal] == 0):
+                    print("This is the case", lae_now, li, flush=True)
+                    print(
+                        "mean, min, and max",
+                        np.min(lae_now[lae_now > 0]),
+                        np.max(lae_now), np.mean(lae_now), flush=True)
+                    raise ValueError
             #TBC when new updates with constrained prior will be made.
         else:
             flux_now, spectrum_now, tau_now_full = full_pack
@@ -312,10 +323,20 @@ def _get_likelihood_cache(
             # spec_line.pop(np.concatenate(ind_nan, ind_inf))
                 #raise ValueError
 
-        flux_kde = gaussian_kde(
-            np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
-            bw_method=0.15
-        )
+        try:
+            flux_kde = gaussian_kde(
+                np.log10(1e19 * (4e-19 + (np.array(flux_line)))),
+                bw_method=0.15
+            )
+        except ValueError:
+            if constrained_prior:
+                print("What is the fl_l_cp:", flux_line, flush=True)
+                print("This is the length", len(flux_line), flush=True)
+                print("This is the luminosity", la_e_in[ind_data], flush=True)
+                raise ValueError
+            else:
+                print("Don't know why")
+                raise ValueError
 
 
             # if like_on_tau_full:
@@ -389,6 +410,11 @@ def _get_likelihood_cache(
                 likelihood_spec[:ind_data, bin_i - 1] += spec_kde.score_samples(
                     data_to_eval
                 )
+                if spec_kde.score_samples(
+                    data_to_eval
+                ) == -np.inf:
+                    print("There was an inf", data_to_eval, flush=True)
+                    print("This is the data to get", data_to_get, flush=True)
 
         if flux_int[ind_data] < flux_limit:
             likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
