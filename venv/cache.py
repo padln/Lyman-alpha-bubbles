@@ -382,8 +382,8 @@ def _get_likelihood_cache(
                 #spec_kde = gaussian_kde(data_to_get, bw_method=0.13)
                 spec_kde = KernelDensity(
                     #kernel='epanechnikov',
-                    kernel='exponential',
-                    bandwidth=0.12
+                    kernel='cosine',
+                    bandwidth=0.15
                 ).fit(
                     data_to_get.T
                 )
