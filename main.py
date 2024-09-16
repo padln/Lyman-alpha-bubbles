@@ -275,7 +275,7 @@ def _get_likelihood(
                     dist=np.abs(dist),
                     zs=red_s,
                     z_end=5.3,
-                    nf=0.8
+                    nf=0.65
                 )
             tau_now_full[n * n_inside_tau:(n + 1) * n_inside_tau, :] = tau_now_i
             eit_l = np.exp(-np.array(tau_now_i))
@@ -601,7 +601,7 @@ def _get_likelihood(
                     #spec_kde = gaussian_kde(data_to_get, bw_method=0.25)
                     spec_kde = KernelDensity(
                         kernel='exponential',
-                        bandwidth=0.10
+                        bandwidth=0.12
                     ).fit(
                         data_to_get.T
                     )

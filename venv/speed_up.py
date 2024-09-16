@@ -526,7 +526,7 @@ def calculate_taus_post(
                 dist=np.abs(dist),
                 zs=z_source,
                 z_end=5.3,
-                nf=0.8
+                nf=0.65
             )
             # no intersections for this iter, already calculated
 
