@@ -755,7 +755,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 8
+                ) > 6
         )[0]) == 0:
             print("For some reason, no bins were selected, check this out:",
                   np.array(
@@ -776,7 +776,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 8
+                ) > 6
             )[0]  # because it's a tuple
         )
         try:
