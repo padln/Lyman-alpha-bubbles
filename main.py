@@ -352,7 +352,13 @@ def _get_likelihood(
                             n * n_inside_tau:(n + 1) * n_inside_tau
                             ]
                     ):
-                        if abs((lae_i_for - la_e_orig[index_gal])/la_e_orig[index_gal]) < width_conp:
+                        li_pert = 10 ** (
+                            np.log10(
+                                la_e_orig[index_gal]
+                            ) + np.random.normal(0.0, 0.2)
+                        )
+
+                        if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
