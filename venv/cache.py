@@ -373,7 +373,7 @@ def _get_likelihood_cache(
                     print(np.shape(np.isnan(data_to_get)), flush=True)
                     print(np.shape(spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])].T), flush=True)
                     try:
-                        print("For this galaxy a nan:",spec_line[:, bin_i - 1,np.array(bins_likelihood[bin_i-2])].T[:,np.isnan(data_to_get).flatten()], flush=True )
+                        print("For this galaxy a nan:",spec_line[:, bin_i - 1,np.array(bins_likelihood[bin_i-2])].T[np.isnan(data_to_get)], flush=True )
                         print("There was a nan:", data_to_get[np.isnan(data_to_get)], flush=True)
                     except TypeError:
                         raise TypeError
@@ -755,7 +755,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 6
+                ) > 8
         )[0]) == 0:
             print("For some reason, no bins were selected, check this out:",
                   np.array(
@@ -776,7 +776,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 6
+                ) > 8
             )[0]  # because it's a tuple
         )
         try:
