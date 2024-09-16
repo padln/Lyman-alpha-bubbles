@@ -366,7 +366,7 @@ def _get_likelihood_cache(
                 #     )
                 # else:
                 data_to_get = 5*np.log10(
-                    10**18.7 * (additive_factors[bin_i-2] + 2*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
+                    10**18.7 * (additive_factors[bin_i-2] + 3*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                 )
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
@@ -383,7 +383,7 @@ def _get_likelihood_cache(
                 spec_kde = KernelDensity(
                     #kernel='epanechnikov',
                     kernel='exponential',
-                    bandwidth=0.15
+                    bandwidth=0.12
                 ).fit(
                     data_to_get.T
                 )
