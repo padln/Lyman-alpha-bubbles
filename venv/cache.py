@@ -392,7 +392,7 @@ def _get_likelihood_cache(
                 # if bin_i < 7:
                 data_to_eval = 5*np.log10(
                         (10**18.7 * (
-                            additive_factors[bin_i-2] + 2*like_on_flux[ind_data][
+                            additive_factors[bin_i-2] + 3*like_on_flux[ind_data][
                                     bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(1,len_bin)
                 )
@@ -755,7 +755,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 7
+                ) > 6
         )[0]) == 0:
             print("For some reason, no bins were selected, check this out:",
                   np.array(
@@ -776,7 +776,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 7
+                ) > 6
             )[0]  # because it's a tuple
         )
         try:
