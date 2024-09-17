@@ -627,7 +627,7 @@ def _get_likelihood(
                 #         data_to_eval
                 #     )
                 # )
-                likelihood_spec[:ind_data, bin_i - 1] += spec_kde.score_samples(
+                likelihood_spec[:ind_data+1, bin_i - 1] += spec_kde.score_samples(
                     data_to_eval
                 )
 
@@ -650,7 +650,7 @@ def _get_likelihood(
 
                     spec_kde = KernelDensity(
                         kernel='exponential',
-                        bandwidth=0.10
+                        bandwidth=0.12
                     ).fit(
                         data_to_get.T
                     )
@@ -667,7 +667,7 @@ def _get_likelihood(
                     #         data_to_eval
                     #     )
                     # )
-                    likelihood_spec_cp[:ind_data, bin_i - 1] += spec_kde.score_samples(
+                    likelihood_spec_cp[:ind_data+1, bin_i - 1] += spec_kde.score_samples(
                         data_to_eval
                     )
                         # except LinAlgError:
