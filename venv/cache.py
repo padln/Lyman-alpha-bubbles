@@ -365,8 +365,8 @@ def _get_likelihood_cache(
                 #         10**18.7 * (9e-19 + 2*spec_line[:, bin_i - 1, 1:bin_i]).T
                 #     )
                 # else:
-                data_to_get = 5*np.log10(
-                    10**18.7 * (additive_factors[bin_i-2] *1.5 + 3*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
+                data_to_get = np.log10(
+                    10**19 * (additive_factors[bin_i-2] *1.5 + 3*spec_line[:, bin_i - 1, np.array(bins_likelihood[bin_i-2])]).T
                 )
                 if np.any(np.isnan(data_to_get.flatten())):
                     print(np.shape(data_to_get), flush=True)
@@ -390,8 +390,8 @@ def _get_likelihood_cache(
                 len_bin = len(np.array(bins_likelihood[bin_i-2]))
 
                 # if bin_i < 7:
-                data_to_eval = 5*np.log10(
-                        (10**18.7 * (
+                data_to_eval = np.log10(
+                        (10**19 * (
                             additive_factors[bin_i-2]*1.5 + 3*like_on_flux[ind_data][
                                     bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(1,len_bin)
