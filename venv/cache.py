@@ -408,7 +408,7 @@ def _get_likelihood_cache(
                 #         data_to_eval
                 #     )
                 # )
-                likelihood_spec[:ind_data, bin_i - 1] += spec_kde.score_samples(
+                likelihood_spec[:ind_data+1, bin_i - 1] += spec_kde.score_samples(
                     data_to_eval
                 )
                 if spec_kde.score_samples(
@@ -418,13 +418,13 @@ def _get_likelihood_cache(
                     print("This is the data to get", data_to_get, flush=True)
 
         if flux_int[ind_data] < flux_limit:
-            likelihood_int[:ind_data] += np.log(flux_kde.integrate_box(0.05,
+            likelihood_int[:ind_data+1] += np.log(flux_kde.integrate_box(0.05,
                                                                         np.log10(
                                                                             1e19 * (
                                                                                     3e-19 + flux_limit))))
 
         else:
-            likelihood_int[:ind_data] += np.log(flux_kde.evaluate(
+            likelihood_int[:ind_data+1] += np.log(flux_kde.evaluate(
                 np.log10(1e19 * (3e-19 + flux_int[ind_data])))
             )
 
