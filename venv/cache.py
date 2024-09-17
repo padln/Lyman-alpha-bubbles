@@ -392,7 +392,7 @@ def _get_likelihood_cache(
                 # if bin_i < 7:
                 data_to_eval = 10 * np.log10(
                         (10**18.7 * (
-                            additive_factors[bin_i-2]*1.5 + 3*like_on_flux[ind_data][
+                            additive_factors[bin_i-2]*2.0 + 3*like_on_flux[ind_data][
                                     bin_i - 1, np.array(bins_likelihood[bin_i-2])])
                         ).reshape(1,len_bin)
                 )
