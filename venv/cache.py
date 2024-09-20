@@ -383,7 +383,7 @@ def _get_likelihood_cache(
                 spec_kde = KernelDensity(
                     #kernel='epanechnikov',
                     kernel='exponential',
-                    bandwidth=0.12
+                    bandwidth=0.10
                 ).fit(
                     data_to_get.T
                 )
@@ -755,7 +755,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 6
+                ) > 7
         )[0]) == 0:
             print("For some reason, no bins were selected, check this out:",
                   np.array(
@@ -776,7 +776,7 @@ def cache_main(
                             np.concatenate(list_of_indices).ravel()
                         ).count(i) for i in range(bin_i_choice)
                     ]
-                ) > 6
+                ) > 7
             )[0]  # because it's a tuple
         )
         try:
