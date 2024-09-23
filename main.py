@@ -273,7 +273,8 @@ def _get_likelihood(
                 for indi_rm in inds_inds_rm:
 
                     shift_sm = np.random.normal(0.0,0.1)
-
+                    dist = comoving_distance_from_source_Mpc(red_s,
+                                                             z_end_bub).value
                     tau_now_i[indi_rm] = np.clip(tau_wv(
                         wave_em,
                         dist=np.abs(dist),
