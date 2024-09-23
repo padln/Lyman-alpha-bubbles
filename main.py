@@ -264,7 +264,26 @@ def _get_likelihood(
             del fi_bu_en_czl_i, fi_bu_en_czu_i, fi_bu_en_rl_i, fi_bu_en_ru_i
 
             tau_sh = np.shape(tau_now_i)
+
+            if np.any(np.any(tau_now_i[:, 30:] - tau_now_i[:, 29:-1] > 0.0,
+                             axis=1)):
+                inds_inds_rm = np.where(
+                    np.any(tau_now_i[:, 30:] - tau_now_i[:, 29:-1] > 0.0,
+                           axis=1)).flatten()
+                for indi_rm in inds_inds_rm:
+
+                    shift_sm = np.random.normal(0.0,0.1)
+
+                    tau_now_i[indi_rm] = np.clip(tau_wv(
+                        wave_em,
+                        dist=np.abs(dist),
+                        zs=red_s,
+                        z_end=5.3,
+                        nf=0.65
+                    ) + shift_sm, a_min=0.0,a_max=np.inf)
+
             tau_now_i_fl = tau_now_i.flatten()
+
             tau_now_i_fl[tau_now_i_fl < 0.0] = np.inf
             tau_now_i = tau_now_i_fl.reshape(tau_sh)
             tau_now_i = np.nan_to_num(tau_now_i, np.inf)
