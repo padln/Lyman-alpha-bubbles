@@ -267,9 +267,9 @@ def _get_likelihood(
 
             if np.any(np.any(tau_now_i[:, 30:] - tau_now_i[:, 29:-1] > 0.0,
                              axis=1)):
-                inds_inds_rm = np.where(
+                inds_inds_rm = np.array(np.where(
                     np.any(tau_now_i[:, 30:] - tau_now_i[:, 29:-1] > 0.0,
-                           axis=1)).flatten()
+                           axis=1))).flatten()
                 for indi_rm in inds_inds_rm:
 
                     shift_sm = np.random.normal(0.0,0.1)
@@ -281,6 +281,7 @@ def _get_likelihood(
                         z_end=5.3,
                         nf=0.65
                     ) + shift_sm, a_min=0.0,a_max=np.inf)
+
 
             tau_now_i_fl = tau_now_i.flatten()
 
