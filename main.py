@@ -1415,6 +1415,7 @@ if __name__ == '__main__':
         else:
             one_J = np.array(cl_load.f['Lyman_alpha_J'])
         la_e = np.array(cl_load.f['Lyman_alpha_lums'])
+        la_e_orig = np.array(cl_load.f['Lyman_alpha_lums_orig'])
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
         cl_load.close_file()
