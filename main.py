@@ -786,7 +786,8 @@ def sample_bubbles_grid(
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
         la_e_orig=None,
         r_min_grid=5.0,
-        r_max_grid=15.0
+        r_max_grid=15.0,
+        dist_grid_max=5.0
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -844,15 +845,15 @@ def sample_bubbles_grid(
 
     # z_min = -12.5
     # z_max = 12.5
-    z_min = -5.0
-    z_max = 5.0
+    z_min = -dist_grid_max
+    z_max = dist_grid_max
     r_min = r_min_grid
     r_max = r_max_grid
     z_grid = np.linspace(z_min, z_max, n_grid)
     # x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
     # y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
-    x_grid = np.linspace(-5.0, 5.0, n_grid)
-    y_grid = np.linspace(-5.0, 5.0, n_grid)
+    x_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
+    y_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
     r_grid = np.linspace(r_min, r_max, n_grid)
     # print("multiple_iter", multiple_iter, flush=True)
     # assert False
@@ -1114,6 +1115,7 @@ if __name__ == '__main__':
     parser.add_argument("--max_dist", type=float, default=15.0)
     parser.add_argument("--r_min", type=float, default=5.0)
     parser.add_argument("--r_max", type=float, default=15.0)
+    parser.add_argument("--dist_grid_max", type=float, default=5.0)
     parser.add_argument("--n_gal", type=int, default=20)
     parser.add_argument("--obs_pos", action="store_true")
     parser.add_argument("--diff_mags", action="store_false")
@@ -1701,6 +1703,7 @@ if __name__ == '__main__':
         la_e_orig = la_e_orig,
         r_min_grid = inputs.r_min,
         r_max_grid = inputs.r_max,
+        dist_grid_max = inputs.dist_grid_max,
     )
 
     dict_to_save_data = dict()
