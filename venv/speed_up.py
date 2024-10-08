@@ -326,7 +326,7 @@ def calculate_taus_prep(
         x_small,
         y_small,
         z_small,
-        r_bubbles,HdF5Saver
+        r_bubbles,
         z_source,
         n_iter=500,
         dist=10,
