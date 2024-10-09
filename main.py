@@ -1418,6 +1418,7 @@ if __name__ == '__main__':
         la_e_orig = np.array(cl_load.f['Lyman_alpha_lums_orig'])
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
+        flux_nonoise_save = np.array(cl_load.f['flux_no_noise'])
         cl_load.close_file()
         redshifts_of_mocks = np.zeros(n_gal)
         for i in range(n_gal):
