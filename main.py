@@ -808,7 +808,8 @@ def sample_bubbles_grid(
         la_e_orig=None,
         r_min_grid=5.0,
         r_max_grid=15.0,
-        dist_grid_max=5.0
+        dist_grid_max=5.0,
+        no_xy=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -873,8 +874,12 @@ def sample_bubbles_grid(
     z_grid = np.linspace(z_min, z_max, n_grid)
     # x_grid = np.linspace(x_min, x_max, n_grid)[5:6]
     # y_grid = np.linspace(y_min, y_max, n_grid)[5:6]
-    x_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
-    y_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
+    if no_xy:
+        x_grid = np.linspace(-0.0, 0.0, 1)
+        y_grid = np.linspace(-0.0, 0.0, 1)
+    else:
+        x_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
+        y_grid = np.linspace(-dist_grid_max, dist_grid_max, n_grid)
     r_grid = np.linspace(r_min, r_max, n_grid)
     # print("multiple_iter", multiple_iter, flush=True)
     # assert False
@@ -1157,7 +1162,7 @@ if __name__ == '__main__':
     parser.add_argument("--flux_limit", type=float, default=1e-18)
     parser.add_argument("--uvlf_consistently", action="store_true")
     parser.add_argument("--fluct_level", type=float, default=None)
-
+    parser.add_argument("--no_xy", action="store_true")
     parser.add_argument("--like_on_flux", action="store_false")
 
     parser.add_argument("--resolution_worsening", type=float, default=1)
@@ -1727,6 +1732,7 @@ if __name__ == '__main__':
         r_min_grid = inputs.r_min,
         r_max_grid = inputs.r_max,
         dist_grid_max = inputs.dist_grid_max,
+        no_xy=inputs.no_xy
     )
 
     dict_to_save_data = dict()
