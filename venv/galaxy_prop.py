@@ -249,7 +249,7 @@ def get_mock_data(
 
         if np.any(tau[:,30:]-tau[:,29:-1]>0.0):
             print("It happens for mocks:", tau, flush=True)
-            print(x_b, y_b,z_b, r_bubs, z_end_bub, xs, ys, dist)
+            print(x_b, y_b,z_b, r_bubs, z_end_bub, xs, ys, dist, flush=True)
             raise ValueError
 
         tau = np.nan_to_num(tau, np.inf)
