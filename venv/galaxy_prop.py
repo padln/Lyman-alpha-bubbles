@@ -14,7 +14,8 @@ from venv.helpers import (
     gaussian,
     optical_depth,
     z_at_proper_distance,
-    hmf_integral_gtm
+    hmf_integral_gtm,
+    comoving_distance_from_source_Mpc
 )
 from venv.igm_prop import get_bubbles, calculate_taus
 from venv.igm_prop import calculate_taus_i
