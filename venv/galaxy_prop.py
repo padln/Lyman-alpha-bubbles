@@ -18,7 +18,7 @@ from venv.helpers import (
     comoving_distance_from_source_Mpc
 )
 from venv.igm_prop import get_bubbles, calculate_taus
-from venv.igm_prop import calculate_taus_i
+from venv.igm_prop import calculate_taus_i, tau_wv
 
 from venv.data.EndSta import get_ENDSTA_gals
 
