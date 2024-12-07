@@ -248,9 +248,23 @@ def get_mock_data(
         )
 
         if np.any(tau[:,30:]-tau[:,29:-1]>0.0):
+            inds_inds_rm = np.array(np.where(
+                np.any(tau[:, 30:] - tau[:, 29:-1] > 0.0,
+                       axis=1))).flatten()
+            for indi_rm in inds_inds_rm:
+                shift_sm = np.random.normal(0.0, 0.1)
+                dist = comoving_distance_from_source_Mpc(red_s,
+                                                         z_end_bub)
+                tau[indi_rm] = np.clip(tau_wv(
+                    wave_em,
+                    dist=np.abs(dist),
+                    zs=red_s,
+                    z_end=5.3,
+                    nf=0.65
+                ) + shift_sm, a_min=0.0, a_max=np.inf)
+
             print("It happens for mocks:", tau, flush=True)
             print(x_b, y_b,z_b, r_bubs, z_end_bub, xs, ys, dist, flush=True)
-            raise ValueError
 
         tau = np.nan_to_num(tau, np.inf)
         tau_data[i, :] = tau
