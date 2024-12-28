@@ -59,6 +59,7 @@ def _get_likelihood(
         dir_name=None,
         main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
         la_e_orig=None,
+        prior_on_all=False,
 ):
     """
 
@@ -365,26 +366,38 @@ def _get_likelihood(
                 raise ValueError
 
             if constrained_prior:
-                if flux_int[index_gal] > 2 * flux_limit:
-                    for index_tau_for, lae_i_for in enumerate(
-                            cont_filled.la_flux_out_full[
-                                index_gal_eff
-                            ][
-                            n * n_inside_tau:(n + 1) * n_inside_tau
-                            ]
+                if prior_on_all:
+                    for index_tau_for, fesci in enumerate(
+                            res
                     ):
-                        li_pert = 10 ** (
-                            np.log10(
-                                la_e_orig[index_gal]
-                            ) + np.random.normal(0.0, 0.2)
-                        )
-
-                        if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
+                        if abs(tau_data[index_gal] - fesci) < 0.2:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 1
                         else:
                             keep_conp[
                                 index_gal, n * n_inside_tau + index_tau_for] = 0
+
+                else:
+                    if flux_int[index_gal] > 2 * flux_limit:
+                        for index_tau_for, lae_i_for in enumerate(
+                                cont_filled.la_flux_out_full[
+                                    index_gal_eff
+                                ][
+                                n * n_inside_tau:(n + 1) * n_inside_tau
+                                ]
+                        ):
+                            li_pert = 10 ** (
+                                np.log10(
+                                    la_e_orig[index_gal]
+                                ) + np.random.normal(0.0, 0.2)
+                            )
+
+                            if abs(np.log10(lae_i_for) - np.log10(li_pert)) < width_conp:
+                                keep_conp[
+                                    index_gal, n * n_inside_tau + index_tau_for] = 1
+                            else:
+                                keep_conp[
+                                    index_gal, n * n_inside_tau + index_tau_for] = 0
 
             #del res
             #del flux_now_i
@@ -810,6 +823,7 @@ def sample_bubbles_grid(
         r_max_grid=15.0,
         dist_grid_max=5.0,
         no_xy=False,
+        prior_on_all=False,
 ):
     """
     The function returns the grid of likelihood values for given input
@@ -966,6 +980,7 @@ def sample_bubbles_grid(
                     main_dir=main_dir,
                     cache_dir=cache_dir,
                     la_e_orig=la_e_orig[ind_iter],
+                    prior_on_all=prior_on_all,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
@@ -1071,6 +1086,7 @@ def sample_bubbles_grid(
                 main_dir=main_dir,
                 cache_dir=cache_dir,
                 la_e_orig=la_e_orig,
+                prior_on_all=prior_on_all,
             ) for index, (xb, yb, zb, rb) in enumerate(
                 itertools.product(x_grid, y_grid, z_grid, r_grid)
             )
@@ -1184,6 +1200,8 @@ if __name__ == '__main__':
     parser.add_argument("--main_dir", type=str, default="/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
+
+    parser.add_argument("--prior_on_all", action="store_true")
     inputs = parser.parse_args()
 
     if inputs.use_cache is not None:
@@ -1202,11 +1220,13 @@ if __name__ == '__main__':
             inputs.consistent_noise,
             inputs.noise_on_the_spectrum,
             inputs.gauss_distr,
+            inputs.prior_on_all,
             r_min = inputs.r_min,
             r_max = inputs.r_max
         )
         sys.exit(0)
-
+    if inputs.prior_on_all:
+        pass
     if inputs.uvlf_consistently:
         if inputs.fluct_level is None:
             raise ValueError("set you density value")
@@ -1732,7 +1752,8 @@ if __name__ == '__main__':
         r_min_grid = inputs.r_min,
         r_max_grid = inputs.r_max,
         dist_grid_max = inputs.dist_grid_max,
-        no_xy=inputs.no_xy
+        no_xy=inputs.no_xy,
+        prior_on_all=inputs.prior_on_all,
     )
 
     dict_to_save_data = dict()

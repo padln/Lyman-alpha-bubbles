@@ -192,6 +192,7 @@ def _get_likelihood_cache(
         noise_on_the_spectrum=2e-20,
         additive_factors=None,
         bins_likelihood=None,
+        prior_on_all=False,
 ):
     if constrained_prior:
         width_conp = 0.3
@@ -234,6 +235,8 @@ def _get_likelihood_cache(
             #         else:
             #             keep_conp[
             #                 index_gal, n * n_inside_tau + index_tau_for] = 0
+            if prior_on_all:
+                pass
 
             if flux_int[index_gal] > 2 * flux_limit:
                 for index_tau_for, lae_i_for in enumerate(lae_now):
@@ -462,6 +465,7 @@ def cache_main(
     consistent_noise,
     noise_on_the_spectrum,
     gauss_distr=False,
+    prior_on_all=False,
     r_min=5.0,
     r_max=15.0,
 ):
@@ -866,6 +870,7 @@ def cache_main(
                     noise_on_the_spectrum=noise_on_the_spectrum,
                     additive_factors=additive_factors,
                     bins_likelihood=bins_likelihood,
+                    prior_on_all=prior_on_all,
                 ) for index, (xb, yb, zb, rb) in enumerate(
                     itertools.product(x_grid, y_grid, z_grid, r_grid)
                 )
