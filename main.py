@@ -593,8 +593,8 @@ def _get_likelihood(
                 print("What is the fl_l_cp:", fl_l_cp)
                 print("This is the length", len(fl_l_cp))
                 raise ValueError
-            # print(len(spec_kde), flush=True)
-            # print(len(list(range(6,len(bins)))), flush=True)
+            print(len(spec_kde), flush=True)
+            print(len(list(range(6,len(bins)))), flush=True)
             # like_on_flux = np.array(like_on_flux)
             # print(np.shape(like_on_flux), flush=True)
             # print(ind_data, "index_data", flush=True)
@@ -688,7 +688,7 @@ def _get_likelihood(
                     ).fit(
                         data_to_get.T
                     )
-
+                    print(np.shape(data_to_get), "This is the shape of constrained prior", flush=True)
                     len_bin = len(np.array(bins_likelihood[bin_i - 2]))
                     data_to_eval = 5 * np.log10(
                         (10**18.7 * (
