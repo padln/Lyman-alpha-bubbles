@@ -439,10 +439,14 @@ def p_EW(
         high_prob_emit=False,
         EW_fixed=False,
         gauss_distr=False,
+        Tang_distr=False
 ):
     """
     Function shall give sample from the distribution
     """
+
+    if gauss_distr and Tang_distr:
+        raise ValueError("Both Gauss and Tang+24 distributions are set to True")
 
     def A(m):
         if high_prob_emit:
@@ -452,6 +456,12 @@ def p_EW(
 
     def W(m):
         return 31 + 12 * np.tanh(4 * (m + 20.25))
+
+    def p_Tang(W):
+        mu = np.log(5.0)
+        sigma = 1.74
+        return 1 / np.sqrt(2 * np.pi) / sigma / W * np.exp(
+            -(np.log(W) - mu) ** 2 / 2 / sigma ** 2)
 
     if EW_fixed:
         if hasattr(beta, '__len__'):
@@ -483,6 +493,18 @@ def p_EW(
         if return_lum:
             lum_alpha = np.zeros((len(Muv)))
         for i, (muvi, beti) in enumerate(zip(Muv, beta)):
+
+            if Tang_distr:
+                EW_cumsum_tang = integrate.cumtrapz(
+                    p_Tang(Ws),
+                    Ws
+                )
+                cumsum_Tang = EW_cumsum_tang / EW_cumsum_tang[-1]
+                rn = np.random.uniform(size=1)
+                EW_new_Tang = np.interp(
+                    rn,
+                    np.concatenate((np.array([0.0]), cumsum_Tang)), Ws)[0]
+
             if np.random.binomial(1, A(muvi)):
                 if not gauss_distr:
                     EW_cumsum = integrate.cumtrapz(
@@ -500,7 +522,11 @@ def p_EW(
                 np.interp(rn, np.concatenate((np.array([0.0]), cumsum)), Ws)[0]
             else:
                 EW_now = 0.0
-            EWs[i] = EW_now
+
+            if Tang_distr:
+                EWs[i] = EW_new_Tang
+            else:
+                EWs[i] = EW_now
             if return_lum:
                 C_const = 2.47 * 1e15 * u.Hz / 1216 / u.Angstrom * (
                             1500 / 1216) ** (-(beti) - 2)
@@ -511,6 +537,22 @@ def p_EW(
         else:
             return EWs
     else:
+
+        if Tang_distr:
+            EW_cumsum_tang = integrate.cumtrapz(
+                p_Tang(Ws),
+                Ws
+            )
+            cumsum_Tang = EW_cumsum_tang / EW_cumsum_tang[-1]
+            rn = np.random.uniform(size=1)
+            EW_new_Tang = np.interp(
+                rn,
+                np.concatenate((np.array([0.0]), cumsum_Tang)), Ws)[0]
+            if return_lum:
+                return EW_new_Tang, EW_new_Tang * C_const.value * L_UV_mean
+            else:
+                return EW_new_Tang
+
         if np.random.binomial(1, A(Muv)):
             if not gauss_distr:
                 EW_cumsum = integrate.cumtrapz(1 / W(Muv) * np.exp(-Ws / W(Muv)),

@@ -1200,6 +1200,7 @@ if __name__ == '__main__':
     parser.add_argument("--main_dir", type=str, default="/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
     parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
+    parser.add_argument("--Tang_distr", action="store_true")
 
     parser.add_argument("--prior_on_all", action="store_true")
     inputs = parser.parse_args()
@@ -1220,6 +1221,7 @@ if __name__ == '__main__':
             inputs.consistent_noise,
             inputs.noise_on_the_spectrum,
             inputs.gauss_distr,
+            inputs.Tang_distr,
             inputs.prior_on_all,
             r_min = inputs.r_min,
             r_max = inputs.r_max
@@ -1408,7 +1410,8 @@ if __name__ == '__main__':
                 beta.flatten(),
                 high_prob_emit=inputs.high_prob_emit,
                 EW_fixed=inputs.EW_fixed,
-                gauss_distr=inputs.gauss_distr
+                gauss_distr=inputs.gauss_distr,
+                Tang_distr=inputs.Tang_distr,
             )
         ew_factor = ew_factor.reshape((np.shape(Muv)))
         ew_factor_orig = np.copy(ew_factor)
@@ -1720,6 +1723,7 @@ if __name__ == '__main__':
         main_dir=inputs.main_dir,
         cache_dir=inputs.cache_dir,
         gauss_distr=inputs.gauss_distr,
+        Tang_distr=inputs.Tang_distr,
     )
 
     likelihoods, names_used = sample_bubbles_grid(

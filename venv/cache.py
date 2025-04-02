@@ -465,6 +465,7 @@ def cache_main(
     consistent_noise,
     noise_on_the_spectrum,
     gauss_distr=False,
+    Tang_distr=False,
     prior_on_all=False,
     r_min=5.0,
     r_max=15.0,
@@ -486,7 +487,7 @@ def cache_main(
     else:
         n_gal = len(Muv)
 
-    if not gauss_distr:
+    if not gauss_distr and not Tang_distr:
         la_e = np.array(cl_load.f['Lyman_alpha_lums_orig'])
     else:
         one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
@@ -496,7 +497,8 @@ def cache_main(
         ew_factor, la_e_orig = p_EW(
             Muv.flatten(),
             beta.flatten(),
-            gauss_distr=gauss_distr
+            gauss_distr=gauss_distr,
+            Tang_distr=Tang_distr,
         )
         if mult_iter:
             area_factor = np.zeros((mult_iter, n_gal))
@@ -537,7 +539,7 @@ def cache_main(
         )
         redshifts_of_mocks[i] = red_s
     redshifts_of_mocks = redshifts_of_mocks.reshape(np.shape(Muv))
-    if not gauss_distr:
+    if not gauss_distr and not Tang_distr:
         flux_spectrum_mock = np.array(cl_load.f['flux_spectrum'])
         flux_tau = np.array(cl_load.f['flux_integrated'])
     else:
@@ -636,7 +638,7 @@ def cache_main(
         flux_tau += np.random.normal(0, 5e-20, np.shape(flux_tau))
 
     #this part of code calculates flux if noise is different
-    if not gauss_distr and noise_on_the_spectrum is not 2e-20:
+    if not gauss_distr and not Tang_distr and noise_on_the_spectrum is not 2e-20:
         la_e_comp = np.array(cl_load.f['Lyman_alpha_lums'])
         one_J_arr = np.array(cl_load.f['Lyman_alpha_J'])
         td = np.array(cl_load.f['full_tau'])
@@ -971,7 +973,7 @@ def cache_main(
         dict_to_save_data['likelihoods_int'] = likelihood_grid_int
         dict_to_save_data['likelihoods_spec'] = likelihood_grid_spec
 
-    if gauss_distr:
+    if gauss_distr or Tang_distr:
         dict_to_save_data['la_e_comp'] = la_e_comp
         dict_to_save_data['la_e_orig'] = la_e_orig
         dict_to_save_data['area_factor'] = area_factor
