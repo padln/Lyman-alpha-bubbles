@@ -22,6 +22,8 @@ from venv.save import HdF5Saver, HdF5SaverAft, HdF5SaveMocks, HdF5LoadMocks
 from venv.helpers import z_at_proper_distance, full_res_flux, perturb_flux, comoving_distance_from_source_Mpc
 from venv.speed_up import get_content, calculate_taus_post
 from venv.cache import cache_main
+import warnings
+warnings.filterwarnings("ignore", message="Your configuration file is out of date. Updating...")
 
 wave_em = np.linspace(1214, 1225., 100) * u.Angstrom
 wave_Lya = 1215.67 * u.Angstrom
@@ -45,7 +47,7 @@ def _get_likelihood(
         flux_int=None,
         flux_limit=1e-18,
         like_on_flux=False,
-        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        cache_dir='/Users/nathan/Desktop/Lyalpha_bubbles/_cache/',
         n_inside_tau=50,
         bins_tot=20,
         cache=True,
@@ -57,7 +59,7 @@ def _get_likelihood(
         constrained_prior=False,
         reds_of_galaxies=None,
         dir_name=None,
-        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
+        main_dir='/Users/nathan/Desktop/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
         la_e_orig=None,
         prior_on_all=False,
 ):
@@ -816,8 +818,8 @@ def sample_bubbles_grid(
         cont_filled=None,
         constrained_prior=False,
         redshifts_of_mocks=None,
-        main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/',
-        cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
+        main_dir='/Users/nathan/Desktop/Lyalpha_bubbles/code/Lyman-alpha-bubbles/',
+        cache_dir='/Users/nathan/Desktop/Lyalpha_bubbles/_cache/',
         la_e_orig=None,
         r_min_grid=5.0,
         r_max_grid=15.0,
@@ -1173,7 +1175,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--save_dir",
         type=str,
-        default='/home/inikolic/projects/Lyalpha_bubbles/code/'
+        default='/Users/nathan/Desktop/Lyalpha_bubbles/code/'
     )
     parser.add_argument("--flux_limit", type=float, default=1e-18)
     parser.add_argument("--uvlf_consistently", action="store_true")
@@ -1197,8 +1199,8 @@ if __name__ == '__main__':
     parser.add_argument("--consistent_noise", action="store_true")
     parser.add_argument("--constrained_prior", action="store_true")
     parser.add_argument("--AH22_model", action="store_true")
-    parser.add_argument("--main_dir", type=str, default="/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
-    parser.add_argument("--cache_dir", type=str, default='/home/inikolic/projects/Lyalpha_bubbles/_cache/')
+    parser.add_argument("--main_dir", type=str, default="/Users/nathan/Desktop/Lyalpha_bubbles/code/Lyman-alpha-bubbles/")
+    parser.add_argument("--cache_dir", type=str, default='/Users/nathan/Desktop/Lyalpha_bubbles/_cache/')
     parser.add_argument("--gauss_distr", action="store_true")
     parser.add_argument("--Tang_distr", action="store_true")
 

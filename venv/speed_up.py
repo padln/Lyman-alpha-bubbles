@@ -93,6 +93,7 @@ def get_content(
         cache_dir='/home/inikolic/projects/Lyalpha_bubbles/_cache/',
         main_dir='/home/inikolic/projects/Lyalpha_bubbles/code/Lyman-alpha-bubbles',
         gauss_distr=False,
+        Tang_distr=False,
 ):
     """
         Function fills up the container which has all of the forward model parts
